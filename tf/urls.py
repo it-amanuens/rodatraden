@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('', include('rodatraden.urls')),
-    path('admin/', admin.site.urls),
+    path('', include('rodatraden.urls')), # Röda tråden
+    # Stuff built-in  in django
+    path('accounts/', include('django.contrib.auth.urls')), # User management
+    path('admin/', admin.site.urls), # Admin page
 ]

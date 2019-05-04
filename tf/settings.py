@@ -55,7 +55,7 @@ ROOT_URLCONF = 'tf.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,3 +119,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Authentication
+LOGIN_REDIRECT_URL = 'index' # Where to send after login
+LOGOUT_REDIRECT_URL = 'index' # Where to send after logout
