@@ -15,5 +15,9 @@ Hi {{ user.username }}!
 <a href="{% url 'login' %}">
   Login
 </a>
+<br>
+<a href="{% url 'signup' %}">
+  Create user
+</a>
 {% endif %}
 {% endblock %}

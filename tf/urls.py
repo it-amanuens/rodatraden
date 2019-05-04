@@ -18,6 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
+    path('accounts/', include('signup.urls')), # Own signup app
     # Stuff built-in  in django
     path('accounts/', include('django.contrib.auth.urls')), # User management
     path('admin/', admin.site.urls), # Admin page
