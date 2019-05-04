@@ -20,6 +20,9 @@ class Department(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+    def __str__(self):
+        return self.title
+
 class Level(models.Model):
     """
     Grundläggande or avancerad
@@ -33,6 +36,9 @@ class Level(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+
+    def __str__(self):
+        return self.title
 
 class Profile(models.Model):
     """
@@ -56,6 +62,9 @@ class Profile(models.Model):
     # Slug
     slug = models.SlugField(unique_for_date='created_at')
 
+    def __str__(self):
+        return self.title
+
 class Category(models.Model):
     """
     Categories for different exam goals
@@ -78,6 +87,9 @@ class Category(models.Model):
     # Slug
     slug = models.SlugField(unique_for_date='created_at')
 
+    def __str__(self):
+        return self.title
+
 class Track(models.Model):
     """
     (Spår). Tracks can be connected to profiles
@@ -95,6 +107,9 @@ class Track(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+
+    def __str__(self):
+        return self.title
 
 class Course(models.Model):
     """
@@ -133,6 +148,9 @@ class Course(models.Model):
     # Slug
     slug = models.SlugField(unique_for_date='created_at')
 
+    def __str__(self):
+        return self.title
+
 class CategoryCourse(models.Model):
     """
     Intermediary to the many-to-many relationship between courses and
@@ -148,7 +166,6 @@ class CategoryCourse(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
-
 
 class CourseOccasion(models.Model):
     """
@@ -176,6 +193,10 @@ class CourseOccasion(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+    def __str__(self):
+        return course.title + " " + str(year)
+
+
 class Block(models.Model):
     """
     Blockscheman!
@@ -196,6 +217,9 @@ class Block(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+    def __title__(self):
+        return self.title + " " + user.username
+
 class Page(models.Model):
     """
     Unsure what this is used for
@@ -211,6 +235,9 @@ class Page(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+    def __title__(self):
+        return self.title
+
 class AcademicYears(models.Model):
     """
     Läsperioder, such as year 2018 is associated with the period 18/19
@@ -222,6 +249,9 @@ class AcademicYears(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+
+    def __title__(self):
+        return self.title
 
 class Exam(models.Model):
     """
@@ -240,6 +270,9 @@ class Exam(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+
+    def __title__(self):
+        return self.title
 
 class CategoryExam(models.Model):
     """
@@ -275,6 +308,9 @@ class PrivateCourse(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+
+    def __title__(self):
+        return self.title + " " + user.username
 
 class PrivateCourseCategory(models.Model):
     """
