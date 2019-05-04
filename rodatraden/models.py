@@ -1,4 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+# Get the user model
+User = get_user_model()
 
 # Create your models here.
 class Department(models.Model):
@@ -50,7 +54,7 @@ class Profile(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = SlugField()
+    slug = models.SlugField(unique_for_date='created_at')
 
 class Category(models.Model):
     """
@@ -72,7 +76,7 @@ class Category(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = SlugField()
+    slug = models.SlugField(unique_for_date='created_at')
 
 class Track(models.Model):
     """
@@ -101,7 +105,7 @@ class Course(models.Model):
     # Kurskod
     code = models.CharField(max_length=6)
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(3,1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1)
     # If the course is approved
     approved = models.BooleanField(default=True)
     # I think this is to check if the course will still continue
@@ -125,9 +129,9 @@ class Course(models.Model):
     categories = models.ManyToManyField(Category, through='CategoryCourse')
     tracks = models.ManyToManyField(Track)
     # Connected to itself via prerequisites
-    prerequisites = models.ManyToManyField('self')
+    prerequisites = models.ManyToManyField("self")
     # Slug
-    slug = SlugField()
+    slug = models.SlugField(unique_for_date='created_at')
 
 class CategoryCourse(models.Model):
     """
@@ -138,7 +142,7 @@ class CategoryCourse(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(3,1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -200,7 +204,7 @@ class Page(models.Model):
     content = models.CharField(max_length=200, blank=True)
     image = models.ImageField(upload_to='pages/%Y/%m/%d/')
     # Slug
-    slug = SlugField()
+    slug = models.SlugField(unique_for_date='created_at')
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -225,7 +229,7 @@ class Exam(models.Model):
     """
     title = models.CharField(max_length=50)
     year = models.IntegerField()
-    ects = models.DecimalField(3,1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1)
     # Kurskod
     code = models.CharField(max_length=6, blank=True)
     note = models.CharField(max_length=50, blank=True)
@@ -245,7 +249,7 @@ class CategoryExam(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(3,1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -259,7 +263,7 @@ class PrivateCourse(models.Model):
     title = models.CharField(max_length=50)
     year = models.IntegerField()
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(3,1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1)
     note = models.CharField(max_length=50, blank=True)
     start = models.IntegerField()
     weeks = models.IntegerField()
@@ -280,7 +284,7 @@ class PrivateCourseCategory(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     private_course = models.ForeignKey(PrivateCourse, on_delete=models.CASCADE)
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(3,1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
