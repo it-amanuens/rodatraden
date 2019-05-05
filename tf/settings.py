@@ -32,6 +32,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'rodatraden.apps.RodatradenConfig',
+    'bootstrap4',
+    'crispy_forms',
     'signup.apps.SignupConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -129,3 +131,6 @@ STATIC_URL = '/static/'
 # Authentication
 LOGIN_REDIRECT_URL = 'index' # Where to send after login
 LOGOUT_REDIRECT_URL = 'index' # Where to send after logout
+
+# Crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

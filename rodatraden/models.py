@@ -210,7 +210,7 @@ class Block(models.Model):
     # Connected to one user
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Can have course occasions many blocks
-    courseoccasion = models.ForeignKey(CourseOccasion, on_delete=models.CASCADE)
+    courseoccasion = models.ManyToManyField(CourseOccasion)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)

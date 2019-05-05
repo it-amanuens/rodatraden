@@ -1,5 +1,6 @@
-<!-- Login template -->
+<!-- Login template --> 
 {% extends 'rodatraden/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block title %}Login{% endblock %}
 
@@ -7,7 +8,9 @@
 <h2>Login</h2>
 <form method="post">
   {% csrf_token %}
-  {{ form.as_p }}
+  {{ form|crispy }}
+  {% comment %}{{ form.field|as_crispy_field }}{% endcomment %}
   <button type="submit">Login</button>
+  <a class="nav-link" href="{% url 'password_reset' %}">Återställ lösenord</a>
 </form>
 {% endblock %}

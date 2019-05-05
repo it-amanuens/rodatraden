@@ -1,25 +1,24 @@
 {% extends 'rodatraden/base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Hem{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-<p>Hi {{ user.username }}!</p>
-<p><a href="{% url 'logout' %}">
-  Logout
-</a></p>
-{% else %}
-<p>
-  You are not logged in
-</p>
-<p><a href="{% url 'login' %}">
-  Login
-</a></p>
-<p><a href="{% url 'signup' %}">
-  Create user
-</a></p>
-{% endif %}
-<p><a href="{% url 'password_reset' %}">
-  Reset password
-</a></p>
+
+<div class="starter-template">
+  <h1 style="text-align: center;">Röda Tråden 4</h1>
+  <p class="lead">
+  Röda tråden är en databas med information om kurserna på Teknisk fysik i Umeå. Den är till för dig som undrar över något om kurserna inom teknisk fysik. Du kan vara student, kursansvarig eller bara allmänt nyfiken på Teknisk fysiks kurser. Röda tråden visar översiktligt hur förkunskapskrav hänger ihop mellan kurserna.
+  </p>
+  <p>
+  Röda tråden har byggts upp av studenter på programmet och drivs amanuenserna, med stöd från kursansvariga lärare och engagerade studenter.
+  </p>
+  <p>
+  Är du intresserad av att titta på våra baskurser? Det blockschemat kan du hitta här.
+  </p>
+  <p>
+  Vi noterar att du ej är inloggad i systemet. När man är inloggad kan man göra egna scheman och planera sin studiegång på ett smidigt sätt.
+  </p>
+</div>
+
+
 {% endblock %}
