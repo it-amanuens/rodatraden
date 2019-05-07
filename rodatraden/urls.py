@@ -6,6 +6,6 @@ urlpatterns = [
     # Home path
     path('', views.Index, name='index'),
     # Categories
-    path('categories/', views.Categories, name='categories'),
-    path('categories/<int:category_id>/', views.CategoryInfo, name='category'),
+    path('kategorier/', views.Categories, name='categories'),
+    path('kategorier/<slug:slug>/', views.CategoryInfo, name='category'),
 ]

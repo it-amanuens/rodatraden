@@ -16,9 +16,9 @@ def Categories(request):
     return render(request, 'rodatraden/categories.html', context)
 
 # Separate page for each category
-def CategoryInfo(request, category_id):
+def CategoryInfo(request, slug):
     # Get category from given id
-    category = get_object_or_404(Category, pk=category_id);
+    category = get_object_or_404(Category, slug=slug);
     context = {
             'category': category,
             }

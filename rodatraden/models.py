@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 
 # Get the user model
 User = get_user_model()
@@ -7,7 +8,7 @@ User = get_user_model()
 # Create your models here.
 class Department(models.Model):
     """
-    Most likely departments at the university. Unknown if used.
+    Most likely departments at the university.
     """
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=200, blank=True)
@@ -60,7 +61,24 @@ class Profile(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = models.SlugField(unique_for_date='created_at')
+    slug = models.SlugField(unique=True, editable=False)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Profile.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -85,7 +103,24 @@ class Category(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = models.SlugField(unique_for_date='created_at', blank=True)
+    slug = models.SlugField(unique=True, editable=False)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Category.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -107,6 +142,25 @@ class Track(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Track.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -146,7 +200,24 @@ class Course(models.Model):
     # Connected to itself via prerequisites
     prerequisites = models.ManyToManyField("self")
     # Slug
-    slug = models.SlugField(unique_for_date='created_at')
+    slug = models.SlugField(unique=True, editable=False)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Course.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -192,10 +263,28 @@ class CourseOccasion(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while CourseOccasion.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return course.title + " " + str(year)
-
+        return course.title + " - " + str(year)
 
 class Block(models.Model):
     """
@@ -210,15 +299,34 @@ class Block(models.Model):
     # Connected to one user
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Can have course occasions many blocks
-    courseoccasion = models.ManyToManyField(CourseOccasion)
+    courseoccasion = models.ManyToManyField(CourseOccasion, blank=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
 
-    def __title__(self):
-        return self.title + " " + user.username
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify('{}-{}'.format(self.title, self.user.username))
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Block.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title + " - " + self.user.username
 
 class Page(models.Model):
     """
@@ -234,8 +342,27 @@ class Page(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
 
-    def __title__(self):
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Page.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
         return self.title
 
 class AcademicYears(models.Model):
@@ -250,7 +377,7 @@ class AcademicYears(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
-    def __title__(self):
+    def __str__(self):
         return self.title
 
 class Exam(models.Model):
@@ -271,7 +398,7 @@ class Exam(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
-    def __title__(self):
+    def __str__(self):
         return self.title
 
 class CategoryExam(models.Model):
@@ -308,9 +435,28 @@ class PrivateCourse(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
 
-    def __title__(self):
-        return self.title + " " + user.username
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify('{}-{}'.format(self.title, self.user.username))
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while PrivateCourse.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title + " - " + self.user.username
 
 class PrivateCourseCategory(models.Model):
     """
