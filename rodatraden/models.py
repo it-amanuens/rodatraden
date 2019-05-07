@@ -78,14 +78,14 @@ class Category(models.Model):
     # path will be MEDIA_ROOT/categories
     # TODO: Look into height and width configurations, what is proper for this
     # application
-    image = models.ImageField(upload_to='categories/')
+    image = models.ImageField(upload_to='categories/', blank=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = models.SlugField(unique_for_date='created_at')
+    slug = models.SlugField(unique_for_date='created_at', blank=True)
 
     def __str__(self):
         return self.title
