@@ -31,10 +31,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Röda tråden
     'rodatraden.apps.RodatradenConfig',
+
+    # third-party
     'bootstrap4',
     'crispy_forms',
-    'signup.apps.SignupConfig',
+    'cas.apps.CASConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +55,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # third-party
+    'cas.middleware.CASMiddleware',
 ]
 
 ROOT_URLCONF = 'tf.urls'
@@ -70,6 +77,12 @@ TEMPLATES = [
         },
     },
 ]
+
+# For CAS authentication
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'cas.backends.CASBackend',
+)
 
 WSGI_APPLICATION = 'tf.wsgi.application'
 
@@ -134,3 +147,6 @@ LOGOUT_REDIRECT_URL = 'index' # Where to send after logout
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# CAS
+CAS_SERVER_URL = 'https://cas.umu.se/cas/login'

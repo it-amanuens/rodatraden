@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+import cas.views
 
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
-    path('anvandare/', include('signup.urls')), # Own signup app
-    # Stuff built-in  in django
-    path('anvandare/', include('django.contrib.auth.urls')), # User management
+    # Admin
     path('admin/', admin.site.urls), # Admin page
+    # Authentication against CAS
+    path('anvandare/login/', cas.views.login, name='login'),
+    path('ancandare/logout/', cas.views.logout, name='logout'),
 ]
