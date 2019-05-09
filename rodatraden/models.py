@@ -196,9 +196,9 @@ class Course(models.Model):
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     # Connected to categories and tracks via many-to-many
     categories = models.ManyToManyField(Category, through='CategoryCourse')
-    tracks = models.ManyToManyField(Track)
+    tracks = models.ManyToManyField(Track, blank=True)
     # Connected to itself via prerequisites
-    prerequisites = models.ManyToManyField("self")
+    prerequisites = models.ManyToManyField("self", blank=True)
     # Slug
     slug = models.SlugField(unique=True, editable=False)
 
@@ -268,7 +268,7 @@ class CourseOccasion(models.Model):
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
-        slug = slugify(self.title)
+        slug = slugify(self.course.title)
         unique_slug = slug
         num = 1
         # If the slug is not unique (entry with same title), append a number
@@ -284,7 +284,7 @@ class CourseOccasion(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return course.title + " - " + str(year)
+        return self.course.title + " - " + str(self.year) + " - " + str(self.start)
 
 class Block(models.Model):
     """
