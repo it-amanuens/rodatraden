@@ -19,7 +19,7 @@ def categories(request):
 # Separate page for each category
 def category_info(request, slug):
     # Get category from given id
-    category = get_object_or_404(Category, slug=slug);
+    category = get_object_or_404(Category, slug=slug)
     context = {
             'category': category,
             }
@@ -36,12 +36,18 @@ def course_occasion_info(request, year, slug):
     courseoccasion = get_object_or_404(CourseOccasion, slug=slug, year=year);
     context = {
         'category': courseoccasion,
-    }
+            }
     return render(request, 'rodatraden/category.html', context)
 
 def block(request, username, slug):
-    # First get user
-    user = get_object_or_404(User, username=username);
-    # Then get block with that user and slug
-    block = get_list_or_404(Block, slug=slug, user=user);
-    return HttpResponse('epic %s and %s' % (username, slug))
+    # Get a block matching a user and slug
+    block = get_object_or_404(Block, user__username=username, slug=slug)
+    # Call the block ublock (userblock) since it will clash with other notation
+    # otherwise
+    context = {
+            'courseoccasions': block.courseoccasion.all(),
+            'ublock': block,
+            'years': range(block.start_year, block.start_year + 5, 1),
+            }
+    return render(request, 'rodatraden/block.html', context)
+    # return HttpResponse(block.slug)

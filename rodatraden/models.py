@@ -76,8 +76,8 @@ class Profile(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -118,8 +118,8 @@ class Category(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -158,8 +158,8 @@ class Track(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -215,8 +215,8 @@ class Course(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -279,8 +279,8 @@ class CourseOccasion(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -310,7 +310,7 @@ class Block(models.Model):
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
-        slug = slugify('{}-{}'.format(self.title, self.user.username))
+        slug = slugify(self.title)
         unique_slug = slug
         num = 1
         # If the slug is not unique (entry with same title), append a number
@@ -321,8 +321,8 @@ class Block(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -358,8 +358,8 @@ class Page(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -451,8 +451,8 @@ class PrivateCourse(models.Model):
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._get_unique_slug()
+        self.slug = ""
+        self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
     def __str__(self):
