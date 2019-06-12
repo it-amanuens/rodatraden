@@ -5,3 +5,4 @@
 Saker som kan göra Röda Tråden ÄNNU bättre.
 
 * Automatisk generering av examensbilagan
+* Sökfunktion för hela sidan
