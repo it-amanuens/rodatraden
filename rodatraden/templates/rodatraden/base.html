@@ -1,6 +1,7 @@
 {# Load the tag library #}
 {% load bootstrap4 %}
 {% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {# Load CSS and JavaScript #}
 {% bootstrap_css %}
@@ -81,6 +82,14 @@
     </nav>
 
     <main role="main" class="container">
+
+
+      {% block breadcrumbs %}
+          {% clear_breadcrumbs %}
+          {% breadcrumb "Hem" "/" %}
+      {% endblock %}
+
+      {% render_breadcrumbs %}
 
       {% block content %}
       {% endblock %}

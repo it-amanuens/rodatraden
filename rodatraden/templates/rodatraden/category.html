@@ -7,13 +7,11 @@
 <div class="starter-template">
   <h1 style="text-align: center;">{{ category.title }}</h1>
   {% if category.description %}
-  <p class="lead">
-  {{ category.description }}
-  </p>
+    {{ category.description |safe }}
   {% else %}
-  <p class="lead">
-  Denna kategori saknar info.
-  </p>
+    <p class="lead">
+    Denna kategori saknar info.
+    </p>
   {% endif %}
 </div>
 

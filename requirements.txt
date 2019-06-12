@@ -4,3 +4,4 @@ django-crispy-forms
 django-cas-client
 Pillow
 mysqlclient
+django-view-breadcrumbs

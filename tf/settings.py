@@ -25,7 +25,7 @@ SECRET_KEY = '7lrv2@*(hr)ac*@fhy*5)9yt-ye=8qiz=6p+b19$8aw7g2(t(o'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'rodatraden']
 
 
 # Application definition
@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'bootstrap4',
     'crispy_forms',
     'cas.apps.CASConfig',
+    'django_bootstrap_breadcrumbs',
+    'view_breadcrumbs',
 
+    # Standard with django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

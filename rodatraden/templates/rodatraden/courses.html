@@ -1,6 +1,12 @@
 {% extends 'rodatraden/base.html' %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Kurser{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb "Kurser" "courses" %}
+{% endblock %}
 
 {% block content %}
 
@@ -9,7 +15,15 @@
   <p class="lead">
   Read title
   </p>
-  {% comment %}{% if courses_list %}{% endcomment %}
+  {% if courses_list %}
+  <ul>
+    {% for course in courses_list %}
+    <li>
+      <a ">{{ course.title }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
   {% comment %}<ul>{% endcomment %}
     {% comment %}{% for course in courses_list %}{% endcomment %}
     {% comment %}<li>{% endcomment %}
