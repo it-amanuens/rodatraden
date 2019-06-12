@@ -10,11 +10,11 @@ class Department(models.Model):
     """
     Most likely departments at the university.
     """
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200, blank=True)
-    title_eng = models.CharField(max_length=50, blank=True)
-    description_eng = models.CharField(max_length=200, blank=True)
-    abbreviation = models.CharField(max_length=20, blank=True)
+    title = models.CharField(max_length=250)
+    description = models.CharField(max_length=10000, blank=True, null=True)
+    title_eng = models.CharField(max_length=250, blank=True, null=True)
+    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -28,10 +28,10 @@ class Level(models.Model):
     """
     Grundläggande or avancerad
     """
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200, blank=True)
-    title_eng = models.CharField(max_length=50, blank=True)
-    description_eng = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=250)
+    description = models.CharField(max_length=10000, blank=True, null=True)
+    title_eng = models.CharField(max_length=250, blank=True, null=True)
+    description_eng = models.CharField(max_length=10000, blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -45,11 +45,11 @@ class Profile(models.Model):
     """
     Program profiles
     """
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200, blank=True)
-    title_eng = models.CharField(max_length=50, blank=True)
-    description_eng = models.CharField(max_length=200, blank=True)
-    abbreviation = models.CharField(max_length=20, blank=True)
+    title = models.CharField(max_length=250)
+    description = models.CharField(max_length=10000, blank=True, null=True)
+    title_eng = models.CharField(max_length=250, blank=True, null=True)
+    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Image storage
     # path will be MEDIA_ROOT/profiles
     # TODO: Look into height and width configurations, what is proper for this
@@ -87,23 +87,23 @@ class Category(models.Model):
     """
     Categories for different exam goals
     """
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200, blank=True)
-    title_eng = models.CharField(max_length=50, blank=True)
-    description_eng = models.CharField(max_length=200, blank=True)
-    abbreviation = models.CharField(max_length=20, blank=True)
+    title = models.CharField(max_length=250)
+    description = models.CharField(max_length=10000, blank=True, null=True)
+    title_eng = models.CharField(max_length=250, blank=True, null=True)
+    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Image storage
     # path will be MEDIA_ROOT/categories
     # TODO: Look into height and width configurations, what is proper for this
     # application
-    image = models.ImageField(upload_to='categories/', blank=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -129,12 +129,12 @@ class Track(models.Model):
     """
     (Spår). Tracks can be connected to profiles
     """
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=250)
     # If the track is valid
-    valid = models.BooleanField(default=True)
-    description = models.CharField(max_length=200, blank=True)
-    title_eng = models.CharField(max_length=50, blank=True)
-    description_eng = models.CharField(max_length=200, blank=True)
+    valid = models.BooleanField(default=True, blank=True, null=True)
+    description = models.CharField(max_length=10000, blank=True, null=True)
+    title_eng = models.CharField(max_length=250, blank=True, null=True)
+    description_eng = models.CharField(max_length=10000, blank=True, null=True)
     # Connected to profiles
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     # Timestamp
@@ -169,23 +169,23 @@ class Course(models.Model):
     """
     Courses. Self-explanatory
     """
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=250)
+    description = models.CharField(max_length=10000, blank=True, null=True)
     # Kurskod
-    code = models.CharField(max_length=6)
+    code = models.CharField(max_length=10)
     # Points - no more than 3 digits and one decimal point
     ects = models.DecimalField(max_digits=3,decimal_places=1)
     # If the course is approved
-    approved = models.BooleanField(default=True)
+    approved = models.BooleanField(default=True, blank=True, null=True)
     # I think this is to check if the course will still continue
     closed = models.BooleanField(default=False)
     # Note sure what this is for
-    note = models.CharField(max_length=50, blank=True)
-    title_eng = models.CharField(max_length=50, blank=True)
-    description_eng = models.CharField(max_length=200, blank=True)
+    note = models.CharField(max_length=250, blank=True, null=True)
+    title_eng = models.CharField(max_length=250, blank=True, null=True)
+    description_eng = models.CharField(max_length=10000, blank=True, null=True)
     # Url homepages
-    homepage_url = models.URLField(blank=True)
-    evaluation_url = models.URLField(blank=True)
+    homepage_url = models.URLField(blank=True, null=True)
+    evaluation_url = models.URLField(blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -198,9 +198,13 @@ class Course(models.Model):
     categories = models.ManyToManyField(Category, through='CategoryCourse')
     tracks = models.ManyToManyField(Track, blank=True)
     # Connected to itself via prerequisites
-    prerequisites = models.ManyToManyField("self", blank=True)
+    # prerequisites = models.ManyToManyField("self", blank=True)
+    prerequisites = models.ManyToManyField('self', through='Prerequisite',
+            symmetrical = False)
+ # friends = models.ManyToManyField('self', through = 'PersonFriends', 
+          # symmetrical = False)
     # Slug
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -221,6 +225,24 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+class Prerequisite(models.Model):
+    """
+    Prerequisites for a course
+    """
+    course = models.ForeignKey(Course, related_name = 'curr_course',
+            on_delete=models.CASCADE)
+    prereq = models.ForeignKey(Course, related_name = 'prereq_course',
+            on_delete=models.CASCADE)
+    # Timestamp
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+            null=False, blank=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
+            blank=False)
+
+    def __str__(self):
+        return '{}->{}'.format(self.prereq.title, self.course.title)
+
 
 class CategoryCourse(models.Model):
     """
@@ -249,13 +271,13 @@ class CourseOccasion(models.Model):
     start = models.IntegerField()
     weeks = models.IntegerField()
     official = models.BooleanField(default=True)
-    note = models.CharField(max_length=50, blank=True)
+    note = models.CharField(max_length=250, blank=True, null=True)
     # Url homepages
-    homepage_url = models.URLField(blank=True)
-    evaluation_url = models.URLField(blank=True)
-    syllabus_url = models.URLField(blank=True)
-    contact_name = models.CharField(max_length=50, blank=True)
-    contact_email = models.EmailField(blank=True)
+    homepage_url = models.URLField(blank=True, null=True)
+    evaluation_url = models.URLField(blank=True, null=True)
+    syllabus_url = models.URLField(blank=True, null=True)
+    contact_name = models.CharField(max_length=250, blank=True, null=True)
+    contact_email = models.EmailField(blank=True, null=True)
     # Connected to course
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     # Timestamp
@@ -264,7 +286,8 @@ class CourseOccasion(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
+    # slug = models.SlugField(max_length=100, default="hehe", blank=True, null=True)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -290,12 +313,12 @@ class Block(models.Model):
     """
     Blockscheman!
     """
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=250)
+    description = models.CharField(max_length=10000, blank=True, null=True)
     start_year = models.IntegerField()
     # Not open for the public
     private = models.BooleanField(default=True)
-    note = models.CharField(max_length=50, blank=True)
+    note = models.CharField(max_length=250, blank=True, null=True)
     # Connected to one user
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Can have course occasions many blocks
@@ -332,8 +355,8 @@ class Page(models.Model):
     """
     Unsure what this is used for
     """
-    title = models.CharField(max_length=50)
-    content = models.CharField(max_length=200, blank=True)
+    title = models.CharField(max_length=250)
+    content = models.CharField(max_length=10000, blank=True, null=True)
     image = models.ImageField(upload_to='pages/%Y/%m/%d/')
     # Slug
     slug = models.SlugField(unique_for_date='created_at')
@@ -370,7 +393,7 @@ class AcademicYears(models.Model):
     Läsperioder, such as year 2018 is associated with the period 18/19
     """
     year = models.IntegerField()
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=250)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -384,12 +407,12 @@ class Exam(models.Model):
     """
     Different exams. Such as teknisk fysik
     """
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=250)
     year = models.IntegerField()
-    ects = models.DecimalField(max_digits=3,decimal_places=1)
+    ects = models.DecimalField(max_digits=4,decimal_places=1)
     # Kurskod
-    code = models.CharField(max_length=6, blank=True)
-    note = models.CharField(max_length=50, blank=True)
+    code = models.CharField(max_length=10, blank=True, null=True)
+    note = models.CharField(max_length=250, blank=True, null=True)
     # Exams can have many categories
     categories = models.ManyToManyField(Category, through='CategoryExam')
     # Timestamp
@@ -420,11 +443,11 @@ class PrivateCourse(models.Model):
     """
     Courses that users can specify themselves
     """
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=250)
     year = models.IntegerField()
     # Points - no more than 3 digits and one decimal point
     ects = models.DecimalField(max_digits=3,decimal_places=1)
-    note = models.CharField(max_length=50, blank=True)
+    note = models.CharField(max_length=250, blank=True, null=True)
     start = models.IntegerField()
     weeks = models.IntegerField()
     # Conected to a user

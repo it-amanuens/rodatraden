@@ -3,3 +3,4 @@ django-bootstrap4
 django-crispy-forms
 django-cas-client
 Pillow
+mysqlclient
