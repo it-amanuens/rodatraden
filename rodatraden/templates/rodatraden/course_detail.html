@@ -1,0 +1,101 @@
+{% extends 'rodatraden/base.html' %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb "Kurser" "courses" course.title %}
+{% endblock %}
+
+{% block content %}
+
+<div class="starter-template">
+  <div class="row justify-content-md-center">
+    <h1 style="text-align: center;">{{ course.title }}</h1>
+  </div>
+  <hr>
+  <div class="row px-3">
+    <div class="col-lg-9 p-3 course-main">
+      <div class="row pl-3">
+        <h2>Beskrivning</h2>
+      </div>
+      <div class="row px-3 pr-5 text-justify">
+        {{ course.description | safe }}
+      </div>
+    </div>
+    <div class="col-lg-3 p-3 course-etc">
+      <h2>Info</h2>
+      <hr>
+      <p class="lead">
+        <a href="">{{ course.department }}</a>
+      </p>
+      <table style="border-collapse: separate;border-spacing:1rem 0;">
+        <tr>
+          <td>Poäng</td>
+          <td>{{ course.ects }}</td>
+        </tr>
+        <tr>
+          <td>Nivå</td>
+          <td>{{ course.level }}</td>
+        </tr>
+        <tr>
+          <td>Kod</td>
+          <td>{{ course.code }}</td>
+        </tr>
+      </table>
+      <hr>
+      <p class="lead">
+        Kategorier
+      </p>
+      <ul class="list-group list-group-flush">
+        {% for category in course.categories.all %}
+        <li class="list-group list-group-flush">
+          <a href="{% url 'course' category.slug %}">{{ category.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      <hr>
+      <p class="lead">
+        Spår
+      </p>
+      <ul class="list-group list-group-flush">
+        {% for track in course.tracks.all %}
+        <li class="list-group list-group-flush">
+          <a href="{% url 'course' track.slug %}">{{ track.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      <hr>
+      <form action="https://www.umu.se/student/mina-studier/hitta-kurs-och-utbildningsplan/" method="get">
+        <button name="q" value="{{ course.code }}" type="submit" class="btn
+          btn-rt btn-sm">UMU Kursplanesök</button>
+      </form>
+    </div>
+  </div>
+  <hr>
+  <div class="row justify-content-md-center">
+    <div class="col-lg-5 m-1 pb-3 course-etc">
+      <p class="lead text-center mt-1">Förkunskapskrav</p>
+      <ul class="list-group list-group-flush">
+        {% for prereq in course.prerequisites.all %}
+        <li class="list-group list-group-flush">
+          <a href="{% url 'course' prereq.slug %}">{{ prereq.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-lg-5 m-1 pb-3 course-etc">
+      <p class="lead text-center mt-1">Ger behörighet</p>
+      <ul class="list-group list-group-flush">
+        {% for course in prereq_courses %}
+        <li class="list-group list-group-flush">
+          <a href="{% url 'course' course.slug %}">{{ course.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

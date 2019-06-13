@@ -1,12 +1,11 @@
-from django.views.generic.list import ListView
-
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse
+from django.views import generic
 
-from .models import Category, Course, CourseOccasion, Block, User
+from .models import Category, Course, CourseOccasion, Block, User, Prerequisite
 from .tables import CourseTable
 from .filters import CourseFilter
 
@@ -21,15 +20,18 @@ class CoursesList(SingleTableMixin, FilterView):
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
     
+# Detailed view for specific courses
+class CourseDetail(generic.DetailView):
+    model = Course
 
-
-
-
-
-
-
-
-
+    # Needs to also return courses which has the current course as a requirement
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Get all courses with the current id as prerequisite
+        # prereq = Prerequisite.objects.filter(prereq_id=self.object.id).values_list('id')
+        context['prereq_courses'] = self.object.course_set.all
+        return context
 
 # Homepage
 def index(request):

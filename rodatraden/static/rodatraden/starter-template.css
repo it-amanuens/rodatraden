@@ -1,7 +1,32 @@
 body {
   padding-top: 5rem;
 }
+
+.course-etc {
+  background-color: #ececec;
+  border-radius: 0.25rem;
+}
+
 .starter-template {
   padding: 3rem 1.5rem;
   text-align: left;
+}
+
+.btn-rt {
+  background-color: #D6001E;
+  color: white;
+}
+
+.btn-rt:hover {
+  background-color: #b30018;
+  color: white;
+}
+
+a {
+  color: #D6001E;
+}
+
+a:hover{
+  color: #b30018;
+  text-decoration: none;
 }

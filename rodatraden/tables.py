@@ -4,6 +4,7 @@ import django_tables2 as tables
 from .models import Course
 
 class CourseTable(tables.Table):
+    title = tables.Column(linkify=True)
     class Meta:
         model = Course
         template_name = 'django_tables2/bootstrap4.html'

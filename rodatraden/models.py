@@ -223,6 +223,10 @@ class Course(models.Model):
         self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
+    # Url for the course for tables
+    def get_absolute_url(self):
+        return self.slug
+
     def __str__(self):
         return self.title
 
