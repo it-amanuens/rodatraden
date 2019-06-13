@@ -1,0 +1,29 @@
+{% extends 'rodatraden/base.html' %}
+{% load django_bootstrap_breadcrumbs %}
+{% load render_table from django_tables2 %}
+{% load bootstrap4 %}
+
+{% block title %}Kurser{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb "Kurser" "courses" %}
+{% endblock %}
+
+{% block content %}
+
+<div class="starter-template">
+  <h1 style="text-align: center;">Here goes courses</h1>
+  <p class="lead">
+  Read title
+  </p>
+  {% if filter %}
+    <form action="" method="get" class="form form-inline">
+        {% bootstrap_form filter.form layout='inline' %}
+        {% bootstrap_button 'filter' %}
+    </form>
+  {% endif %}
+  {% render_table table %}
+</div>
+
+{% endblock %}

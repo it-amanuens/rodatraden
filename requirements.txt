@@ -5,3 +5,5 @@ django-cas-client
 Pillow
 mysqlclient
 django-view-breadcrumbs
+django-tables2
+django-filter

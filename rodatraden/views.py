@@ -1,9 +1,36 @@
+from django.views.generic.list import ListView
+
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
+
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse
 
 from .models import Category, Course, CourseOccasion, Block, User
+from .tables import CourseTable
+from .filters import CourseFilter
 
 # Create your views here.
+
+# Generic table view for showing a list of the courses
+class CoursesList(SingleTableMixin, FilterView):
+    model = Course
+    # Define table class
+    table_class = CourseTable
+    filterset_class = CourseFilter
+    paginate_by = 15  # if pagination is desired
+    template_name = 'rodatraden/course_list.html'
+    
+
+
+
+
+
+
+
+
+
+
 # Homepage
 def index(request):
     return render(request, 'rodatraden/index.html')
@@ -25,12 +52,6 @@ def category_info(request, slug):
             }
     return render(request, 'rodatraden/category.html', context)
 
-def courses(request):
-    # Send all of the categories to the view
-    context = {
-            'courses_list': Course.objects.all(),
-            }
-    return render(request, 'rodatraden/courses.html', context)
 
 def course_occasion_info(request, year, slug):
     courseoccasion = get_object_or_404(CourseOccasion, slug=slug, year=year);

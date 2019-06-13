@@ -9,7 +9,7 @@ urlpatterns = [
     path('kategorier/', views.categories, name='categories'),
     path('kategorier/<slug:slug>/', views.category_info, name='category'),
     # Courses
-    path('kurser/', views.courses, name='courses'),
+    path('kurser/', views.CoursesList.as_view(), name='courses'),
     path('kurstillfallen/<int:year>/<slug:slug>/', views.course_occasion_info,
         name='courseoccasions'),
     # Blocks

@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'cas.apps.CASConfig',
     'django_bootstrap_breadcrumbs',
     'view_breadcrumbs',
+    'django_tables2',
+    'django_filters',
 
     # Standard with django
     'django.contrib.admin',
@@ -76,6 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
