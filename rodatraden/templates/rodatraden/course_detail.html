@@ -77,6 +77,7 @@
   <div class="row justify-content-md-center">
     <div class="col-lg-5 m-1 pb-3 course-etc">
       <p class="lead text-center mt-1">Förkunskapskrav</p>
+      <hr>
       <ul class="list-group list-group-flush">
         {% for prereq in course.prerequisites.all %}
         <li class="list-group list-group-flush">
@@ -87,6 +88,7 @@
     </div>
     <div class="col-lg-5 m-1 pb-3 course-etc">
       <p class="lead text-center mt-1">Ger behörighet</p>
+      <hr>
       <ul class="list-group list-group-flush">
         {% for course in prereq_courses %}
         <li class="list-group list-group-flush">
