@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
@@ -225,7 +226,7 @@ class Course(models.Model):
 
     # Url for the course for tables
     def get_absolute_url(self):
-        return self.slug
+        return reverse('course', kwargs={'slug': self.slug})
 
     def __str__(self):
         return self.title
@@ -312,7 +313,7 @@ class CourseOccasion(models.Model):
 
     # Url for the course for tables
     def get_absolute_url(self):
-        return str(self.year) + "/" + self.slug
+        return reverse('courseoccasion', kwargs={'year': self.year, 'slug': self.slug})
 
     def __str__(self):
         return self.course.title + " - " + str(self.year) + " - " + str(self.start)

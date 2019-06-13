@@ -1,7 +1,9 @@
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from django_tables2 import LazyPaginator
 
 from django.shortcuts import render, get_object_or_404, get_list_or_404
+from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.views import generic
 
@@ -17,6 +19,7 @@ class CourseList(SingleTableMixin, FilterView):
     # Define table class
     table_class = CourseTable
     filterset_class = CourseFilter
+    paginator_class = LazyPaginator
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
 
@@ -24,7 +27,8 @@ class CourseOccasionList(SingleTableMixin, FilterView):
     model = CourseOccasion
     # Define table class
     table_class = CourseOccasionTable
-    paginate_by = 15
+    paginator_class = LazyPaginator
+    paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
     
 # Detailed view for specific courses

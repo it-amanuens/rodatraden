@@ -47,15 +47,15 @@
             </div>
           </li>
           <li class="nav-item active">
-            <a class="nav-link" href="{% url 'categories' %}">Kategorier<span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="{% url 'category-list' %}">Kategorier<span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="http://example.com"
               id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
               aria-expanded="false">Kurser</a>
             <div class="dropdown-menu" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="{% url 'courses' %}">Kurser</a>
-              <a class="dropdown-item" href="{% url 'courseoccasions' %}">Kurstillfällen</a>
+              <a class="dropdown-item" href="{% url 'course-list' %}">Kurser</a>
+              <a class="dropdown-item" href="{% url 'courseoccasion-list' %}">Kurstillfällen</a>
             </div>
           </li>
           {% comment %}<li class="nav-item">{% endcomment %}
