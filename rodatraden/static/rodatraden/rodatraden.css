@@ -2,31 +2,46 @@ body {
   padding-top: 5rem;
 }
 
+/* Info bar at detail views */
 .course-etc {
   background-color: #ececec;
   border-radius: 0.25rem;
 }
 
+/* TODO: CHANGE NAME */
 .starter-template {
   padding: 3rem 1.5rem;
   text-align: left;
 }
 
+/* Red buttons */
 .btn-rt {
   background-color: #D6001E;
   color: white;
 }
-
 .btn-rt:hover {
   background-color: #b30018;
   color: white;
 }
+/* Remove the background from button */
+.btn-gone {
+  background-color: transparent;
+}
 
+/* Red links */
 a {
   color: #D6001E;
 }
-
 a:hover{
   color: #b30018;
   text-decoration: none;
+}
+
+/* Icon colors */
+.fa {
+  color: #D6001E;
+}
+
+.abbr-style {
+  background-color: blue;
 }

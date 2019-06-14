@@ -13,6 +13,13 @@
 
 {% block content %}
 
+<div class="modal fade" tabindex="-1" role="dialog" id="modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+    </div>
+  </div>
+</div>
+
 <div class="starter-template">
   <h1 style="text-align: center;">Kurser</h1>
   {% if filter %}
@@ -23,5 +30,32 @@
   {% endif %}
   {% render_table table %}
 </div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+
+  <script type="text/javascript">
+
+      $(function () {
+        // Create book button
+        $(".create-book").modalForm({
+          formURL: "{% url 'course-create' %}",
+        });
+
+        // Delete book buttons
+        $(".delete-course").each(function () {
+          $(this).modalForm({
+            formURL: $(this).data('id')
+          });
+        })
+
+        // Hide message
+        $(".alert").fadeTo(2000, 500).slideUp(500, function(){
+          $(".alert").slideUp(500);
+        });
+      });
+
+  </script>
 
 {% endblock %}

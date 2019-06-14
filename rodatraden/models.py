@@ -123,6 +123,9 @@ class Category(models.Model):
         self.slug = self._get_unique_slug()
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse('category-detail', kwargs={'slug': self.slug})
+
     def __str__(self):
         return self.title
 
@@ -170,12 +173,12 @@ class Course(models.Model):
     """
     Courses. Self-explanatory
     """
-    title = models.CharField(max_length=250)
+    title = models.CharField(verbose_name='Titel', max_length=250)
     description = models.CharField(max_length=10000, blank=True, null=True)
     # Kurskod
     code = models.CharField(max_length=10)
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(max_digits=3,decimal_places=1)
+    ects = models.DecimalField(verbose_name='Poäng', max_digits=3,decimal_places=1)
     # If the course is approved
     approved = models.BooleanField(default=True, blank=True, null=True)
     # I think this is to check if the course will still continue
@@ -194,9 +197,11 @@ class Course(models.Model):
             blank=False)
     # Connected to departments and levels
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE,
+            verbose_name='Nivå')
     # Connected to categories and tracks via many-to-many
-    categories = models.ManyToManyField(Category, through='CategoryCourse')
+    categories = models.ManyToManyField(Category, through='CategoryCourse',
+            verbose_name='Kategorier')
     tracks = models.ManyToManyField(Track, blank=True)
     # Connected to itself via prerequisites
     # prerequisites = models.ManyToManyField("self", blank=True)
