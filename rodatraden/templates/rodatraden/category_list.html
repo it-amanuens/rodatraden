@@ -1,4 +1,4 @@
-{% extends 'rodatraden/base.html' %}
+{% extends 'rodatraden/index.html' %}
 
 {% block title %}Kategorier{% endblock %}
 
@@ -9,17 +9,13 @@
   <p class="lead">
   Read title
   </p>
-  {% if categories_list %}
   <ul>
-    {% for category in categories_list %}
+    {% for category in category_list %}
     <li>
-      <a href="{% url 'category' category.slug %}">{{ category.title }}</a>
+      <a href="{% url 'category-detail' category.slug %}">{{ category.title }}</a>
     </li>
     {% endfor %}
   </ul>
-  {% else %}
-  <p>Inga kategorier</p>
-  {% endif %}
 </div>
 
 

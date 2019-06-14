@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'view_breadcrumbs',
     'django_tables2',
     'django_filters',
+    'bootstrap_modal_forms',
+    'widget_tweaks',
 
     # Standard with django
     'django.contrib.admin',
@@ -79,6 +81,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
+                'rodatraden.context_processors.nav_processor',
             ],
         },
     },

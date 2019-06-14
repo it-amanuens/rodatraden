@@ -1,0 +1,56 @@
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+  <a class="navbar-brand" href="{% url 'index' %}">RT4</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="http://example.com"
+          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
+          aria-expanded="false">Profiler</a>
+        <div class="dropdown-menu" aria-labelledby="dropdown01">
+          <a class="dropdown-item" href="{% url 'profile-list' %}">Alla</a>
+          <div class="dropdown-divider"></div>
+          {% for profile in profile_list %}
+            <a class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
+          {% endfor %}
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="http://example.com"
+          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
+          aria-expanded="false">Kategorier</a>
+        <div class="dropdown-menu" aria-labelledby="dropdown01">
+          <a class="dropdown-item" href="{% url 'category-list' %}">Alla</a>
+          <div class="dropdown-divider"></div>
+          {% for category in category_list %}
+            <a class="dropdown-item" href="{% url 'category-detail' category.slug %}">{{ category.title }}</a>
+          {% endfor %}
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="http://example.com"
+          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
+          aria-expanded="false">Kurser</a>
+        <div class="dropdown-menu" aria-labelledby="dropdown01">
+          <a class="dropdown-item" href="{% url 'course-list' %}">Kurser</a>
+          <a class="dropdown-item" href="{% url 'courseoccasion-list' %}">Kurstillfällen</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+    <ul class="navbar-nav ml-auto">
+      {% if user.is_authenticated %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}">Logga ut</a>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}">Logga in</a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>

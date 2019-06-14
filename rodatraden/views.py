@@ -1,17 +1,24 @@
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django_tables2 import LazyPaginator
+from bootstrap_modal_forms.generic import BSModalDeleteView, BSModalCreateView
 
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.views import generic
 
-from .models import Category, Course, CourseOccasion, Block, User, Prerequisite
+from .models import Category, Course, CourseOccasion, Block, User, Prerequisite, Profile
 from .tables import CourseTable, CourseOccasionTable
 from .filters import CourseFilter
+from .forms import CourseForm
 
 # Create your views here.
+
+# Homepage
+def index(request):
+    return render(request, 'rodatraden/index.html')
+
 
 # Generic table view for showing a list of the courses
 class CourseList(SingleTableMixin, FilterView):
@@ -23,6 +30,7 @@ class CourseList(SingleTableMixin, FilterView):
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
 
+
 class CourseOccasionList(SingleTableMixin, FilterView):
     model = CourseOccasion
     # Define table class
@@ -31,6 +39,7 @@ class CourseOccasionList(SingleTableMixin, FilterView):
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
     
+
 # Detailed view for specific courses
 class CourseDetail(generic.DetailView):
     model = Course
@@ -40,9 +49,9 @@ class CourseDetail(generic.DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
         # Get all courses with the current id as prerequisite
-        # prereq = Prerequisite.objects.filter(prereq_id=self.object.id).values_list('id')
         context['prereq_courses'] = self.object.course_set.all
         return context
+
 
 # Detailed view for specific courses
 class CourseOccasionDetail(generic.DetailView):
@@ -56,34 +65,39 @@ class CourseOccasionDetail(generic.DetailView):
         context['course'] = self.object.course
         return context
 
-# Homepage
-def index(request):
-    return render(request, 'rodatraden/index.html')
+
+class CourseCreate(BSModalCreateView):
+    model = Course
+    form_class = CourseForm
+    template_name = 'rodatraden/course_create.html'
+    success_message = 'Success: Book was created.'
+    success_url = reverse_lazy('index')
+
+
+class CourseDelete(BSModalDeleteView):
+    model = Course
+    template_name = 'rodatraden/course_confirm_delete.html'
+    success_message = 'Kursen togs bort utan problem.'
+    success_url = reverse_lazy('course-list')
+
+
+class ProfileList(generic.ListView):
+    model = Profile
+
+
+class ProfileDetail(generic.DetailView):
+    model = Profile
+
 
 # Page with list of all categories
-def categories(request):
-    # Send all of the categories to the view
-    context = {
-            'categories_list': Category.objects.all(),
-            }
-    return render(request, 'rodatraden/categories.html', context)
+class CategoryList(generic.ListView):
+    model = Category
+
 
 # Separate page for each category
-def category_info(request, slug):
-    # Get category from given id
-    category = get_object_or_404(Category, slug=slug)
-    context = {
-            'category': category,
-            }
-    return render(request, 'rodatraden/category.html', context)
+class CategoryDetail(generic.DetailView):
+    model = Category
 
-
-def course_occasion_info(request, year, slug):
-    courseoccasion = get_object_or_404(CourseOccasion, slug=slug, year=year);
-    context = {
-        'category': courseoccasion,
-            }
-    return render(request, 'rodatraden/category.html', context)
 
 def block(request, username, slug):
     # Get a block matching a user and slug

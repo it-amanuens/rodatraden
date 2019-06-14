@@ -7,3 +7,5 @@ mysqlclient
 django-view-breadcrumbs
 django-tables2
 django-filter
+django-bootstrap-modal-forms
+django-widget-tweaks

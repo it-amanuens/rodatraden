@@ -226,7 +226,7 @@ class Course(models.Model):
 
     # Url for the course for tables
     def get_absolute_url(self):
-        return reverse('course', kwargs={'slug': self.slug})
+        return reverse('course-detail', kwargs={'slug': self.slug})
 
     def __str__(self):
         return self.title
@@ -313,7 +313,7 @@ class CourseOccasion(models.Model):
 
     # Url for the course for tables
     def get_absolute_url(self):
-        return reverse('courseoccasion', kwargs={'year': self.year, 'slug': self.slug})
+        return reverse('courseoccasion-detail', kwargs={'year': self.year, 'slug': self.slug})
 
     def __str__(self):
         return self.course.title + " - " + str(self.year) + " - " + str(self.start)
