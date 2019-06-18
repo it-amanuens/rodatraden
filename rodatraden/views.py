@@ -50,6 +50,12 @@ class CourseOccasionList(SingleTableMixin, FilterView):
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
     
+    # Add boolean to check if courseoccasion
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        context['is_occasion'] = True
+        return context
 
 # Detailed view for specific courses
 class CourseDetail(generic.DetailView):

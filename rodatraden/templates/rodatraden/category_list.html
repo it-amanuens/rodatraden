@@ -1,22 +1,59 @@
 {% extends 'rodatraden/index.html' %}
 
-{% block title %}Kategorier{% endblock %}
+{% load static %}
+{% load django_bootstrap_breadcrumbs %}
+{% load render_table from django_tables2 %}
+{% load bootstrap4 %}
+
+{% block title %}
+{% if is_occasion %}
+  Kurstillfällen
+{% else %}
+  Kategorier
+{% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% if is_occasion %}
+      {% breadcrumb "Kurstillfällen" "courseoccasion-list" %}
+    {% else %}
+      {% breadcrumb "Kategorier" "course-list" %}
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 
 <div class="starter-template">
-  <h1 style="text-align: center;">Here goes categories</h1>
-  <p class="lead">
-  Read title
-  </p>
-  <ul>
-    {% for category in category_list %}
-    <li>
-      <a href="{% url 'category-detail' category.slug %}">{{ category.title }}</a>
-    </li>
-    {% endfor %}
-  </ul>
+  {% if is_occasion %}
+    <h1 style="text-align: center;">Kurstillfällen</h1>
+  {% else %}
+    <h1 style="text-align: center;">Kategorier</h1>
+  {% endif %}
+
+  <p class="lead">Under din tid på programmet ska du ha läst kurser inom ett
+  antal olika områden som översiktligt beskrivs nedan.</p>
+  <p>Du ska ha läst minst the angivna poängantalet för att kunna ta ut din
+  examen.</p>
+
+  {% for category in category_list %}
+    <hr>
+  <div class="row">
+    <div class="col-md-2 text-center">
+      <img src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ category.abbreviation }}" 
+           alt="{{ category.title }}" class="rounded mx-auto d-block" style="width:150px; height: 150px;">
+      </img>
+    </div>
+    <div class="col-ld-1"></div>
+    <div class="col-md-9">
+      <h4><a href="{% url 'category-detail' category.slug %}">{{ category.title }}</a></h4>
+      {{ category.description|safe|truncatewords:"50"|linebreaks }}
+      <a href="{% url 'category-detail' category.slug %}">Läs vidare</a>
+    </div>
+  </div>
+  {% endfor %}
+
 </div>
 
-
 {% endblock %}
+

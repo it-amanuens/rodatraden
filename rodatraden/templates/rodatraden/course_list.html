@@ -4,11 +4,21 @@
 {% load render_table from django_tables2 %}
 {% load bootstrap4 %}
 
-{% block title %}Kurser{% endblock %}
+{% block title %}
+{% if is_occasion %}
+  Kurstillfällen
+{% else %}
+  Kurser
+{% endif %}
+{% endblock %}
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% breadcrumb "Kurser" "course-list" %}
+    {% if is_occasion %}
+      {% breadcrumb "Kurstillfällen" "courseoccasion-list" %}
+    {% else %}
+      {% breadcrumb "Kurser" "course-list" %}
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +31,12 @@
 </div>
 
 <div class="starter-template">
-  <h1 style="text-align: center;">Kurser</h1>
+  {% if is_occasion %}
+    <h1 style="text-align: center;">Kurstillfällen</h1>
+  {% else %}
+    <h1 style="text-align: center;">Kurser</h1>
+  {% endif %}
+
   {% if filter %}
     <form action="" method="get" class="form form-inline">
         {% bootstrap_form filter.form layout='inline' %}
