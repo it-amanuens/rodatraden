@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     # third-party
     'bootstrap4',
     'crispy_forms',
-    'cas.apps.CASConfig',
+    'django_cas_ng',
     'django_bootstrap_breadcrumbs',
     'view_breadcrumbs',
     'django_tables2',
@@ -64,7 +64,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     # third-party
-    'cas.middleware.CASMiddleware',
+    'django_cas_ng.middleware.CASMiddleware',
 ]
 
 ROOT_URLCONF = 'tf.urls'
@@ -90,7 +90,7 @@ TEMPLATES = [
 # For CAS authentication
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'cas.backends.CASBackend',
+    'django_cas_ng.backends.CASBackend',
 )
 
 WSGI_APPLICATION = 'tf.wsgi.application'
@@ -169,6 +169,7 @@ STATIC_URL = '/static/'
 # Authentication
 LOGIN_REDIRECT_URL = 'index' # Where to send after login
 LOGOUT_REDIRECT_URL = 'index' # Where to send after logout
+LOGIN_URL = '/anvandare/login/' # Url for login
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

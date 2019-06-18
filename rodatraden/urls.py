@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.urls import path, include
 
 from . import views
@@ -14,7 +15,10 @@ urlpatterns = [
     # Courses
     path('kurser/', views.CourseList.as_view(), name='course-list'),
     path('kurser/skapa/', views.CourseCreate.as_view(), name='course-create'),
-    path('kurser/<slug:slug>/radera/', views.CourseDelete.as_view(), name='course-delete'),
+    path('kurser/<slug:slug>/radera/',
+        views.CourseDelete.as_view(), name='course-delete'),
+    path('kurser/<slug:slug>/andra/', views.CourseUpdate.as_view(),
+        name='course-update'),
     path('kurser/<slug:slug>/', views.CourseDetail.as_view(),
         name='course-detail'),
 

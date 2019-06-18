@@ -44,11 +44,11 @@
     <ul class="navbar-nav ml-auto">
       {% if user.is_authenticated %}
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'logout' %}">Logga ut</a>
+        <a class="nav-link" href="{% url 'cas_ng_logout' %}">Logga ut</a>
       </li>
       {% else %}
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'login' %}">Logga in</a>
+        <a class="nav-link" href="{% url 'cas_ng_login' %}">Logga in</a>
       </li>
       {% endif %}
     </ul>

@@ -35,12 +35,18 @@
 
 {% block extra_scripts %}
 
+{% if user.is_superuser %}
   <script type="text/javascript">
 
       $(function () {
         // Create book button
         $(".create-book").modalForm({
           formURL: "{% url 'course-create' %}",
+        });
+
+        // Update book buttons
+        $(".update-course").each(function () {
+          $(this).modalForm({formURL: $(this).data('id')});
         });
 
         // Delete book buttons
@@ -57,5 +63,7 @@
       });
 
   </script>
+{% else %}
+{% endif %}
 
 {% endblock %}

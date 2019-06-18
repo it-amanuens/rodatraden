@@ -1,8 +1,12 @@
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django_tables2 import LazyPaginator
-from bootstrap_modal_forms.generic import BSModalDeleteView, BSModalCreateView
+from bootstrap_modal_forms.generic import BSModalDeleteView, BSModalCreateView, BSModalUpdateView
 
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.urls import reverse_lazy
 from django.http import HttpResponse
@@ -12,6 +16,13 @@ from .models import Category, Course, CourseOccasion, Block, User, Prerequisite,
 from .tables import CourseTable, CourseOccasionTable
 from .filters import CourseFilter
 from .forms import CourseForm
+
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+
+class AdminStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
 
 # Create your views here.
 
@@ -70,16 +81,28 @@ class CourseCreate(BSModalCreateView):
     model = Course
     form_class = CourseForm
     template_name = 'rodatraden/course_create.html'
-    success_message = 'Success: Book was created.'
+    success_message = 'Kursen skapades utan problem'
     success_url = reverse_lazy('index')
 
 
-class CourseDelete(BSModalDeleteView):
+@method_decorator(login_required, name='dispatch')
+class CourseUpdate(BSModalUpdateView):
+    model = Course
+    template_name = 'rodatraden/course_update.html'
+    form_class = CourseForm
+    success_message = 'Success: Book was updated.'
+    success_url = reverse_lazy('index')
+
+
+# @method_decorator(login_required, name='dispatch')
+# @method_decorator(user_passes_test(lambda u: u.is_superuser or u.is_staff),
+        # name='dispatch')
+class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+    permission_required = 'user.is_staff'
     model = Course
     template_name = 'rodatraden/course_confirm_delete.html'
-    success_message = 'Kursen togs bort utan problem.'
+    success_message = 'Kursen togs bort utan problem'
     success_url = reverse_lazy('course-list')
-
 
 class ProfileList(generic.ListView):
     model = Profile

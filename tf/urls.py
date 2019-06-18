@@ -15,13 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-import cas.views
+import django_cas_ng.views
 
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
     # Admin
     path('admin/', admin.site.urls), # Admin page
     # Authentication against CAS
-    path('anvandare/login/', cas.views.login, name='login'),
-    path('ancandare/logout/', cas.views.logout, name='logout'),
+    path('anvandare/login/', django_cas_ng.views.LoginView.as_view(),
+        name='cas_ng_login'),
+    path('ancandare/logout/', django_cas_ng.views.LogoutView.as_view(),
+        name='cas_ng_logout'),
 ]

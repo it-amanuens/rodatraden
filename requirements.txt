@@ -1,7 +1,7 @@
 django
 django-bootstrap4
 django-crispy-forms
-django-cas-client
+django-cas-ng
 Pillow
 mysqlclient
 django-view-breadcrumbs

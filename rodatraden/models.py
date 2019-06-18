@@ -275,11 +275,11 @@ class CourseOccasion(models.Model):
     Occasions for a given course
     Many to one
     """
-    year = models.IntegerField()
+    year = models.IntegerField(verbose_name="År")
     # What 'läsperiod' to start at
     # I think it should just be number of weeks tho
-    start = models.IntegerField()
-    weeks = models.IntegerField()
+    start = models.IntegerField(verbose_name="TODO")
+    weeks = models.IntegerField(verbose_name="Längd")
     official = models.BooleanField(default=True)
     note = models.CharField(max_length=250, blank=True, null=True)
     # Url homepages
@@ -289,7 +289,8 @@ class CourseOccasion(models.Model):
     contact_name = models.CharField(max_length=250, blank=True, null=True)
     contact_email = models.EmailField(blank=True, null=True)
     # Connected to course
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE,
+            verbose_name="Kurs")
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
