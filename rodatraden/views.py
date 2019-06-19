@@ -42,21 +42,6 @@ class CourseList(SingleTableMixin, FilterView):
     template_name = 'rodatraden/course_list.html'
 
 
-class CourseOccasionList(SingleTableMixin, FilterView):
-    model = CourseOccasion
-    # Define table class
-    table_class = CourseOccasionTable
-    paginator_class = LazyPaginator
-    paginate_by = 15  # if pagination is desired
-    template_name = 'rodatraden/course_list.html'
-    
-    # Add boolean to check if courseoccasion
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        context['is_occasion'] = True
-        return context
-
 # Detailed view for specific courses
 class CourseDetail(generic.DetailView):
     model = Course
@@ -67,19 +52,6 @@ class CourseDetail(generic.DetailView):
         context = super().get_context_data(**kwargs)
         # Get all courses with the current id as prerequisite
         context['prereq_courses'] = self.object.course_set.all
-        return context
-
-
-# Detailed view for specific courses
-class CourseOccasionDetail(generic.DetailView):
-    model = CourseOccasion
-    template_name = 'rodatraden/course_detail.html'
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        # Also sends information about the given course
-        context['course'] = self.object.course
         return context
 
 
@@ -109,6 +81,70 @@ class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteVie
     template_name = 'rodatraden/course_confirm_delete.html'
     success_message = 'Kursen togs bort utan problem'
     success_url = reverse_lazy('course-list')
+
+
+class CourseOccasionList(SingleTableMixin, FilterView):
+    model = CourseOccasion
+    # Define table class
+    table_class = CourseOccasionTable
+    paginator_class = LazyPaginator
+    paginate_by = 15  # if pagination is desired
+    template_name = 'rodatraden/course_list.html'
+    
+    # Add boolean to check if courseoccasion
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        context['is_occasion'] = True
+        return context
+
+
+# Detailed view for specific courses
+class CourseOccasionDetail(generic.DetailView):
+    model = CourseOccasion
+    template_name = 'rodatraden/course_detail.html'
+
+    # Filter by slug and year
+    def get_queryset(self):
+        # Original filter
+        self.co = super().get_queryset()
+        return self.co.filter(year=self.kwargs['year'])
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Also sends information about the given course
+        context['course'] = self.object.course
+        return context
+
+
+class CourseOccasionCreate(BSModalCreateView):
+    model = CourseOccasion
+    form_class = CourseForm
+    template_name = 'rodatraden/course_create.html'
+    success_message = 'Kursen skapades utan problem'
+    success_url = reverse_lazy('index')
+
+
+@method_decorator(login_required, name='dispatch')
+class CourseOccasionUpdate(BSModalUpdateView):
+    model = CourseOccasion
+    template_name = 'rodatraden/course_update.html'
+    form_class = CourseForm
+    success_message = 'Success: Book was updated.'
+    success_url = reverse_lazy('index')
+
+
+# @method_decorator(login_required, name='dispatch')
+# @method_decorator(user_passes_test(lambda u: u.is_superuser or u.is_staff),
+        # name='dispatch')
+class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+    permission_required = 'user.is_staff'
+    model = CourseOccasion
+    template_name = 'rodatraden/course_confirm_delete.html'
+    success_message = 'Kursen togs bort utan problem'
+    success_url = reverse_lazy('course-list')
+
 
 class ProfileList(generic.ListView):
     model = Profile

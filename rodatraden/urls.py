@@ -25,6 +25,12 @@ urlpatterns = [
     # Courseoccasions
     path('kurstillfallen/', views.CourseOccasionList.as_view(), 
         name='courseoccasion-list'),
+    path('kurstillfallen/skapa/', views.CourseOccasionCreate.as_view(),
+        name='courseoccasion-create'),
+    path('kurstillfallen/<int:year>/<slug:slug>/radera/',
+        views.CourseOccasionDelete.as_view(), name='courseoccasion-delete'),
+    path('kurstillfallen/<int:year>/<slug:slug>/andra/', views.CourseOccasionUpdate.as_view(),
+        name='courseoccasion-update'),
     path('kurstillfallen/<int:year>/<slug:slug>/',
         views.CourseOccasionDetail.as_view(), name='courseoccasion-detail'),
 
