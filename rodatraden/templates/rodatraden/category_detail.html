@@ -2,18 +2,16 @@
 
 {% block title %}{{ category.title }}{% endblock %}
 
+{% block page_title %}{{ category.title }}{% endblock %}
+
 {% block content %}
 
-<div class="starter-template">
-  <h1 style="text-align: center;">{{ category.title }}</h1>
-  {% if category.description %}
-    {{ category.description |safe }}
-  {% else %}
-    <p class="lead">
-    Denna kategori saknar info.
-    </p>
-  {% endif %}
-</div>
-
+{% if category.description %}
+  {{ category.description |safe }}
+{% else %}
+  <p class="lead">
+  Denna kategori saknar info.
+  </p>
+{% endif %}
 
 {% endblock %}

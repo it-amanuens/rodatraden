@@ -1,11 +1,12 @@
 {# Load the tag library #}
 {% load bootstrap4 %}
-{% load static %}
-{% load django_bootstrap_breadcrumbs %}
 
 {# Load CSS and JavaScript #}
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
+
+{% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
@@ -21,10 +22,6 @@
 
     <!-- Custom styles -->
     <link rel="stylesheet" type="text/css" href="{% static 'rodatraden/rodatraden.css' %}">
-    <!-- Custom javascript -->
-    <link rel="stylesheet" href="{% static 'rodatraden/rodatraden.js' %}">
-    <!-- Fancy icons -->
-    <script src="https://kit.fontawesome.com/c6e9b99eeb.js"></script>
   </head>
 
   <body>
@@ -41,9 +38,34 @@
       {% endblock %}
       {% render_breadcrumbs "rodatraden/breadcrumbs.html" %}
 
-      <!-- Main content -->
-      {% block content %}
-      {% endblock %}
+      <div class="starter-template">
+
+        <!-- Modal -->
+        <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+            </div>
+          </div>
+        </div>
+
+        <div class="text-right">
+          {% block menu %}
+          {% endblock %}
+        </div>
+
+        <!-- Page title -->
+        <h1 class="text-center">
+          {% block page_title %}
+          {% endblock %}
+        </h1>
+
+        <hr>
+
+        <!-- Main content -->
+        {% block content %}
+        {% endblock %}
+
+      </div>
 
     </main>
 
@@ -51,6 +73,16 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'rodatraden/rodatraden.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <!-- Fancy icons -->
+    <script src="https://kit.fontawesome.com/c6e9b99eeb.js"></script>
+    <!-- highcharts -->
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/modules/data.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
 
     <!-- Extra javascript -->
     {% block extra_scripts %}

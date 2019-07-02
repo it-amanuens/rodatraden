@@ -1,3 +1,14 @@
+:root {
+  --main-color: #D6001E;
+  --main-color-dark: #B30018;
+  --block-border-radius: 0.2rem;
+  --gray-darker:            lighten(#000, 13.5%); // #222
+  --gray-dark:              lighten(#000, 20%);   // #333
+  --gray:                   lighten(#000, 40%); // #555
+  --gray-light:             #dddddd; // #777
+  --gray-lighter:           lighten(#000, 95%); // #eee
+}
+
 body {
   padding-top: 5rem;
 }
@@ -6,6 +17,10 @@ body {
 .course-etc {
   background-color: #ececec;
   border-radius: 0.25rem;
+}
+
+.container {
+  max-width: 1200px;
 }
 
 /* TODO: CHANGE NAME */
@@ -45,3 +60,127 @@ a:hover{
 .abbr-style {
   background-color: blue;
 }
+
+/* Block stuff */
+
+.block-row{
+  margin: 15px 0;
+}
+
+.block {
+  width: 100%;
+  position: relative;
+  text-align: center;
+  background-color: #DDDDDD;
+  z-index: 0;
+}
+
+.block-header {width: 100%; overflow: hidden;}
+.block-header-lp {
+  width: 50%;
+  float: left;
+  color: white;
+  font-size: large;
+  border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
+  border-style: solid;
+  border-color: #D3D3D3;
+  border-width: 1px 1px 0px 1px;
+}
+
+.block-subheader-lp {
+  width: 25%;
+  float: left;
+  color: white;
+  height: 1.5rem;
+  font-size: small;
+  padding: 0;
+  border-style: solid;
+  border-color: #D3D3D3;
+  border-width: 0px 1px 0px 1px;
+}
+
+.block-footer{width: 100%; overflow: hidden;}
+.block-footer-lp{
+  width: 25%;
+  float:left;
+  color: white;
+  padding: 3px;
+  text-decoration: none;
+  border-radius: 0 0 var(--block-border-radius) var(--block-border-radius);
+  border-style: solid;
+  border-color: #D3D3D3;
+  border-width: 1px;
+}
+
+.block-footer-lp:hover{
+  background-color: var(--main-color) !important;
+}
+
+.course-approved{border: 3px solid green;}
+
+
+.block-item {
+  position: absolute;
+  border: 2px var(--main-color) solid;
+  color: white;
+  background-color: var(--main-color-dark);
+  font-size: .9vw;
+}
+
+.block-remove-button {
+  color: white;
+  position: absolute;
+  right:    0;
+  top:   0;
+}
+
+.block-remove-button .fa {
+  color: white;
+}
+
+.course-private {
+  background-color: #c3e5c4;
+}
+
+
+.prereq-0 {
+  background-color: var(--gray-light);
+}
+
+.block-addyear {
+  color: white;
+  border-radius: var(--block-border-radius);
+  cursor: pointer;
+  position: absolute;
+}
+.block-addyear:hover {
+  background-color: var(--main-color) !important;
+}
+
+.block-text-left {
+  width: 70%;
+  float: left;
+}
+
+.block-text-right {
+  width: 29%
+}
+
+.block-content {
+  padding: 3px;
+}
+
+/**
+SUM TOTAL
+*/
+
+.block-sum {
+  width: 17%;
+  color: var(--gray-lighter);
+  font-size: small;
+  padding: 6px;
+  overflow: hidden;
+  background-color: var(--main-color);
+  border-radius: var(--block-border-radius) var(--block-border-radius) var(--block-border-radius) var(--block-border-radius);
+}
+

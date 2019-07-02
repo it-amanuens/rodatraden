@@ -1,0 +1,43 @@
+{% load widget_tweaks %}
+
+<div class="modal-header">
+  <h3 class="modal-title">Kurstillfällen denna period</h3>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body">
+
+  <table class="table table-hover table-sm">
+    <thead>
+      <tr>
+        <th>Kursnamn</th>
+        <th>År</th>
+        <th>Längd</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for courseoccasion in courseoccasions %}
+      <tr>
+        <td><a href="{% url 'courseoccasion-detail' courseoccasion.year courseoccasion.slug %}">{{ courseoccasion.course.title }}</a></td>
+        <td>{{ courseoccasion.year }}</td>
+        <td>{{ courseoccasion.weeks }}</td>
+        <td>
+          <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}">
+            <span class="fa fa-plus"></span>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <table>
+  </table>
+
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" data-dismiss="modal">Stäng</button>
+</div>

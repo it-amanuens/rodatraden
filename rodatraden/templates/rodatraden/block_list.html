@@ -1,0 +1,55 @@
+{% extends 'rodatraden/index.html' %}
+
+{% load django_bootstrap_breadcrumbs %}
+{% load render_table from django_tables2 %}
+{% load bootstrap4 %}
+
+{% block title %}
+Blockscheman - {{ user }}
+{% endblock %}
+
+{% block menu %}
+<a class="btn btn-gone add-block"
+  data-id="{% url 'block-create' user %}"
+  data-toggle="tooltip" title="Skapa nytt">
+  <span class="fa fa-plus"></span>
+</a> 
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb "Blockscheman" "block-list" user %}
+{% endblock %}
+
+{% block page_title %}
+Blockscheman - {{ user }}
+{% endblock %}
+
+{% block content %}
+
+{% for block in block_list %}
+<h2><a href="{% url 'block-detail' user block.slug %}">
+    {{ block.title }}
+</a></h2>
+<h6>{{ block.start_year }}</h6>
+{% if block.private %}
+  <span class="badge badge-warning">Privat</span>
+{% else %}
+  <span class="badge badge-success">Publik</span>
+{% endif %}
+<p>{{ block.description }}</p>
+<hr>
+{% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+
+  <script type="text/javascript">
+    $(".add-block").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+  </script>
+
+{% endblock %}
