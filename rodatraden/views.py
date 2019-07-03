@@ -15,11 +15,12 @@ from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponseRedirect
 from django.views import generic
 from django.core import serializers
+from django.forms import formset_factory
 
 from .models import Category, Course, CourseOccasion, Block, User, Prerequisite, Profile, CategoryExam
 from .tables import CourseTable, CourseOccasionTable
 from .filters import CourseFilter
-from .forms import CourseForm, BlockForm
+from .forms import CourseForm, BlockForm, CategoryCourseForm
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -53,7 +54,6 @@ class CourseList(SingleTableMixin, FilterView):
     # Define table class
     table_class = CourseTable
     filterset_class = CourseFilter
-    paginator_class = LazyPaginator
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
 
@@ -78,13 +78,38 @@ class CourseCreate(BSModalCreateView):
     success_message = 'Kursen skapades utan problem'
     success_url = reverse_lazy('index')
 
+    def form_valid(self, form):
+        self.object = form.save()
+
+        # Does not redirect if valid
+        #return HttpResponseRedirect(self.get_success_url())
+
+        # Render the template
+        # get_context_data populates object in the context
+        # or you also get it with the name you want if you define context_object_name in the class
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_success_url(self, **kwargs):
+        return reverse_lazy('course-detail', 
+                kwargs={'slug':self.kwargs['slug']})
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['special_form'] = CategoryCourseForm()
+        return context
+
 
 class CourseUpdate(BSModalUpdateView):
     model = Course
     template_name = 'rodatraden/course_update.html'
     form_class = CourseForm
-    success_message = 'Success: Book was updated.'
-    success_url = reverse_lazy('index')
+    success_message = 'Kursen uppdaterades utan problem'
+    success_url = reverse_lazy('course-list')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['special_form'] = CategoryCourseForm()
+        return context
 
 
 class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -99,7 +124,6 @@ class CourseOccasionList(SingleTableMixin, FilterView):
     model = CourseOccasion
     # Define table class
     table_class = CourseOccasionTable
-    paginator_class = LazyPaginator
     paginate_by = 15  # if pagination is desired
     template_name = 'rodatraden/course_list.html'
     

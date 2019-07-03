@@ -18,3 +18,5 @@ build/
 tests/report/
 sent_emails/
 db.sqlite3
+*.swp
+*.swo

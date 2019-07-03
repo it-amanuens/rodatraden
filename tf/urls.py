@@ -24,6 +24,6 @@ urlpatterns = [
     # Authentication against CAS
     path('anvandare/login/', django_cas_ng.views.LoginView.as_view(),
         name='cas_ng_login'),
-    path('ancandare/logout/', django_cas_ng.views.LogoutView.as_view(),
+    path('anvandare/logout/', django_cas_ng.views.LogoutView.as_view(),
         name='cas_ng_logout'),
 ]

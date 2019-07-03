@@ -12,6 +12,14 @@
 {% endif %}
 {% endblock %}
 
+{% block menu %}
+<a class="btn btn-gone add-course"
+  data-id="{% url 'course-create' %}"
+  data-toggle="tooltip" title="Skapa nytt">
+  <span class="fa fa-plus"></span>
+</a> 
+{% endblock %}
+
 {% block breadcrumbs %}
     {{ block.super }}
     {% if is_occasion %}
@@ -21,21 +29,11 @@
     {% endif %}
 {% endblock %}
 
+{% block page_title %}Kurser{% endblock %}
+
 {% block content %}
 
-<div class="modal fade" tabindex="-1" role="dialog" id="modal">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-    </div>
-  </div>
-</div>
-
 <div class="starter-template">
-  {% if is_occasion %}
-    <h1 style="text-align: center;">Kurstillfällen</h1>
-  {% else %}
-    <h1 style="text-align: center;">Kurser</h1>
-  {% endif %}
 
   {% if filter %}
     <form action="" method="get" class="form form-inline">
@@ -43,7 +41,9 @@
         {% bootstrap_button 'filter' %}
     </form>
   {% endif %}
+
   {% render_table table %}
+
 </div>
 
 {% endblock %}
@@ -55,7 +55,7 @@
 
       $(function () {
         // Create book button
-        $(".create-book").modalForm({
+        $(".add-course").modalForm({
           formURL: "{% url 'course-create' %}",
         });
 
@@ -70,11 +70,6 @@
             formURL: $(this).data('id')
           });
         })
-
-        // Hide message
-        $(".alert").fadeTo(2000, 500).slideUp(500, function(){
-          $(".alert").slideUp(500);
-        });
       });
 
   </script>

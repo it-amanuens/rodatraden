@@ -1,14 +1,27 @@
 import datetime
 from django.db.models import Max, Min
-from .models import Course, Block, CourseOccasion
+from .models import Course, Block, CourseOccasion, CategoryCourse, Track
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
 
 class CourseForm(BSModalForm):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tracks'].widget.attrs.update({'class' :
+            'select2-mult-choice'})
+        self.fields['prerequisites'].widget.attrs.update({'class' :
+            'select2-mult-choice'})
+
     class Meta:
         model = Course
-        exclude = ['description_eng']
+        exclude = ['title_eng', 'description_eng', 'evaluation_url', 'note', 'categories']
+
+class CategoryCourseForm(BSModalForm):
+
+    class Meta:
+        model = CategoryCourse
+        fields = ['category', 'ects']
 
 class BlockForm(BSModalForm):
 
@@ -19,7 +32,7 @@ class BlockForm(BSModalForm):
         latest_occ = CourseOccasion.objects.latest('year')
         earliest_occ = CourseOccasion.objects.earliest('year')
         years = [(x, x) for x in range(earliest_occ.year, latest_occ.year)]
-        self.fields['start_year'] = forms.ChoiceField(choices=years,
+        self.fields['start_year'] = forms.MultipleChoiceField(choices=years,
                 initial=datetime.datetime.now().year)
 
     class Meta:

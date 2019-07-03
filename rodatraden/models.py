@@ -176,22 +176,25 @@ class Course(models.Model):
     """
     Courses. Self-explanatory
     """
-    title = models.CharField(verbose_name='Titel', max_length=250)
-    description = models.CharField(max_length=10000, blank=True, null=True)
+    title = models.CharField(verbose_name='Kursnamn', max_length=250)
+    description = models.TextField(max_length=10000, blank=True, null=True,
+            verbose_name='Beskrivning')
     # Kurskod
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=10, verbose_name="Kod")
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(verbose_name='Poäng', max_digits=3,decimal_places=1)
+    ects = models.DecimalField(verbose_name='Poäng',
+            max_digits=3,decimal_places=1, default="7.5")
     # If the course is approved
-    approved = models.BooleanField(default=True, blank=True, null=True)
+    approved = models.BooleanField(default=True, blank=True, null=True,
+            verbose_name="Godkänd")
     # I think this is to check if the course will still continue
-    closed = models.BooleanField(default=False)
+    closed = models.BooleanField(default=False, verbose_name="Stängd")
     # Note sure what this is for
     note = models.CharField(max_length=250, blank=True, null=True)
     title_eng = models.CharField(max_length=250, blank=True, null=True)
     description_eng = models.CharField(max_length=10000, blank=True, null=True)
     # Url homepages
-    homepage_url = models.URLField(blank=True, null=True)
+    homepage_url = models.URLField(blank=True, null=True, verbose_name='Hemsida')
     evaluation_url = models.URLField(blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
@@ -199,9 +202,10 @@ class Course(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Connected to departments and levels
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE,
+            verbose_name='Institution', default=1)
     level = models.ForeignKey(Level, on_delete=models.CASCADE,
-            verbose_name='Nivå')
+            verbose_name='Nivå', default=1)
     # Connected to categories and tracks via many-to-many
     categories = models.ManyToManyField(Category, through='CategoryCourse',
             verbose_name='Kategorier')

@@ -5,7 +5,6 @@ from django_filters import ModelChoiceFilter
 from .models import Course
 
 class CourseFilter(django_filters.FilterSet):
-    # profiles = ModelChoiceFilter(queryset=Course.objects.all())
 
     class Meta:
         model = Course

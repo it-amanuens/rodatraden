@@ -4,7 +4,7 @@
   {% csrf_token %}
 
   <div class="modal-header">
-    <h3 class="modal-title">Create Book</h3>
+    <h3 class="modal-title">Skapa ny kurs</h3>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -21,7 +21,7 @@
     {% for field in form %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {% render_field field class="form-control" placeholder=field.label %}
+        {% render_field field class+="form-control" %}
         <div class="{% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
             <p class="help-block">{{ error }}</p>
@@ -29,10 +29,17 @@
         </div>
       </div>
     {% endfor %}
+
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-primary">Create</button>
+    <button type="button" class="submit-btn btn btn-primary">Skapa</button>
   </div>
 
 </form>
+
+<script type="text/javascript">
+  $(function () {
+     $(".select2-mult-choice").select2({ width: '100%' });
+  });
+</script>
