@@ -2,14 +2,11 @@
 
 {% load django_bootstrap_breadcrumbs %}
 {% load render_table from django_tables2 %}
+{% load widget_tweaks %}
 {% load bootstrap4 %}
 
 {% block title %}
-{% if is_occasion %}
-  Kurstillfällen
-{% else %}
   Kurser
-{% endif %}
 {% endblock %}
 
 {% block menu %}
@@ -33,22 +30,36 @@
 
 {% block content %}
 
-<div class="starter-template">
-
-  {% if filter %}
-    <form action="" method="get" class="form form-inline">
-        {% bootstrap_form filter.form layout='inline' %}
-        {% bootstrap_button 'filter' %}
-    </form>
-  {% endif %}
-
-  {% render_table table %}
-
+<div class="row course-etc p-3 pt-4 mb-2">
+  <div class="col-lg">
+    {% if filter %}
+      <form action="" method="get" class="form form-inline">
+        {% render_field filter.form.title|add_class:"course-list-filter" %}
+        {% render_field filter.form.categories|add_class:"course-list-filter" %}
+        {% render_field filter.form.level|add_class:"course-list-filter" %}
+        {% render_field filter.form.department|add_class:"course-list-filter" %}
+      </form>
+    {% endif %}
+  </div>
 </div>
+
+{% render_table table %}
 
 {% endblock %}
 
 {% block extra_scripts %}
+
+  <script type="text/javascript">
+
+    $(document).ready(function() {
+      $(".course-list-filter").select2({ width: '25%' });
+
+      $("form :input").change(function() {
+        $("form:first").submit();
+      });
+    });
+
+  </script>
 
 {% if user.is_superuser %}
   <script type="text/javascript">

@@ -57,10 +57,6 @@ a:hover{
   color: #D6001E;
 }
 
-.abbr-style {
-  background-color: blue;
-}
-
 /* Block stuff */
 
 .block-row{
@@ -184,3 +180,26 @@ SUM TOTAL
   border-radius: var(--block-border-radius) var(--block-border-radius) var(--block-border-radius) var(--block-border-radius);
 }
 
+/** SELECT2 */
+.select2-results__option--highlighted {
+  background-color: var(--main-color) !important;
+}
+
+.select2-results__options {
+  font-size:small !important;
+}
+
+.select2-selection__rendered {
+  font-size:small !important;
+}
+
+/* PAGINATION */
+.page-link {
+  color: var(--main-color) !important;
+}
+
+.page-item.active .page-link {
+  background-color: var(--main-color) !important;
+  border-color: var(--main-color) !important;
+  color: white !important;
+}

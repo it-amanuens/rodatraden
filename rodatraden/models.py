@@ -45,6 +45,9 @@ class Level(models.Model):
     def __str__(self):
         return self.title
 
+    def first_letter(self):
+        return self.title[0]
+
 class Profile(models.Model):
     """
     Program profiles
@@ -128,6 +131,9 @@ class Category(models.Model):
 
     def get_absolute_url(self):
         return reverse('category-detail', kwargs={'slug': self.slug})
+
+    def epic(self):
+        return "<div class='cat-abbr'>" + self.abbreviation + "</div>"
 
     def __str__(self):
         return self.title

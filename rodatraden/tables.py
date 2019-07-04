@@ -6,9 +6,6 @@ from .models import Course, CourseOccasion, Category
 class CourseTable(tables.Table):
     # Urls from respective models
     title = tables.Column(linkify=True)
-    categories = tables.ManyToManyColumn(transform=lambda obj:
-            obj.abbreviation, separator=' ', linkify_item=True,
-            attrs={'td':{'class': 'abbr-style'}})
     
     # Removal button
     remove_button = "<button type='button' class='delete-course btn btn-gone'"
@@ -20,6 +17,13 @@ class CourseTable(tables.Table):
     update_button += "<span class='fa fa-pen'></span></button>"
     update_button += remove_button
     edit = tables.TemplateColumn(update_button, verbose_name="")
+
+    # Level text
+    level = tables.TemplateColumn(
+            template_name='rodatraden/tables/level_table.html')
+    # Categories with nice look
+    categories = tables.TemplateColumn(
+            template_name='rodatraden/tables/category_table.html')
 
     # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
