@@ -10,11 +10,11 @@ class CourseTable(tables.Table):
     # Removal button
     remove_button = "<button type='button' class='delete-course btn btn-gone'"
     remove_button += "data-id='{% url 'course-delete' record.slug %}'>"
-    remove_button += "<span class='fa fa-trash'></span></button>"
+    remove_button += "<span class='fa fa-trash' data-toggle='tooltip' title='Radera'></span></button>"
     # Update button
     update_button = "<button type='button' class='update-course btn btn-gone'"
     update_button += "data-id='{% url 'course-update' record.slug %}'>"
-    update_button += "<span class='fa fa-pen'></span></button>"
+    update_button += "<span class='fa fa-pen' data-toggle='tooltip' title='Ändra'></span></button>"
     update_button += remove_button
     edit = tables.TemplateColumn(update_button, verbose_name="")
 

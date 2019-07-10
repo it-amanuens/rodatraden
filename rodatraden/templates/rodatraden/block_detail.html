@@ -2,6 +2,7 @@
 {% load django_bootstrap_breadcrumbs %}
 <!-- For localization -->
 {% load l10n %}
+{% load static %}
 
 {% block title %}{{ this_block.title }}{% endblock %}
 
@@ -121,6 +122,9 @@
         }]
     });
   </script>
+
+  <!-- Helper scripts for rendering blocks -->
+  <script type="text/javascript" src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
 
   <script type="text/javascript">
 

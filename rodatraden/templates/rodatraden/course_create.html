@@ -1,4 +1,5 @@
 {% load widget_tweaks %}
+{% load static %}
 
 <form method="post" action="">
   {% csrf_token %}
@@ -18,28 +19,57 @@
       {% endfor %}
     </div>
 
-    {% for field in form %}
+    {% for field in form.visible_fields|slice:":11" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {% render_field field class+="form-control" %}
-        <div class="{% if field.errors %} invalid{% endif %}">
+        {% render_field field class+="form-control" placeholder=field.label %}
+        <div class="pt-1 {% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
-            <p class="help-block">{{ error }}</p>
+            <p class="alert alert-danger">{{ error }}</p>
           {% endfor %}
         </div>
       </div>
     {% endfor %}
 
+    <h2>Kategorier</h2>
+    <hr>
+
+    {% for category_field in form.get_category_fields %}
+    <div class="form-group {% if forloop.last %}category-list-new{% endif %}
+      row px-3">
+        {{ category_field }}
+        <button type="button" class="btn btn-gone remove-category invisible">
+          <span class="fa fa-trash"></span>
+        </button>
+    </div>
+    <div class="{% if category_field.errors %} invalid{% endif %}">
+      {% for error in category_field.errors %}
+        <p class="alert alert-danger">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <button type="button" class="btn btn-gone add-category"
+      data-toggle="tooltip" title="Lägg till kategori">
+      <span class="fa fa-plus"></span>
+    </button>
+
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-primary">Skapa</button>
+    <button type="button" class="submit-btn btn btn-rt">Skapa</button>
   </div>
 
 </form>
-
+<script src='{% static 'rodatraden/category_form.js' %}'></script>
 <script type="text/javascript">
-  $(function () {
-     $(".select2-mult-choice").select2({ width: '100%' });
+  $(document).ready(function() {
+    $(function () {
+       $(".select2-mult-choice").select2({ width: '100%' });
+    });
+
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    });
   });
 </script>

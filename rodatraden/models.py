@@ -213,12 +213,12 @@ class Course(models.Model):
     level = models.ForeignKey(Level, on_delete=models.CASCADE,
             verbose_name='Nivå', default=1)
     # Connected to categories and tracks via many-to-many
-    categories = models.ManyToManyField(Category, through='CategoryCourse',
-            verbose_name='Kategorier')
-    tracks = models.ManyToManyField(Track, blank=True)
+    categories = models.ManyToManyField(Category, blank=True,
+            through='CategoryCourse', verbose_name='Kategorier')
+    tracks = models.ManyToManyField(Track, blank=True, verbose_name='Spår')
     # Connected to itself via prerequisites
-    prerequisites = models.ManyToManyField('self', through='Prerequisite',
-            symmetrical = False)
+    prerequisites = models.ManyToManyField('self', blank=True, through='Prerequisite',
+            symmetrical = False, verbose_name='Förkunskapskrav')
     # Slug
     slug = models.SlugField(max_length=100, unique=True, editable=False)
 
@@ -258,8 +258,11 @@ class Course(models.Model):
             self.slug = self._get_unique_slug()
 
         self.__original_title = self.title
-        
+
         super().save(*args, **kwargs)
+
+        for courseoccasion in CourseOccasion.objects.filter(course=self):
+            courseoccasion.save()
 
     # Url for the course for tables
     def get_absolute_url(self):
@@ -361,6 +364,7 @@ class CourseOccasion(models.Model):
             self.slug = self._get_unique_slug()
 
         self.__original_title = self.course.title
+
         super().save(*args, **kwargs)
 
     def as_json(self):

@@ -1,6 +1,5 @@
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
-from django_tables2 import LazyPaginator
 from bootstrap_modal_forms.generic import (
         BSModalDeleteView, BSModalCreateView, BSModalUpdateView, 
         BSModalReadView
@@ -17,12 +16,17 @@ from django.views import generic
 from django.core import serializers
 from django.forms import formset_factory
 
-from .models import Category, Course, CourseOccasion, Block, User, Prerequisite, Profile, CategoryExam
+from .models import (
+        Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
+        CategoryExam, CategoryCourse
+)
 from .tables import CourseTable, CourseOccasionTable
 from .filters import CourseFilter
-from .forms import CourseForm, BlockForm, CategoryCourseForm
+from .forms import CourseForm, BlockForm
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+
+import pdb
 
 class CorrectUserPermissionMixin:
     """
@@ -76,26 +80,19 @@ class CourseCreate(BSModalCreateView):
     form_class = CourseForm
     template_name = 'rodatraden/course_create.html'
     success_message = 'Kursen skapades utan problem'
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('course-list')
 
-    def form_valid(self, form):
-        self.object = form.save()
+    # def form_valid(self, form):
+        # instance = form.save(commit=False)
+        # # pdb.set_trace()
+        # return super().form_valid(form)
 
-        # Does not redirect if valid
-        #return HttpResponseRedirect(self.get_success_url())
+    # def get_context_data(self, *args, **kwargs):
+        # context = super().get_context_data(*args, **kwargs)
+        # return context
 
-        # Render the template
-        # get_context_data populates object in the context
-        # or you also get it with the name you want if you define context_object_name in the class
-        return self.render_to_response(self.get_context_data(form=form))
-
-    def get_success_url(self, **kwargs):
-        return reverse_lazy('course-detail', 
-                kwargs={'slug':self.kwargs['slug']})
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['special_form'] = CategoryCourseForm()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         return context
 
 
@@ -106,9 +103,18 @@ class CourseUpdate(BSModalUpdateView):
     success_message = 'Kursen uppdaterades utan problem'
     success_url = reverse_lazy('course-list')
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['special_form'] = CategoryCourseForm()
+    # Override form_valid to add current user to block
+    # def form_valid(self, form):
+        # instance = form.save(commit=False)
+        # pdb.set_trace()
+        # instance.user = self.request.user
+        # return super(BlockCreate, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # if not self.request.POST:
+            # pdb.set_trace()
+            # context['categories'] = CategoryCourseFormSet()
         return context
 
 
@@ -230,6 +236,9 @@ class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateV
 
 class BlockCreate(CorrectUserPermissionMixin,
         LoginRequiredMixin, BSModalCreateView):
+    """ 
+    Create block
+    """
     model = Block
     template_name = 'rodatraden/block_create.html'
     form_class = BlockForm
@@ -248,6 +257,9 @@ class BlockCreate(CorrectUserPermissionMixin,
 
 class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalDeleteView):
+    """
+    Remove block
+    """
     model = Block
     template_name = 'rodatraden/block_delete.html'
     success_message = 'Blockschema raderat'
@@ -309,7 +321,7 @@ def block_course_list(request, username, slug):
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
     # Only blocks made by same user
-    if (block.user.username != username):
+    if (block.user.username != request.user.username):
         return redirect(reverse("index"))
 
     # SOrt by year, start, if not in block and order by title
@@ -335,7 +347,7 @@ def add_course_to_block(request, username, b_slug):
     # Get block and courseoccasion
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
     # Only blocks made by same user
-    if (block.user.username != username):
+    if (block.user.username != request.user.username):
         return redirect(reverse("index"))
     course = get_object_or_404(CourseOccasion, slug=c_slug)
     # Add
@@ -354,7 +366,7 @@ def remove_course_from_block(request, username, b_slug):
     # Get block and courseoccasion
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
     # Only blocks made by same user
-    if (block.user.username != username):
+    if (block.user.username != request.user.username):
         return redirect(reverse("index"))
     course = get_object_or_404(CourseOccasion, slug=c_slug)
     # Remove

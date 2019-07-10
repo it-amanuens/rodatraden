@@ -9,6 +9,10 @@
   --gray-lighter:           lighten(#000, 95%); // #eee
 }
 
+.epic {
+  width: 50%;
+}
+
 body {
   padding-top: 5rem;
 }
@@ -202,4 +206,13 @@ SUM TOTAL
   background-color: var(--main-color) !important;
   border-color: var(--main-color) !important;
   color: white !important;
+}
+
+/* FORM CATEGORY */
+.cat-select {
+  width: 60%;
+}
+
+.cat-ects {
+  width: 20%;
 }
