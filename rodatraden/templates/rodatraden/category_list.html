@@ -22,33 +22,41 @@
     {% endif %}
 {% endblock %}
 
+{% block page_title %}Kategorier{% endblock %}
+
 {% block content %}
 
 <div class="starter-template">
-  {% if is_occasion %}
-    <h1 style="text-align: center;">Kurstillfällen</h1>
-  {% else %}
-    <h1 style="text-align: center;">Kategorier</h1>
-  {% endif %}
 
   <p class="lead">Under din tid på programmet ska du ha läst kurser inom ett
   antal olika områden som översiktligt beskrivs nedan.</p>
-  <p>Du ska ha läst minst the angivna poängantalet för att kunna ta ut din
+  <p class="lead">Du ska ha läst minst the angivna poängantalet för att kunna ta ut din
   examen.</p>
 
   {% for category in category_list %}
-    <hr>
+  <hr>
   <div class="row">
     <div class="col-md-2 text-center">
-      <img src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ category.abbreviation }}" 
-           alt="{{ category.title }}" class="rounded mx-auto d-block" style="width:150px; height: 150px;">
+      <img 
+      {% if category.image %}
+         src="{{ category.image.url }}" 
+      {% else %} 
+         src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ category.abbreviation }}" 
+      {% endif %}
+           alt="{{ category.title }}" class="rounded mx-auto d-block img-fluid">
       </img>
     </div>
     <div class="col-ld-1"></div>
     <div class="col-md-9">
-      <h4><a href="{% url 'category-detail' category.slug %}">{{ category.title }}</a></h4>
+      <h4><a href="{% url 'category-detail' category.slug %}">
+          {{ category.title }}
+      </a></h4>
       {{ category.description|safe|truncatewords:"50"|linebreaks }}
-      <a href="{% url 'category-detail' category.slug %}">Läs vidare</a>
+      <a href="{% url 'category-detail' category.slug %}">
+        <span class="badge badge-rt">
+        Läs mer
+        </span>
+      </a>
     </div>
   </div>
   {% endfor %}

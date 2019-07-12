@@ -7,23 +7,17 @@ class CourseTable(tables.Table):
     # Urls from respective models
     title = tables.Column(linkify=True)
     
-    # Removal button
-    remove_button = "<button type='button' class='delete-course btn btn-gone'"
-    remove_button += "data-id='{% url 'course-delete' record.slug %}'>"
-    remove_button += "<span class='fa fa-trash' data-toggle='tooltip' title='Radera'></span></button>"
-    # Update button
-    update_button = "<button type='button' class='update-course btn btn-gone'"
-    update_button += "data-id='{% url 'course-update' record.slug %}'>"
-    update_button += "<span class='fa fa-pen' data-toggle='tooltip' title='Ändra'></span></button>"
-    update_button += remove_button
-    edit = tables.TemplateColumn(update_button, verbose_name="")
-
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/course_edit.html', 
+            verbose_name="")
     # Level text
     level = tables.TemplateColumn(
             template_name='rodatraden/tables/level_table.html')
     # Categories with nice look
     categories = tables.TemplateColumn(
-            template_name='rodatraden/tables/category_table.html')
+            template_name='rodatraden/tables/category_table.html',
+            orderable=False)
 
     # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
@@ -43,17 +37,24 @@ class CourseTable(tables.Table):
 class CourseOccasionTable(tables.Table):
     # Need to fetch url from courseoccasion model
     course = tables.Column(linkify=lambda record: record.get_absolute_url())
+    academic_year = tables.Column(accessor="academic_year.year",
+            verbose_name="År")
+    time_period = tables.Column(accessor="time_period.title",
+            verbose_name="Läsperiod")
 
-    # Removal button
-    remove_button = "<button type='button' class='delete-course btn btn-gone'"
-    remove_button += "data-id='{% url 'course-delete' record.slug %}'>"
-    remove_button += "<span class='fa fa-trash'></span></button>"
-    # Update button
-    update_button = "<button type='button' class='update-course btn btn-gone'"
-    update_button += "data-id='{% url 'course-update' record.slug %}'>"
-    update_button += "<span class='fa fa-pen'></span></button>"
-    update_button += remove_button
-    edit = tables.TemplateColumn(update_button, verbose_name="")
+    # Categories with nice look
+    categories = tables.TemplateColumn(
+            template_name='rodatraden/tables/category_table_occ.html',
+            verbose_name="Kategorier",
+            orderable=False)
+    # Official
+    official = tables.TemplateColumn(
+            template_name='rodatraden/tables/official_table.html', 
+            verbose_name="")
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/courseoccasion_edit.html', 
+            verbose_name="")
 
     # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
@@ -67,6 +68,6 @@ class CourseOccasionTable(tables.Table):
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
         # Fields to show and order
-        fields = ('official', 'course', 'year', 'start', 'weeks',
-                'course.ects', 'course.categories', )
-        order_by = ('course', '-year', )
+        fields = ('official', 'course', 'academic_year', 'time_period', 'weeks',
+                'course.ects', 'categories')
+        order_by = ('course', '-academic_year', )

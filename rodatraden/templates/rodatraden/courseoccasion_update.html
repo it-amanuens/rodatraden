@@ -4,7 +4,7 @@
   {% csrf_token %}
 
   <div class="modal-header">
-    <h3 class="modal-title">Create Book</h3>
+    <h3 class="modal-title">Uppdatera kurstillfälle</h3>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -18,13 +18,13 @@
       {% endfor %}
     </div>
 
-    {% for field in form %}
+    {% for field in form.visible_fields %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class+="form-control" placeholder=field.label %}
-        <div class="{% if field.errors %} invalid{% endif %}">
+        <div class="pt-1 {% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
-            <p class="help-block">{{ error }}</p>
+            <p class="alert alert-danger">{{ error }}</p>
           {% endfor %}
         </div>
       </div>
@@ -33,26 +33,7 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-primary">Create</button>
+    <button type="button" class="submit-btn btn btn-rt">Uppdatera</button>
   </div>
 
 </form>
-
-<script type="text/javascript">
-
-    $(document).ready(function(){
-      if ($('input[type="checkbox"]').prop("checked")==true){
-        $('.block-track').prop('disabled', true)
-      }
-
-      $('input[type="checkbox"]').click(function(){
-        if($(this).prop("checked") == true){
-          $('.block-track').prop('disabled', true)
-        }
-        else if($(this).prop("checked") == false){
-          $('.block-track').prop('disabled', false)
-        }
-      });
-    });
-
-</script>

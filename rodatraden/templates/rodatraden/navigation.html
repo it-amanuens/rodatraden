@@ -1,5 +1,9 @@
+{% load static %}
+
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-  <a class="navbar-brand" href="{% url 'index' %}">RT4</a>
+  <a class="navbar-brand" href="{% url 'index' %}">
+    <img src="{% static 'rodatraden/logo.png' %}" width="35"></img>
+  </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -51,12 +55,11 @@
           <a class="dropdown-item" href="{% url 'block-list' logged_user %}">Blockscheman</a>
           <div class="dropdown-divider"></div>
           {% for block in user_blocks %}
-          <a class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
+          <a style="font-size:small" class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
           {% endfor %}
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{% url 'cas_ng_logout' %}">Logga ut</a>
         </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'cas_ng_logout' %}">Logga ut</a>
       </li>
       {% else %}
       <li class="nav-item">

@@ -1,6 +1,9 @@
 import datetime
 from django.db.models import Max, Min
-from .models import Course, Block, CourseOccasion, Category, Track, CategoryCourse
+from .models import (
+        Course, Block, CourseOccasion, Category, Track, CategoryCourse, Profile,
+        AcademicYear
+        )
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
 from django.forms import formset_factory, MultiWidget
@@ -29,7 +32,7 @@ class CategoryEctsWidget(MultiWidget):
     def decompress(self, value):
         if value:
             return [value['category'], value['ects']]
-        return [None, None]
+        return ['', '']
 
 
 class CategoryEctsField(forms.MultiValueField):
@@ -54,7 +57,7 @@ class CategoryEctsField(forms.MultiValueField):
         """
         Cleans the data to find errors in user input
         """
-        if not value[0] == '':
+        if value[0]:
             if not Category.objects.filter(id=int(value[0])).exists():
                 msg = "Kategorin finns inte"
                 raise forms.ValidationError(msg)
@@ -155,7 +158,7 @@ class CourseForm(SaveWithCategoryMixin, BSModalForm):
                         'category': categories[i].category.id,
                         'ects': categories[i].ects}
             except IndexError:
-                self.initial[field_name] = None
+                self.initial[field_name] = ''
 
     def get_category_fields(self):
         """
@@ -171,6 +174,21 @@ class CourseForm(SaveWithCategoryMixin, BSModalForm):
                 'note', 'categories']
 
 
+class ProfileForm(BSModalForm):
+    
+    class Meta:
+        model = Profile
+        exclude = ['title_eng', 'description_eng']
+
+
+class CourseOccasionForm(BSModalForm):
+
+    class Meta:
+        model = CourseOccasion
+        fields = ['course', 'academic_year', 'time_period', 'weeks',
+        'contact_name', 'contact_email', 'official']
+
+
 class BlockForm(BSModalForm):
     """
     Form for creating new blocks
@@ -178,14 +196,19 @@ class BlockForm(BSModalForm):
 
     def __init__(self, *args, **kwargs):
         super(BlockForm, self).__init__(*args, **kwargs)
-        # Logic to get a year span between the earliest and latest course.
-        # This is probably not the bast way to do it
-        latest_occ = CourseOccasion.objects.latest('year')
-        earliest_occ = CourseOccasion.objects.earliest('year')
-        years = [(x, x) for x in range(earliest_occ.year, latest_occ.year)]
-        self.fields['start_year'] = forms.MultipleChoiceField(choices=years,
+        # Get choices given from academic years
+        years = [(x.year, x.year) for x in AcademicYear.objects.all()]
+        self.fields['start_year'] = forms.ChoiceField(choices=years,
                 initial=datetime.datetime.now().year)
+        self.fields['track'].widget.attrs['class'] = 'block-track'
+
+        if not self.request.user.is_superuser:
+            del self.fields['track']
+
+    # Hide remove and edit buttons if not properly auth
+    def get_form(self, request):
+        pdb.set_trace()
 
     class Meta:
-        model = Block
-        exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
+            model = Block
+            exclude = ['courseoccasions', 'note', 'privatecourses', 'user']

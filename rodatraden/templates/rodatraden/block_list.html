@@ -39,6 +39,9 @@ Blockscheman - {{ user }}
 {% endif %}
 <p>{{ block.description }}</p>
 <hr>
+{% empty %}
+<p>Du verkar inte ha något blockschema. Skapa ett med plustecknet i hörnet och
+planera din studietid på ett bättre sätt!  </p>
 {% endfor %}
 </div>
 

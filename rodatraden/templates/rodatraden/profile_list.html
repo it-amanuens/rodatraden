@@ -1,0 +1,65 @@
+{% extends 'rodatraden/index.html' %}
+
+{% load django_bootstrap_breadcrumbs %}
+{% load render_table from django_tables2 %}
+{% load bootstrap4 %}
+
+{% block title %}
+Profiler
+{% endblock %}
+
+{% block menu %}
+{% if user.is_superuser %}
+<a class="btn btn-gone add-item"
+  data-id="{% url 'profile-create' %}"
+  data-toggle="tooltip" title="Skapa nytt">
+  <span class="fa fa-plus"></span>
+</a> 
+{% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+      {% breadcrumb "Profiler" "profile-list" %}
+{% endblock %}
+
+{% block page_title %}Profiler{% endblock %}
+
+{% block content %}
+
+<div class="starter-template">
+
+  <p class="lead">Som student på Teknisk Fysik i Umeå har du, utöver möjligheten att fritt välja kurser också tillgång till flera fördefinerade profiler anpassade för att ge dig en djupare insikt inom de olika områdena. Självklart kan du följa någon av dessa profiler och byta ut individuella kurser för att hitta det spår som passar just dig bäst.</p>
+
+  {% for profile in profile_list %}
+  <hr>
+  <div class="row">
+    <div class="col-md-2 text-center">
+      <img 
+      {% if profile.image %}
+         src="{{ profile.image.url }}" 
+      {% else %} 
+         src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
+      {% endif %}
+           alt="{{ profile.title }}" class="rounded mx-auto d-block img-fluid">
+      </img>
+    </div>
+    <div class="col-ld-1"></div>
+    <div class="col-md-9 ml-3">
+      <h4><a href="{% url 'profile-detail' profile.slug %}">
+          {{ profile.title }}
+      </a></h4>
+      {{ profile.description|safe|truncatewords:"50"|linebreaks }}
+      <a href="{% url 'profile-detail' profile.slug %}">
+        <span class="badge badge-rt">
+        Läs mer
+        </span>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+
+{% endblock %}
+

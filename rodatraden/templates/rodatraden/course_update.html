@@ -35,10 +35,13 @@
     <hr>
 
     {% for category_field in form.get_category_fields %}
-    <div class="form-group {% if forloop.last %}category-list-new{% endif %}
+    <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
       row px-3">
         {{ category_field }}
-        <button type="button" class="btn btn-gone remove-category invisible">
+        <div class="input-group-append">
+          <span class="input-group-text">hp</span>
+        </div>
+        <button type="button" class="btn btn-gone remove-category">
           <span class="fa fa-trash"></span>
         </button>
     </div>
@@ -61,7 +64,9 @@
   </div>
 
 </form>
-<script src='{% static 'rodatraden/category_form.js' %}'></script>
+
+<script type="text/javascript" src='{% static 'rodatraden/category_form.js' %}'></script>
+
 <script type="text/javascript">
   $(document).ready(function() {
     $(function () {

@@ -21,7 +21,7 @@
     {% for field in form %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {% render_field field class="form-control" placeholder=field.label %}
+        {% render_field field class+="form-control" placeholder=field.label %}
         <div class="{% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
             <p class="help-block">{{ error }}</p>
@@ -36,3 +36,22 @@
   </div>
 
 </form>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+      if ($('input[type="checkbox"]').prop("checked")==true){
+        $('.block-track').prop('disabled', true)
+      }
+
+      $('input[type="checkbox"]').click(function(){
+        if($(this).prop("checked") == true){
+          $('.block-track').prop('disabled', true)
+        }
+        else if($(this).prop("checked") == false){
+          $('.block-track').prop('disabled', false)
+        }
+      });
+    });
+
+</script>

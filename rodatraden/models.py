@@ -1,23 +1,26 @@
-import datetime
+from datetime import datetime, timezone, timedelta
+from time import strptime
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
+
+import pdb
 
 # Get the user model
 User = get_user_model()
 
 INT_YEARS = [(x,x) for x in range(2012, 2022)]
 
-# Create your models here.
+
 class Department(models.Model):
     """
-    Most likely departments at the university.
+    University departments
     """
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=10000, blank=True, null=True)
+    description = models.CharField(max_length=5000, blank=True, null=True)
     title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    description_eng = models.CharField(max_length=5000, blank=True, null=True)
     abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
@@ -28,14 +31,15 @@ class Department(models.Model):
     def __str__(self):
         return self.title
 
+
 class Level(models.Model):
     """
-    Grundläggande or avancerad
+    Course level such as Basic or Advanced
     """
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=10000, blank=True, null=True)
+    description = models.CharField(max_length=5000, blank=True, null=True)
     title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    description_eng = models.CharField(max_length=5000, blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -46,22 +50,56 @@ class Level(models.Model):
         return self.title
 
     def first_letter(self):
+        # Get first letter of title
         return self.title[0]
+
+
+class AcademicYear(models.Model):
+    """
+    Läsperioder, such as year 2018 is associated with the period 18/19
+    """
+    year = models.IntegerField()
+    title = models.CharField(max_length=250)
+    # Timestamp
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+            null=False, blank=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
+            blank=False)
+
+    def __str__(self):
+        return self.title
+
+
+class TimePeriod(models.Model):
+    """
+    Time periods. Like 2014/2015
+    """
+    title = models.CharField(max_length=250)
+    week = models.IntegerField()
+    # Timestamp
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+            null=False, blank=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
+            blank=False)
+
+    def __str__(self):
+        return self.title
+
 
 class Profile(models.Model):
     """
     Program profiles
     """
-    title = models.CharField(max_length=250)
-    description = models.CharField(max_length=10000, blank=True, null=True)
+    title = models.CharField(max_length=250, verbose_name="Titel")
+    description = models.CharField(max_length=5000, blank=True, null=True,
+            verbose_name="Beskrivning")
     title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=10000, blank=True, null=True)
-    abbreviation = models.CharField(max_length=20, blank=True, null=True)
+    description_eng = models.CharField(max_length=5000, blank=True, null=True)
+    abbreviation = models.CharField(max_length=20, blank=True, null=True,
+            verbose_name="Förkortning")
     # Image storage
-    # path will be MEDIA_ROOT/profiles
-    # TODO: Look into height and width configurations, what is proper for this
-    # application
-    image = models.ImageField(upload_to='profiles/')
+    image = models.ImageField(upload_to='profiles/', blank=True, null=True,
+            verbose_name="Bild")
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -69,6 +107,24 @@ class Profile(models.Model):
             blank=False)
     # Slug
     slug = models.SlugField(unique=True, editable=False)
+
+    __original_title = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_title = self.title
+
+    def __str__(self):
+        return self.title
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+
+        super().save(*args, **kwargs)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -81,23 +137,15 @@ class Profile(models.Model):
             num += 1
         return unique_slug
 
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        self.slug = ""
-        self.slug = self._get_unique_slug()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
 
 class Category(models.Model):
     """
     Categories for different exam goals
     """
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=10000, blank=True, null=True)
+    description = models.CharField(max_length=5000, blank=True, null=True)
     title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    description_eng = models.CharField(max_length=5000, blank=True, null=True)
     abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Image storage
     # path will be MEDIA_ROOT/categories
@@ -112,6 +160,27 @@ class Category(models.Model):
     # Slug
     slug = models.SlugField(max_length=100, unique=True, editable=False)
 
+    __original_title = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_title = self.title
+
+    def __str__(self):
+        return self.title
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('category-detail', kwargs={'slug': self.slug})
+
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
         slug = slugify(self.title)
@@ -123,20 +192,29 @@ class Category(models.Model):
             num += 1
         return unique_slug
 
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        self.slug = ""
-        self.slug = self._get_unique_slug()
-        super().save(*args, **kwargs)
+    def time_since_updated(self):
+        """
+        Gets the time since the object was updated in nice format
+        """
+        # Time is stored as UTC so has to be converted
+        update_time = self.updated_at + timedelta(hours=2)
+        time = datetime.now()
 
-    def get_absolute_url(self):
-        return reverse('category-detail', kwargs={'slug': self.slug})
+        if update_time.day == time.day:
+            if update_time.hour == time.hour:
+                if update_time.minute == time.minute:
+                    return str(time.second - update_time.second) + " sekund(er) sen"
+                return str(time.minute - update_time.minute) + " minut(er) sen"
+            return str(time.hour - update_time.hour) + " timm(ar) sen"
+        else:
+            if update_time.month == time.month:
+                return str(time.day - update_time.day) + " dag(ar) sen"
+            else:
+                if update_time.year == time.year:
+                    return str(time.month - update_time.month) + " månad(er) sen"
 
-    def epic(self):
-        return "<div class='cat-abbr'>" + self.abbreviation + "</div>"
+        return update_time
 
-    def __str__(self):
-        return self.title
 
 class Track(models.Model):
     """
@@ -145,9 +223,9 @@ class Track(models.Model):
     title = models.CharField(max_length=250)
     # If the track is valid
     valid = models.BooleanField(default=True, blank=True, null=True)
-    description = models.CharField(max_length=10000, blank=True, null=True)
+    description = models.CharField(max_length=5000, blank=True, null=True)
     title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    description_eng = models.CharField(max_length=5000, blank=True, null=True)
     # Connected to profiles
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     # Timestamp
@@ -157,6 +235,24 @@ class Track(models.Model):
             blank=False)
     # Slug
     slug = models.SlugField(unique=True, editable=False)
+
+    __original_title = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_title = self.title
+
+    def __str__(self):
+        return self.title
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+
+        super().save(*args, **kwargs)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -169,21 +265,13 @@ class Track(models.Model):
             num += 1
         return unique_slug
 
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        self.slug = ""
-        self.slug = self._get_unique_slug()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
 
 class Course(models.Model):
     """
     Courses. Self-explanatory
     """
     title = models.CharField(verbose_name='Kursnamn', max_length=250)
-    description = models.TextField(max_length=10000, blank=True, null=True,
+    description = models.TextField(max_length=5000, blank=True, null=True,
             verbose_name='Beskrivning')
     # Kurskod
     code = models.CharField(max_length=10, verbose_name="Kod")
@@ -198,7 +286,7 @@ class Course(models.Model):
     # Note sure what this is for
     note = models.CharField(max_length=250, blank=True, null=True)
     title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=10000, blank=True, null=True)
+    description_eng = models.CharField(max_length=5000, blank=True, null=True)
     # Url homepages
     homepage_url = models.URLField(blank=True, null=True, verbose_name='Hemsida')
     evaluation_url = models.URLField(blank=True, null=True)
@@ -222,6 +310,66 @@ class Course(models.Model):
     # Slug
     slug = models.SlugField(max_length=100, unique=True, editable=False)
 
+    __original_title = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_title = self.title
+
+    def __str__(self):
+        return self.title
+
+    # Url for the course for tables
+    def get_absolute_url(self):
+        return reverse('course-detail', kwargs={'slug': self.slug})
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+
+        super().save(*args, **kwargs)
+
+        # All corresponding courseoccasions are saved to update their slugs
+        for courseoccasion in CourseOccasion.objects.filter(course=self):
+            courseoccasion.save()
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Course.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    def time_since_updated(self):
+        """
+        Gets the time since the object was updated in nice format
+        """
+        # Time is stored as UTC so has to be converted
+        update_time = self.updated_at + timedelta(hours=2)
+        time = datetime.now()
+
+        if update_time.day == time.day:
+            if update_time.hour == time.hour:
+                if update_time.minute == time.minute:
+                    return str(time.second - update_time.second) + " sekund(er) sen"
+                return str(time.minute - update_time.minute) + " minut(er) sen"
+            return str(time.hour - update_time.hour) + " timm(ar) sen"
+        else:
+            if update_time.month == time.month:
+                return str(time.day - update_time.day) + " dag(ar) sen"
+            else:
+                if update_time.year == time.year:
+                    return str(time.month - update_time.month) + " månad(er) sen"
+
+        return update_time
+
     def category_ects(self, category_sum):
         """
         Sums through the points for each category given the input dict
@@ -235,41 +383,6 @@ class Course(models.Model):
 
         return category_sum
 
-    __original_title = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__original_title = self.title
-
-    # Generate a slug that consists of the name and a number if not unique
-    def _get_unique_slug(self):
-        slug = slugify(self.title)
-        unique_slug = slug
-        num = 1
-        # If the slug is not unique (entry with same title), append a number
-        while Course.objects.filter(slug=unique_slug).exists():
-            unique_slug = '{}-{}'.format(slug, num)
-            num += 1
-        return unique_slug
-
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        if self.title != self.__original_title or not self.slug:
-            self.slug = self._get_unique_slug()
-
-        self.__original_title = self.title
-
-        super().save(*args, **kwargs)
-
-        for courseoccasion in CourseOccasion.objects.filter(course=self):
-            courseoccasion.save()
-
-    # Url for the course for tables
-    def get_absolute_url(self):
-        return reverse('course-detail', kwargs={'slug': self.slug})
-
-    def __str__(self):
-        return self.title
 
 class Prerequisite(models.Model):
     """
@@ -305,17 +418,13 @@ class CategoryCourse(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+
 class CourseOccasion(models.Model):
     """
     Occasions for a given course
-    Many to one
     """
-    year = models.IntegerField(verbose_name="År")
-    # What 'läsperiod' to start at
-    # I think it should just be number of weeks tho
-    start = models.IntegerField(verbose_name="TODO")
     weeks = models.IntegerField(verbose_name="Längd")
-    official = models.BooleanField(default=True)
+    official = models.BooleanField(default=True, verbose_name="Godkänd")
     note = models.CharField(max_length=250, blank=True, null=True)
     # Url homepages
     homepage_url = models.URLField(blank=True, null=True)
@@ -326,6 +435,11 @@ class CourseOccasion(models.Model):
     # Connected to course
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
             verbose_name="Kurs")
+    # Start and period is determined by defined academic years and timeperiods
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
+            verbose_name="År", null=True)
+    time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
+            verbose_name="Läsperiod", null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -335,17 +449,20 @@ class CourseOccasion(models.Model):
     slug = models.SlugField(max_length=100, unique=True, editable=False)
     # slug = models.SlugField(max_length=100, default="hehe", blank=True, null=True)
 
-    def category_ects(self, category_sum):
-        """
-        Pass through
-        """
-        self.course.category_ects(category_sum)
+    def __str__(self):
+        return self.course.title + " - " + str(self.academic_year.year) + " - " + str(self.time_period.week)
 
-    __original_title = None
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.course.slug != self.slug or not self.slug:
+            self.slug = self._get_unique_slug()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__original_title = self.course.title
+        super().save(*args, **kwargs)
+
+    # Url for the course for tables
+    def get_absolute_url(self):
+        return reverse('courseoccasion-detail', kwargs={'year':
+            self.academic_year.year, 'slug': self.slug})
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -358,19 +475,10 @@ class CourseOccasion(models.Model):
             num += 1
         return unique_slug
 
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        if self.course.title != self.__original_title or not self.slug:
-            self.slug = self._get_unique_slug()
-
-        self.__original_title = self.course.title
-
-        super().save(*args, **kwargs)
-
     def as_json(self):
         return dict(
-                year=self.year,
-                start=self.start,
+                year=self.academic_year.year,
+                start=self.time_period.week,
                 title=self.course.title,
                 ects=self.course.ects,
                 weeks=self.weeks,
@@ -378,23 +486,27 @@ class CourseOccasion(models.Model):
                 slug = self.slug,
                 )
 
-
-    # Url for the course for tables
-    def get_absolute_url(self):
-        return reverse('courseoccasion-detail', kwargs={'year': self.year, 'slug': self.slug})
-
-    def __str__(self):
-        return self.course.title + " - " + str(self.year) + " - " + str(self.start)
-
     def get_tempo(self):
+        """
+        Returns in percent the tempo for a given course
+        7.5 hp in four weeks is 100%
+        """
         return round(self.course.ects/self.weeks*200/3, 0)
 
+    def category_ects(self, category_sum):
+        """
+        Pass through
+        """
+        self.course.category_ects(category_sum)
+
+
+# TODO: REMOVE THIS. NOT USED ANYMORE
 class Page(models.Model):
     """
     Unsure what this is used for
     """
     title = models.CharField(max_length=250)
-    content = models.CharField(max_length=10000, blank=True, null=True)
+    content = models.CharField(max_length=5000, blank=True, null=True)
     image = models.ImageField(upload_to='pages/%Y/%m/%d/')
     # Slug
     slug = models.SlugField(unique_for_date='created_at')
@@ -435,20 +547,6 @@ class Page(models.Model):
     def __str__(self):
         return self.title
 
-class AcademicYears(models.Model):
-    """
-    Läsperioder, such as year 2018 is associated with the period 18/19
-    """
-    year = models.IntegerField()
-    title = models.CharField(max_length=250)
-    # Timestamp
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-
-    def __str__(self):
-        return self.title
 
 class Exam(models.Model):
     """
@@ -471,6 +569,7 @@ class Exam(models.Model):
     def __str__(self):
         return self.title
 
+
 class CategoryExam(models.Model):
     """
     Exams and categories are connected with how many points are required for
@@ -486,19 +585,22 @@ class CategoryExam(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+
 class PrivateCourse(models.Model):
     """
     Courses that users can specify themselves
     """
     title = models.CharField(max_length=250)
-    year = models.IntegerField()
     # Points - no more than 3 digits and one decimal point
     ects = models.DecimalField(max_digits=3,decimal_places=1)
     note = models.CharField(max_length=250, blank=True, null=True)
-    start = models.IntegerField()
     weeks = models.IntegerField()
     # Conected to a user
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
+            null=True)
+    time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
+            null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -510,12 +612,22 @@ class PrivateCourse(models.Model):
     # Slug
     slug = models.SlugField(unique=True, editable=False)
 
-
     __original_title = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__original_title = self.title
+
+    def __str__(self):
+        return self.title + " - " + self.user.username
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+        super().save(*args, **kwargs)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -528,16 +640,6 @@ class PrivateCourse(models.Model):
             num += 1
         return unique_slug
 
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        if self.title != self.__original_title or not self.slug:
-            self.slug = self._get_unique_slug()
-
-        self.__original_title = self.title
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title + " - " + self.user.username
 
 class PrivateCourseCategory(models.Model):
     """
@@ -554,14 +656,15 @@ class PrivateCourseCategory(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+
 class Block(models.Model):
     """
     Blockscheman!
     """
     title = models.CharField(max_length=250, verbose_name="Titel")
-    description = models.CharField(max_length=10000, blank=True, null=True,
+    description = models.CharField(max_length=5000, blank=True, null=True,
             verbose_name="Beskrivning")
-    start_year = models.IntegerField( default=datetime.datetime.now().year,
+    start_year = models.IntegerField(default=datetime.now().year,
             verbose_name="Startår")
     # Not open for the public
     private = models.BooleanField(default=True, verbose_name="Privat")
@@ -571,6 +674,9 @@ class Block(models.Model):
     # Can have course occasions many blocks
     courseoccasions = models.ManyToManyField(CourseOccasion, blank=True)
     privatecourses = models.ManyToManyField(PrivateCourse)
+    # Can be associated to a track
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True,
+            blank=True, verbose_name="Spår")
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -579,20 +685,22 @@ class Block(models.Model):
     # Slug
     slug = models.SlugField(unique=True, editable=False)
 
-    def total_category_ects(self, category_sum):
-        """
-        Using category_ects in Course model, loops over all courseoccasions for
-        the block and sums the total ects per category
-        See category_ects() in Course
-        """
-        for courseoccasion in self.courseoccasions.all():
-            courseoccasion.category_ects(category_sum)
-
     __original_title = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__original_title = self.title
+
+    def __str__(self):
+        return self.title + " - " + self.user.username
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+        super().save(*args, **kwargs)
 
     # Generate a slug that consists of the name and a number if not unique
     def _get_unique_slug(self):
@@ -605,13 +713,34 @@ class Block(models.Model):
             num += 1
         return unique_slug
 
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        if self.title != self.__original_title or not self.slug:
-            self.slug = self._get_unique_slug()
+    def total_category_ects(self, category_sum):
+        """
+        Using category_ects in Course model, loops over all courseoccasions for
+        the block and sums the total ects per category
+        See category_ects() in Course
+        """
+        for courseoccasion in self.courseoccasions.all():
+            courseoccasion.category_ects(category_sum)
 
-        self.__original_title = self.title
-        super().save(*args, **kwargs)
+    def time_since_updated(self):
+        """
+        Gets the time since the object was updated in nice format
+        """
+        # Time is stored as UTC so has to be converted
+        update_time = self.updated_at + timedelta(hours=2)
+        time = datetime.now()
 
-    def __str__(self):
-        return self.title + " - " + self.user.username
+        if update_time.day == time.day:
+            if update_time.hour == time.hour:
+                if update_time.minute == time.minute:
+                    return str(time.second - update_time.second) + " sekund(er) sen"
+                return str(time.minute - update_time.minute) + " minut(er) sen"
+            return str(time.hour - update_time.hour) + " timm(ar) sen"
+        else:
+            if update_time.month == time.month:
+                return str(time.day - update_time.day) + " dag(ar) sen"
+            else:
+                if update_time.year == time.year:
+                    return str(time.month - update_time.month) + " månad(er) sen"
+
+        return update_time

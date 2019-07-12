@@ -6,12 +6,48 @@
 
 {% block content %}
 
-{% if category.description %}
-  {{ category.description |safe }}
-{% else %}
-  <p class="lead">
-  Denna kategori saknar info.
-  </p>
-{% endif %}
+<div class="row px-3">
+  <div class="col-lg-8 p-3 course-main">
+    {{ category.description | safe }}
+  </div>
+  <div class="col-lg-4 text-center">
+    <img 
+    {% if category.image %}
+       src="{{ category.image.url }}" 
+    {% else %} 
+       src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ category.abbreviation }}" 
+    {% endif %}
+       alt="{{ category.title }}" class="img-thumbnail mt-5">
+    </img>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="row justify-content-md-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <h5 class="card-header">Kurser</h5>
+      <div class="card-body">
+        <p class="card-text">
+          <ul class="list-group list-group-flush m-0">
+          {% for course in category.course_set.all %}
+          <li class="list-group-item">
+            <table style="border-collapse: separate;border-spacing:1rem 0;">
+              <tr>
+                <td>
+                <a href="{% url 'course-detail' course.slug %}"
+                style="font-weight:bold;">{{ course.title }}</a>
+                </td>
+                <!--<td>{{ course.category.ects }}</td>-->
+              </tr>
+            </table>
+          </li>
+          {% endfor %}
+          </ul>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

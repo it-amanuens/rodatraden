@@ -21,8 +21,8 @@
     <tbody>
       {% for courseoccasion in courseoccasions %}
       <tr>
-        <td><a href="{% url 'courseoccasion-detail' courseoccasion.year courseoccasion.slug %}">{{ courseoccasion.course.title }}</a></td>
-        <td>{{ courseoccasion.year }}</td>
+        <td><a href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">{{ courseoccasion.course.title }}</a></td>
+        <td>{{ courseoccasion.academic_year.year }}</td>
         <td>{{ courseoccasion.weeks }}</td>
         <td>
           <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}">

@@ -103,12 +103,10 @@
 
     <p class="lead mt-2">Förkunskapskrav</p>
 
-    <hr>
-
     <ul class="list-group list-group-flush">
 
       {% for prereq in course.prerequisites.all %}
-      <li class="list-group list-group-flush">
+      <li class="list-group-item">
         <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
       </li>
       {% endfor %}

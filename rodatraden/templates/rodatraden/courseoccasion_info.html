@@ -83,7 +83,7 @@
 
       <hr>
 
-      <p class="lead"><a href="{% url 'courseoccasion-detail' courseoccasion.year courseoccasion.slug %}">
+      <p class="lead"><a href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
         {{ course.title }}, {{courseoccasion.year }}
       </a></p>
 

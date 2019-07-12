@@ -16,7 +16,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="shortcut icon" type="image/png" href="{% static 'rodatraden/favicon.png' %}"/>
+    <link rel="shortcut icon" type="image/png" href="{% static 'rodatraden/logo.png' %}"/>
 
     <title>Röda Tråden - {% block title %}{% endblock %}</title>
 
@@ -27,11 +27,14 @@
   </head>
 
   <body>
+    <div style="display: none" id="hideAll">&nbsp;</div>
 
     <!-- HTML with navbar at top -->
     {% include "rodatraden/navigation.html" %}
     
     <main role="main" class="container">
+      <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">Rapportera problem</button>
+      <!--<span class="fixed-bottom fa fa-envelope m-2"></span>-->
 
       <!-- Breadcrumbs (the nice path at top) -->
       {% block breadcrumbs %}
@@ -61,6 +64,7 @@
           {% endblock %}
         </h1>
 
+
         <hr>
 
         <!-- Main content -->
@@ -75,6 +79,8 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+    <!-- Select 2 -->
+    <script src="{% static 'assets/js/select2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'rodatraden/rodatraden.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
@@ -84,17 +90,50 @@
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/modules/data.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
-    <!-- Select 2 -->
-    <script src="{% static 'assets/js/select2.min.js' %}"></script>
 
     <!-- Extra javascript -->
     {% block extra_scripts %}
     {% endblock %}
 
+    <script type="text/javascript">
+       document.getElementById("hideAll").style.display = "block";
+     window.onload = function() 
+      { document.getElementById("hideAll").style.display = "none"; }
+    </script>
+
+    {% if user.is_superuser %}
+      <script type="text/javascript">
+
+          $(function () {
+            // Create book button
+            $(".add-item").each(function () {
+              $(this).modalForm({formURL: $(this).data('id')});
+            });
+
+            // Update book buttons
+            $(".update-item").each(function () {
+              $(this).modalForm({formURL: $(this).data('id')});
+            });
+
+            // Delete book buttons
+            $(".delete-item").each(function () {
+              $(this).modalForm({
+                formURL: $(this).data('id')
+              });
+            })
+          });
+
+      </script>
+    {% endif %}
+
     <!-- Footer TODO: MOVE TO SEPARATE FILE -->
-    <footer class="footer" style="border-top: 1px solid #eee;">
+    <footer class="footer mt-3" style="border-top: 1px solid #eee;">
       <div class="container">
-        <p class="text-muted mt-3">Röda Tråden 4
+        <p class="text-muted mt-3 float-left">Röda Tråden 4
+        </p>
+        <p class="text-muted mt-3 float-right">
+        Designad av Lucas Hedström F14<br>
+        Logo av Malin Rantala F17
         </p>
       </div>
     </footer>

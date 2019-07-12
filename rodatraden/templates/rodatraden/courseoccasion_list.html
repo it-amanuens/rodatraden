@@ -6,13 +6,13 @@
 {% load bootstrap4 %}
 
 {% block title %}
-  Kurser
+  Kurstillfällen
 {% endblock %}
 
 {% block menu %}
 {% if user.is_superuser %}
 <a class="btn btn-gone add-item"
-  data-id="{% url 'course-create' %}"
+  data-id="{% url 'courseoccasion-create' %}"
   data-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
@@ -21,14 +21,10 @@
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% if is_occasion %}
-      {% breadcrumb "Kurstillfällen" "courseoccasion-list" %}
-    {% else %}
-      {% breadcrumb "Kurser" "course-list" %}
-    {% endif %}
+    {% breadcrumb "Kurstillfällen" "courseoccasion-list" %}
 {% endblock %}
 
-{% block page_title %}Kurser{% endblock %}
+{% block page_title %}Kurstillfällen{% endblock %}
 
 {% block content %}
 
@@ -36,9 +32,12 @@
   <div class="col-lg">
     {% if filter %}
       <form action="" method="get" class="form form-inline">
-        {% for field in filter.form %}
-        {% render_field field class+="course-list-filter" %}
-        {% endfor %}
+        {% render_field filter.form.title class+="course-list-filter" %}
+        {% render_field filter.form.year class+="course-list-filter-small" %}
+        {% render_field filter.form.time_period class+="course-list-filter" %}
+        {% render_field filter.form.categories class+="course-list-filter" %}
+        {% render_field filter.form.department class+="course-list-filter" %}
+        {% render_field filter.form.official class+="course-list-filter-small" %}
       </form>
     {% endif %}
   </div>
@@ -53,6 +52,7 @@
   <script type="text/javascript">
 
     $(".course-list-filter").select2({ width: '20%' });
+    $(".course-list-filter-small").select2({ width: '10%' });
     $(document).ready(function() {
       $("form :input").change(function() {
         $("form:first").submit();

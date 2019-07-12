@@ -56,6 +56,12 @@ urlpatterns = [
 
     # Profiles
     path('profiler/', views.ProfileList.as_view(), name='profile-list'),
-    path('profiler/<str:slug>/', views.ProfileDetail.as_view(),
+    path('profiler/skapa', views.ProfileCreate.as_view(),
+            name='profile-create'),
+    path('kurstillfallen/<slug:slug>/radera/',
+        views.ProfileDelete.as_view(), name='profile-delete'),
+    path('kurstillfallen/<slug:slug>/andra/',
+        views.ProfileUpdate.as_view(), name='profile-update'),
+    path('profiler/<slug:slug>/', views.ProfileDetail.as_view(),
         name='profile-detail'),
 ]

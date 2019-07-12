@@ -6,17 +6,107 @@
 
 {% block content %}
 
+<div class="course-etc p-4 row">
 <p class="lead">
 Röda tråden är en databas med information om kurserna på Teknisk fysik i Umeå. Den är till för dig som undrar över något om kurserna inom teknisk fysik. Du kan vara student, kursansvarig eller bara allmänt nyfiken på Teknisk fysiks kurser. Röda tråden visar översiktligt hur förkunskapskrav hänger ihop mellan kurserna.
 </p>
-<p>
+<p class="lead">
 Röda tråden har byggts upp av studenter på programmet och drivs amanuenserna, med stöd från kursansvariga lärare och engagerade studenter.
 </p>
-<p>
+<p class="lead">
 Är du intresserad av att titta på våra baskurser? Det blockschemat kan du hitta här.
 </p>
-<p>
+{% if not logged_user %}
+<p class="lead">
 Vi noterar att du ej är inloggad i systemet. När man är inloggad kan man göra egna scheman och planera sin studiegång på ett smidigt sätt.
 </p>
+{% endif %}
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="col-lg-7 mb-3">
+    <div class="card">
+      <h5 class="card-header text-center">Profiler</h5>
+        <div class="card-body">
+          <div class="card-columns" style="column-count: 3;">
+            {% for profile in profiles %}
+            <div class="card">
+              <img 
+              {% if profile.image %}
+                 src="{{ profile.image.url }}" 
+              {% else %} 
+                 src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
+              {% endif %}
+                   alt="{{ profile.title }}" class="card-img-top">
+              </img>
+              <div class="card-body">
+                <a style="font-weight:bold;" class="card-title" 
+                  href="{% url 'profile-detail' profile.slug %}">
+                  {{ profile.title }}</a>
+                <p class="card-text">
+                {{ profile.description|safe|truncatewords:"10"|linebreaks }}
+                </p>
+                <a href="{% url 'profile-detail' profile.slug %}" 
+                  class="badge badge-rt">Läs mer</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card">
+      <h6 class="card-header text-center">Kategorier</h6>
+      <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+            {% for category in categories %}
+            <li class="list-group-item p-0 m-0" style="font-size:small;">
+              <a href="{% url 'category-detail' category.slug %}"
+              style="font-weight:bold;">{{ category.title }}</a>
+              <p style="font-size:x-small">Uppdaterad {{ category.time_since_updated }}</p>
+            </li>
+            {% endfor %}
+            </ul>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6 mt-3">
+        <div class="card">
+          <h6 class="card-header text-center">Kursuppdateringar</h6>
+          <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+            {% for course in latest_courses %}
+            <li class="list-group-item p-0 m-0" style="font-size:small;">
+              <a href="{% url 'course-detail' course.slug %}"
+              style="font-weight:bold;">{{ course.title }}</a>
+              <p style="font-size:x-small">Uppdaterad {{ course.time_since_updated }}</p>
+            </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 mt-3">
+        <div class="card">
+          <h6 class="card-header text-center">Blockuppdateringar</h6>
+          <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+            {% for bblock in latest_blocks %}
+            <li class="list-group-item p-0 m-0" style="font-size:small;">
+              <a href="{% url 'block-detail' bblock.user.username bblock.slug %}"
+              style="font-weight:bold;">{{ bblock.title }}</a>
+              <p style="font-size:x-small">Uppdaterad {{ bblock.time_since_updated }}</p>
+            </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

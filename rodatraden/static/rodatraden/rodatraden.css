@@ -9,16 +9,42 @@
   --gray-lighter:           lighten(#000, 95%); // #eee
 }
 
-.epic {
-  width: 50%;
-}
+#hideAll {
+   position: fixed;
+   left: 0px;
+   right: 0px;
+   top: 0px;
+   bottom: 0px;
+   background-color: white;
+   z-index: 99; /* Higher than anything else in the document */
+
+ }
 
 body {
   padding-top: 5rem;
 }
 
+.badge-rt {
+  color: white !important;
+  background-color: var(--main-color) !important;
+}
+
+.badge-rt:hover {
+  background-color: var(--main-color-dark) !important;
+}
+
+.img-rt {
+  width: 150px;
+  height: 150px;
+}
+
 /* Info bar at detail views */
 .course-etc {
+  background-color: #ececec;
+  border-radius: 0.25rem;
+}
+
+.index-info {
   background-color: #ececec;
   border-radius: 0.25rem;
 }
@@ -54,6 +80,11 @@ a {
 a:hover{
   color: #b30018;
   text-decoration: none;
+}
+
+/* List without background */
+.list-group-item {
+  background-color: transparent;
 }
 
 /* Icon colors */

@@ -1,0 +1,101 @@
+{% extends 'rodatraden/profile_list.html' %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}{{ profile.title }}{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb profile "profile-detail" profile.title %}
+{% endblock %}
+
+{% block menu %}
+<a class="btn btn-gone" 
+  href="{% url 'profile-list' %}"
+  data-toggle="tooltip" title="Profiler">
+  <span class="fa fa-list"></span>
+</a>
+{% if user.is_superuser %}
+<a class="btn btn-gone update-item" 
+  data-id="{% url 'profile-update' profile.slug %}"
+  data-toggle="tooltip" title="Ändra">
+  <span class="fa fa-edit"></span>
+</a>
+<a class="btn btn-gone delete-item"
+  data-id="{% url 'profile-delete' profile.slug %}"
+  data-toggle="tooltip" title="Radera">
+  <span class="fa fa-trash"></span>
+</a> 
+{% endif %}
+{% endblock %}
+
+{% block page_title %}{{ profile.title }}{% endblock %}
+
+{% block content %}
+
+<div class="row px-3">
+  <div class="col-lg-8 p-3 course-main">
+    {{ profile.description | safe }}
+  </div>
+  <div class="col-lg-4 text-center">
+    <img 
+    {% if profile.image %}
+       src="{{ profile.image.url }}" 
+    {% else %} 
+       src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
+    {% endif %}
+       alt="{{ profile.title }}" class="img-thumbnail mt-5">
+    </img>
+    </div>
+  </div>
+</div>
+{% for track in tracks %}
+<hr>
+<h2 class="mb-3">{{ track.title }}</h2>
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card">
+      <h5 class="card-header">Profilkurser</h5>
+      <div class="card-body">
+        <p class="card-text">
+          <ul class="list-group list-group-flush m-0">
+          {% for course in track.course_set.all %}
+          <li class="list-group-item">
+            <a href="{% url 'course-detail' course.slug %}"
+            style="font-weight:bold;">{{ course.title }}</a>
+          </li>
+          {% endfor %}
+          </ul>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <h5 class="card-header">Rekommenderade kurser</h5>
+      <div class="card-body">
+        <p class="card-text">
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <h5 class="card-header">Blockschema</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush m-0">
+        {% for this_block in track.block_set.all %}
+        {% if not this_block.private %}
+        <li class="list-group-item">
+          <a href="{% url 'block-detail' this_block.user.username this_block.slug %}"
+          style="font-weight:bold;">{{ this_block.title }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

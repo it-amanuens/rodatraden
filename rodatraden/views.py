@@ -18,11 +18,11 @@ from django.forms import formset_factory
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
-        CategoryExam, CategoryCourse
+        CategoryExam, CategoryCourse, AcademicYear
 )
 from .tables import CourseTable, CourseOccasionTable
-from .filters import CourseFilter
-from .forms import CourseForm, BlockForm
+from .filters import CourseFilter, CourseOccasionFilter
+from .forms import CourseForm, BlockForm, ProfileForm, CourseOccasionForm
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -49,7 +49,14 @@ class CorrectUserPermissionMixin:
 
 # Homepage
 def index(request):
-    return render(request, 'rodatraden/index.html')
+    context = {
+            'latest_courses': Course.objects.all().order_by('-updated_at')[:7],
+            'latest_blocks':
+                Block.objects.filter(private=0).order_by('-updated_at')[:7],
+            'categories': Category.objects.all().order_by('title'),
+            'profiles': Profile.objects.all(),
+            }
+    return render(request, 'rodatraden/index.html', context)
 
 
 # Generic table view for showing a list of the courses
@@ -82,19 +89,6 @@ class CourseCreate(BSModalCreateView):
     success_message = 'Kursen skapades utan problem'
     success_url = reverse_lazy('course-list')
 
-    # def form_valid(self, form):
-        # instance = form.save(commit=False)
-        # # pdb.set_trace()
-        # return super().form_valid(form)
-
-    # def get_context_data(self, *args, **kwargs):
-        # context = super().get_context_data(*args, **kwargs)
-        # return context
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
-
 
 class CourseUpdate(BSModalUpdateView):
     model = Course
@@ -102,20 +96,6 @@ class CourseUpdate(BSModalUpdateView):
     form_class = CourseForm
     success_message = 'Kursen uppdaterades utan problem'
     success_url = reverse_lazy('course-list')
-
-    # Override form_valid to add current user to block
-    # def form_valid(self, form):
-        # instance = form.save(commit=False)
-        # pdb.set_trace()
-        # instance.user = self.request.user
-        # return super(BlockCreate, self).form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # if not self.request.POST:
-            # pdb.set_trace()
-            # context['categories'] = CategoryCourseFormSet()
-        return context
 
 
 class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -130,15 +110,9 @@ class CourseOccasionList(SingleTableMixin, FilterView):
     model = CourseOccasion
     # Define table class
     table_class = CourseOccasionTable
+    filterset_class = CourseOccasionFilter
     paginate_by = 15  # if pagination is desired
-    template_name = 'rodatraden/course_list.html'
-    
-    # Add boolean to check if courseoccasion
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        context['is_occasion'] = True
-        return context
+    template_name = 'rodatraden/courseoccasion_list.html'
 
 
 class CourseOccasionDetail(generic.DetailView):
@@ -149,12 +123,9 @@ class CourseOccasionDetail(generic.DetailView):
     def get_queryset(self):
         # Original filter
         self.qs = super().get_queryset()
-        return self.qs.filter(year=self.kwargs['year'])
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        return context
+        return self.qs.filter(
+                academic_year__year=self.kwargs['year'])
+        
 
 
 def courseoccasion_info(request):
@@ -163,7 +134,8 @@ def courseoccasion_info(request):
     slug = request.GET.get('slug', '')
 
     # Get block id so we don't show courses already in block
-    courseoccasion = get_object_or_404(CourseOccasion, year=year, slug=slug)
+    courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year, 
+            slug=slug)
 
     context = {
             'courseoccasion': courseoccasion,
@@ -173,37 +145,82 @@ def courseoccasion_info(request):
     return render(request, 'rodatraden/courseoccasion_info.html', context)
 
 
-class CourseOccasionCreate(BSModalCreateView):
+class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+    permission_required = 'user.is_staff'
     model = CourseOccasion
-    form_class = CourseForm
-    template_name = 'rodatraden/course_create.html'
-    success_message = 'Kursen skapades utan problem'
-    success_url = reverse_lazy('index')
+    form_class = CourseOccasionForm
+    template_name = 'rodatraden/courseoccasion_create.html'
+    success_message = 'Kurstillfället skapades utan problem'
+    success_url = reverse_lazy('courseoccasion-list')
 
 
-@method_decorator(login_required, name='dispatch')
-class CourseOccasionUpdate(BSModalUpdateView):
+class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+    permission_required = 'user.is_staff'
     model = CourseOccasion
-    template_name = 'rodatraden/course_update.html'
-    form_class = CourseForm
-    success_message = 'Success: Book was updated.'
-    success_url = reverse_lazy('index')
+    form_class = CourseOccasionForm
+    template_name = 'rodatraden/courseoccasion_update.html'
+    success_message = 'Kurstillfälle uppdaterat'
+    success_url = reverse_lazy('courseoccasion-list')
 
 
 class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
     permission_required = 'user.is_staff'
     model = CourseOccasion
-    template_name = 'rodatraden/course_confirm_delete.html'
-    success_message = 'Kursen togs bort utan problem'
-    success_url = reverse_lazy('course-list')
+    template_name = 'rodatraden/courseoccasion_confirm_delete.html'
+    success_message = 'Kurstillfället togs bort utan problem'
+    success_url = reverse_lazy('courseoccasion-list')
 
 
 class ProfileList(generic.ListView):
+    """
+    List with the profiles
+    """
     model = Profile
 
 
 class ProfileDetail(generic.DetailView):
+    """
+    Detail view for profiles
+    """
     model = Profile
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        context['tracks'] = self.object.track_set.all()
+        return context
+
+
+class ProfileCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+    """
+    Creating new profiles
+    """
+    permission_required = 'user.is_staff'
+    model = Profile
+    form_class = ProfileForm
+    template_name = 'rodatraden/profile_create.html'
+    success_message = 'Profilen skapades utan problem'
+    success_url = reverse_lazy('profile-list')
+
+
+class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+    """
+    Updating current profiles
+    """
+    permission_required = 'user.is_staff'
+    model = Profile
+    form_class = ProfileForm
+    template_name = 'rodatraden/profile_update.html'
+    success_message = 'Profilen uppdaterades utan problem'
+    success_url = reverse_lazy('profile-list')
+
+
+class ProfileDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+    permission_required = 'user.is_staff'
+    model = Profile
+    template_name = 'rodatraden/profile_confirm_delete.html'
+    success_message = 'Profilen togs bort utan problem'
+    success_url = reverse_lazy('profile-list')
 
 
 # Page with list of all categories
@@ -217,6 +234,9 @@ class CategoryDetail(generic.DetailView):
 
 
 class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, generic.ListView):
+    """
+    List that shows the current users blocks
+    """
     model = Block
 
 
@@ -244,10 +264,11 @@ class BlockCreate(CorrectUserPermissionMixin,
     form_class = BlockForm
     success_message = 'Blockschema skapat'
 
-    # Override form_valid to add current user to block
     def form_valid(self, form):
+        # Override form_valid to add current user to block
         instance = form.save(commit=False)
         instance.user = self.request.user
+
         return super(BlockCreate, self).form_valid(form)
 
     def get_success_url(self, **kwargs):
@@ -300,7 +321,7 @@ def block_detail(request, username, slug):
                 'current_path': request.get_full_path,
                 'categories': categories,
                 'categories_sum': category_sum,
-                'logged_in': request.user.is_authenticated or
+                'logged_in': request.user.is_authenticated and
                 request.user.username == block.user.username
                 }
 
@@ -325,8 +346,10 @@ def block_course_list(request, username, slug):
         return redirect(reverse("index"))
 
     # SOrt by year, start, if not in block and order by title
-    courseoccasions = CourseOccasion.objects.filter(year=year, start__gte=start,
-            start__lt=start+10).exclude(block__id=block.id).order_by('course__title')
+    courseoccasions = CourseOccasion.objects.filter(academic_year__year=year, 
+            time_period__week__gte=start, 
+            time_period__week__lt=start+10).exclude(
+            block__id=block.id).order_by('course__title')
 
     context = {
             'b_slug': slug,
