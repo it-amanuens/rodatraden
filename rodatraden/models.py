@@ -552,22 +552,56 @@ class Exam(models.Model):
     """
     Different exams. Such as teknisk fysik
     """
-    title = models.CharField(max_length=250)
-    year = models.IntegerField()
-    ects = models.DecimalField(max_digits=4,decimal_places=1)
+    title = models.CharField(max_length=250, verbose_name='Examensnamn')
+    ects = models.DecimalField(max_digits=4,decimal_places=1,
+            verbose_name='Poäng')
+    description = models.CharField(max_length=5000, blank=True, null=True,
+            verbose_name="Beskrivning")
     # Kurskod
     code = models.CharField(max_length=10, blank=True, null=True)
     note = models.CharField(max_length=250, blank=True, null=True)
     # Exams can have many categories
-    categories = models.ManyToManyField(Category, through='CategoryExam')
+    categories = models.ManyToManyField(Category, through='CategoryExam',
+            blank=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
+            null=False, blank=False, verbose_name='Skapad')
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
+            blank=False, verbose_name='Senast uppdaterad')
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
+
+    __original_title = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_title = self.title
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('exam-detail', kwargs={'slug': self.slug})
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if self.title != self.__original_title or not self.slug:
+            self.slug = self._get_unique_slug()
+
+        self.__original_title = self.title
+
+        super().save(*args, **kwargs)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.title)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Exam.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
 
 
 class CategoryExam(models.Model):
