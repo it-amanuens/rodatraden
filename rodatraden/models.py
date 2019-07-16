@@ -179,9 +179,6 @@ class Category(models.Model):
             verbose_name='Beskrivning')
     abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Image storage
-    # path will be MEDIA_ROOT/categories
-    # TODO: Look into height and width configurations, what is proper for this
-    # application
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
@@ -465,9 +462,9 @@ class CourseOccasion(models.Model):
             verbose_name="Kurs")
     # Start and period is determined by defined academic years and timeperiods
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
-            verbose_name="År", null=True)
+            verbose_name="År")
     time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
-            verbose_name="Läsperiod", null=True)
+            verbose_name="Läsperiod")
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -475,10 +472,12 @@ class CourseOccasion(models.Model):
             blank=False)
     # Slug
     slug = models.SlugField(max_length=100, unique=True, editable=False)
-    # slug = models.SlugField(max_length=100, default="hehe", blank=True, null=True)
+
+    year = models.IntegerField()
+    start = models.IntegerField()
 
     def __str__(self):
-        return self.course.title + " - " + str(self.academic_year.year) + " - " + str(self.time_period.week)
+        return "ass"
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
@@ -526,54 +525,6 @@ class CourseOccasion(models.Model):
         Pass through
         """
         self.course.category_ects(category_sum)
-
-
-# TODO: REMOVE THIS. NOT USED ANYMORE
-class Page(models.Model):
-    """
-    Unsure what this is used for
-    """
-    title = models.CharField(max_length=250)
-    content = models.CharField(max_length=5000, blank=True, null=True)
-    image = models.ImageField(upload_to='pages/%Y/%m/%d/')
-    # Slug
-    slug = models.SlugField(unique_for_date='created_at')
-    # Timestamp
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-    # Slug
-    slug = models.SlugField(unique=True, editable=False)
-
-
-    __original_title = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__original_title = self.title
-
-    # Generate a slug that consists of the name and a number if not unique
-    def _get_unique_slug(self):
-        slug = slugify(self.title)
-        unique_slug = slug
-        num = 1
-        # If the slug is not unique (entry with same title), append a number
-        while Page.objects.filter(slug=unique_slug).exists():
-            unique_slug = '{}-{}'.format(slug, num)
-            num += 1
-        return unique_slug
-
-    # Override .save() to add unique slug
-    def save(self, *args, **kwargs):
-        if self.title != self.__original_title or not self.slug:
-            self.slug = self._get_unique_slug()
-
-        self.__original_title = self.title
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
 
 
 class Exam(models.Model):
@@ -672,7 +623,7 @@ class PrivateCourse(models.Model):
     categories = models.ManyToManyField(Category,
             through='PrivateCourseCategory')
     # Slug
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(unique=False, editable=False)
 
     __original_title = None
 
@@ -745,7 +696,7 @@ class Block(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     # Slug
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(unique=False, editable=False)
 
     __original_title = None
 
