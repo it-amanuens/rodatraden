@@ -1,8 +1,15 @@
 {% extends 'rodatraden/base.html' %}
+{% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Hem{% endblock %}
 
-{% block page_title %}Röda Tråden 4{% endblock %}
+{% block page_title %}
+<img src="{% static 'rodatraden/RTheader.svg' %}" class="img-fluid"/>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% endblock %}
 
 {% block content %}
 

@@ -5,12 +5,48 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 
-import pdb
-
 # Get the user model
 User = get_user_model()
 
-INT_YEARS = [(x,x) for x in range(2012, 2022)]
+class Report(models.Model):
+    """
+    Report if something is missing or wrong with site
+    """
+    from_email = models.EmailField(verbose_name="Din mailadress")
+    subject = models.CharField(max_length=250, verbose_name="Ämne")
+    message = models.TextField(max_length=5000, verbose_name="Innehåll")
+    # Check if report is viewed or not
+    fixed = models.BooleanField(default=False, verbose_name="Hanterat")
+    note = models.TextField(max_length=5000, verbose_name="Kommentarer",
+            blank=True, null=True)
+    # Timestamp
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+            null=False, blank=False, verbose_name="Skapad")
+    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
+            blank=False, verbose_name="Uppdaterad")
+    # Slug
+    slug = models.SlugField(unique=True, editable=False)
+
+    def __str__(self):
+        return self.subject
+
+    # Override .save() to add unique slug
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._get_unique_slug()
+
+        super().save(*args, **kwargs)
+
+    # Generate a slug that consists of the name and a number if not unique
+    def _get_unique_slug(self):
+        slug = slugify(self.subject)
+        unique_slug = slug
+        num = 1
+        # If the slug is not unique (entry with same title), append a number
+        while Report.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
 
 
 class Department(models.Model):

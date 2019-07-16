@@ -1,13 +1,15 @@
 import datetime
-from django.db.models import Max, Min
+from django.core.mail import send_mail, BadHeaderError
 from .models import (
         Course, Block, CourseOccasion, Category, Track, CategoryCourse, Profile,
-        AcademicYear, CategoryExam, Exam
+        AcademicYear, CategoryExam, Exam, Report
         )
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
 from django.forms import formset_factory, MultiWidget
 from decimal import Decimal
+
+import pdb
 
 
 class CategoryEctsWidget(MultiWidget):
@@ -258,3 +260,44 @@ class CategoryForm(BSModalForm):
     class Meta:
         model = Category
         exclude = ['title_eng', 'description_eng']
+
+
+class SaveAndSendMailMixin(object):
+
+    def save(self, commit=True):
+        # The if case is due to bootstrap modal forms, which performs two posts
+        # due to reasons
+        if not self.request.is_ajax():
+            instance = super(SaveAndSendMailMixin, self).save(commit=commit)
+
+            subject = self.cleaned_data['subject']
+            from_email = self.cleaned_data['from_email']
+            message = self.cleaned_data['message']
+            try:
+                send_mail(subject, message, from_email, ['lucash@fastmail.com'])
+            except BadHeaderError:
+                pass
+        else:
+            instance = super(SaveAndSendMailMixin, self).save(commit=False)
+        return instance
+
+
+class ReportForm(SaveAndSendMailMixin, BSModalForm):
+
+    class Meta:
+        model = Report
+        fields = ['from_email', 'subject', 'message']
+
+
+class ReportEditForm(SaveAndSendMailMixin, BSModalForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Disable some fields
+        self.fields['from_email'].widget.attrs['readonly'] = True
+        self.fields['subject'].widget.attrs['readonly'] = True
+        self.fields['message'].widget.attrs['readonly'] = True
+
+    class Meta:
+        model = Report
+        fields = ['from_email', 'subject', 'message', 'fixed', 'note']

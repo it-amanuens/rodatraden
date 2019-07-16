@@ -1,7 +1,7 @@
 # Configuration for django-tables2
 
 import django_tables2 as tables
-from .models import Course, CourseOccasion, Category, Exam
+from .models import Course, CourseOccasion, Category, Exam, Report
 
 class CourseTable(tables.Table):
     # Urls from respective models
@@ -87,3 +87,23 @@ class ExamTable(tables.Table):
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
         fields = ('title', 'ects', 'created_at', 'updated_at')
+
+
+class ReportTable(tables.Table):
+    from_email = tables.EmailColumn(verbose_name="Mailadress")
+
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/report_edit.html', 
+            verbose_name="")
+    # Official
+    fixed = tables.TemplateColumn(
+            template_name='rodatraden/tables/report_fixed.html', 
+            verbose_name="")
+
+    class Meta:
+        model = Report
+        # Style template
+        template_name = 'django_tables2/bootstrap4.html'
+        fields = ('fixed', 'from_email', 'subject', 'created_at', 'updated_at')
+        order_by = ('fixed', '-created_at')

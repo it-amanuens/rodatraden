@@ -16,7 +16,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="shortcut icon" type="image/png" href="{% static 'rodatraden/logo.png' %}"/>
+    <link rel="shortcut icon" type="image/png" 
+    href="{% static 'rodatraden/RTlogo.svg' %}"/>
 
     <title>Röda Tråden - {% block title %}{% endblock %}</title>
 
@@ -33,7 +34,11 @@
     {% include "rodatraden/navigation.html" %}
     
     <main role="main" class="container">
-      <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">Rapportera problem</button>
+      <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">
+        <a class="send-report" data-id="{% url 'report-create' %}">
+        Rapportera problem
+        </a>
+      </button>
       <!--<span class="fixed-bottom fa fa-envelope m-2"></span>-->
 
       <!-- Breadcrumbs (the nice path at top) -->
@@ -101,6 +106,13 @@
       { document.getElementById("hideAll").style.display = "none"; }
     </script>
 
+    <script type="text/javascript">
+      // Create book button
+      $(".send-report").each(function () {
+        $(this).modalForm({formURL: $(this).data('id')});
+      });
+    </script>
+
     {% if user.is_staff %}
       <script type="text/javascript">
 
@@ -131,9 +143,12 @@
       <div class="container">
         <p class="text-muted mt-3 float-left">Röda Tråden 4
         </p>
+
+        <img src="{% static 'rodatraden/RTthread.svg' %}" width="150" class="mx-5"></img>
+
         <p class="text-muted mt-3 float-right">
         Designad av Lucas Hedström F14<br>
-        Logo av Malin Rantala F17
+        Logo av Malin Rantala F18
         </p>
       </div>
     </footer>

@@ -7,6 +7,14 @@ urlpatterns = [
     # Home path
     path('', views.index, name='index'),
 
+    # Reports
+    path('rapporter/', views.ReportList.as_view(), name='report-list'),
+    path('rapporter/skapa/', views.ReportCreate.as_view(), name='report-create'),
+    path('rapporter/<slug:slug>/andra/', views.ReportUpdate.as_view(),
+        name='report-update'),
+    path('rapporter/<slug:slug>/radera/', views.ReportDelete.as_view(),
+        name='report-delete'),
+
     # Categories
     path('kategorier/', views.CategoryList.as_view(), name='category-list'),
     path('kategorier/skapa/', views.CategoryCreate.as_view(),

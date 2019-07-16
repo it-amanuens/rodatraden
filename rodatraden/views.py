@@ -5,6 +5,7 @@ from bootstrap_modal_forms.generic import (
         BSModalReadView
 )
 
+from django.core.mail import send_mail, BadHeaderError
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
@@ -18,13 +19,13 @@ from django.forms import formset_factory
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
-        CategoryExam, CategoryCourse, AcademicYear, Exam
+        CategoryExam, CategoryCourse, AcademicYear, Exam, Report
 )
-from .tables import CourseTable, CourseOccasionTable, ExamTable
+from .tables import CourseTable, CourseOccasionTable, ExamTable, ReportTable
 from .filters import CourseFilter, CourseOccasionFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
-        CategoryForm
+        CategoryForm, ReportForm, ReportEditForm
 )
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -60,6 +61,43 @@ def index(request):
             'profiles': Profile.objects.all(),
             }
     return render(request, 'rodatraden/index.html', context)
+
+
+class ReportCreate(BSModalCreateView):
+    model = Report
+    form_class = ReportForm
+    template_name = 'rodatraden/report_create.html'
+    success_message = 'Tack för din hjälp!'
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
+
+
+class ReportList(LoginRequiredMixin, PermissionRequiredMixin, SingleTableView):
+    permission_required = 'rodatraden.show_report'
+    model = Report
+    table_class = ReportTable
+    template_name = 'rodatraden/report_list.html'
+
+
+class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    permission_required = 'rodatraden.change_report'
+    model = Report
+    form_class = ReportEditForm
+    template_name = 'rodatraden/report_update.html'
+    success_message = 'Rapport uppdaterades utan problem'
+    success_url = reverse_lazy('report-list')
+
+
+class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    permission_required = 'rodatraden.delete_report'
+    model = Report
+    template_name = 'rodatraden/report_confirm_delete.html'
+    success_message = 'Rapport raderad'
+    success_url = reverse_lazy('report-list')
 
 
 class ExamList(SingleTableView):
