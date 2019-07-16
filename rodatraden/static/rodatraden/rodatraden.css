@@ -74,10 +74,11 @@ body {
 }
 
 /* Red links */
-a {
+a:not(.default) {
   color: #D6001E;
 }
-a:hover{
+
+a:not(.default):hover{
   color: #b30018;
   text-decoration: none;
 }
@@ -88,8 +89,13 @@ a:hover{
 }
 
 /* Icon colors */
-.fa {
+.fa:not(.default) {
   color: #D6001E;
+}
+
+.dropdown-item:hover {
+  color: white !important;
+  background-color: var(--main-color);
 }
 
 /* Block stuff */

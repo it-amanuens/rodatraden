@@ -101,7 +101,7 @@
       { document.getElementById("hideAll").style.display = "none"; }
     </script>
 
-    {% if user.is_superuser %}
+    {% if user.is_staff %}
       <script type="text/javascript">
 
           $(function () {

@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django_filters',
     'bootstrap_modal_forms',
     'widget_tweaks',
-    'tinymce',
 
     # Standard with django
     'django.contrib.admin',

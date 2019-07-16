@@ -9,7 +9,7 @@ Profiler
 {% endblock %}
 
 {% block menu %}
-{% if user.is_superuser %}
+{% if user.is_staff %}
 <a class="btn btn-gone add-item"
   data-id="{% url 'profile-create' %}"
   data-toggle="tooltip" title="Skapa nytt">

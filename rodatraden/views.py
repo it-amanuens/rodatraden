@@ -1,5 +1,5 @@
 from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
+from django_tables2.views import SingleTableMixin, SingleTableView
 from bootstrap_modal_forms.generic import (
         BSModalDeleteView, BSModalCreateView, BSModalUpdateView, 
         BSModalReadView
@@ -18,11 +18,14 @@ from django.forms import formset_factory
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
-        CategoryExam, CategoryCourse, AcademicYear
+        CategoryExam, CategoryCourse, AcademicYear, Exam
 )
-from .tables import CourseTable, CourseOccasionTable
+from .tables import CourseTable, CourseOccasionTable, ExamTable
 from .filters import CourseFilter, CourseOccasionFilter
-from .forms import CourseForm, BlockForm, ProfileForm, CourseOccasionForm
+from .forms import (
+        CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
+        CategoryForm
+)
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -45,10 +48,10 @@ class CorrectUserPermissionMixin:
                 return redirect(reverse("index"), {"poo":1})
 
 
-# Create your views here.
-
-# Homepage
 def index(request):
+    """
+    Homepage of the site
+    """
     context = {
             'latest_courses': Course.objects.all().order_by('-updated_at')[:7],
             'latest_blocks':
@@ -59,7 +62,42 @@ def index(request):
     return render(request, 'rodatraden/index.html', context)
 
 
-# Generic table view for showing a list of the courses
+class ExamList(SingleTableView):
+    model = Exam
+    table_class = ExamTable
+    template_name = 'rodatraden/exam_list.html'
+
+
+class ExamDetail(generic.DetailView):
+    model = Exam
+
+
+class ExamCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+    permission_required = 'rodatraden.add_exam'
+    model = Exam
+    form_class = ExamForm
+    template_name = 'rodatraden/exam_create.html'
+    success_message = 'Examina skapades utan problem'
+    success_url = reverse_lazy('exam-list')
+
+
+class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+    permission_required = 'rodatraden.change_exam'
+    model = Exam
+    form_class = ExamForm
+    template_name = 'rodatraden/exam_update.html'
+    success_message = 'Examina uppdaterades utan problem'
+    success_url = reverse_lazy('exam-list')
+
+
+class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+    permission_required = 'rodatraden.delete_exam'
+    model = Exam
+    template_name = 'rodatraden/exam_confirm_delete.html'
+    success_message = 'Examina togs bort utan problem'
+    success_url = reverse_lazy('exam-list')
+
+
 class CourseList(SingleTableMixin, FilterView):
     model = Course
     # Define table class
@@ -69,7 +107,6 @@ class CourseList(SingleTableMixin, FilterView):
     template_name = 'rodatraden/course_list.html'
 
 
-# Detailed view for specific courses
 class CourseDetail(generic.DetailView):
     model = Course
 
@@ -82,7 +119,8 @@ class CourseDetail(generic.DetailView):
         return context
 
 
-class CourseCreate(BSModalCreateView):
+class CourseCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+    permission_required = 'rodatraden.add_course'
     model = Course
     form_class = CourseForm
     template_name = 'rodatraden/course_create.html'
@@ -90,7 +128,8 @@ class CourseCreate(BSModalCreateView):
     success_url = reverse_lazy('course-list')
 
 
-class CourseUpdate(BSModalUpdateView):
+class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+    permission_required = 'rodatraden.change_course'
     model = Course
     template_name = 'rodatraden/course_update.html'
     form_class = CourseForm
@@ -99,7 +138,7 @@ class CourseUpdate(BSModalUpdateView):
 
 
 class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
-    permission_required = 'user.is_staff'
+    permission_required = 'rodatraden.delete_course'
     model = Course
     template_name = 'rodatraden/course_confirm_delete.html'
     success_message = 'Kursen togs bort utan problem'
@@ -117,7 +156,7 @@ class CourseOccasionList(SingleTableMixin, FilterView):
 
 class CourseOccasionDetail(generic.DetailView):
     model = CourseOccasion
-    template_name = 'rodatraden/course_detail.html'
+    template_name = 'rodatraden/courseoccasion_detail.html'
 
     # Filter by slug and year
     def get_queryset(self):
@@ -125,7 +164,14 @@ class CourseOccasionDetail(generic.DetailView):
         self.qs = super().get_queryset()
         return self.qs.filter(
                 academic_year__year=self.kwargs['year'])
-        
+
+    # Needs to also return courses which has the current course as a requirement
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Get all courses with the current id as prerequisite
+        context['prereq_courses'] = self.object.course.course_set.all()
+        return context
 
 
 def courseoccasion_info(request):
@@ -146,7 +192,7 @@ def courseoccasion_info(request):
 
 
 class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
-    permission_required = 'user.is_staff'
+    permission_required = 'rodatraden.add_courseoccasion'
     model = CourseOccasion
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion_create.html'
@@ -155,7 +201,7 @@ class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalC
 
 
 class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
-    permission_required = 'user.is_staff'
+    permission_required = 'rodatraden.change_courseoccasion'
     model = CourseOccasion
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion_update.html'
@@ -164,7 +210,7 @@ class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalU
 
 
 class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
-    permission_required = 'user.is_staff'
+    permission_required = 'rodatraden.delete_courseoccasion'
     model = CourseOccasion
     template_name = 'rodatraden/courseoccasion_confirm_delete.html'
     success_message = 'Kurstillfället togs bort utan problem'
@@ -195,7 +241,7 @@ class ProfileCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateVi
     """
     Creating new profiles
     """
-    permission_required = 'user.is_staff'
+    permission_required = 'rodatraden.add_profile'
     model = Profile
     form_class = ProfileForm
     template_name = 'rodatraden/profile_create.html'
@@ -207,7 +253,7 @@ class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateVi
     """
     Updating current profiles
     """
-    permission_required = 'user.is_staff'
+    permission_required = 'rodatraden.change_profile'
     model = Profile
     form_class = ProfileForm
     template_name = 'rodatraden/profile_update.html'
@@ -216,7 +262,10 @@ class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateVi
 
 
 class ProfileDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
-    permission_required = 'user.is_staff'
+    """
+    Deleting current profiles
+    """
+    permission_required = 'rodatraden.delete_profile'
     model = Profile
     template_name = 'rodatraden/profile_confirm_delete.html'
     success_message = 'Profilen togs bort utan problem'
@@ -231,6 +280,32 @@ class CategoryList(generic.ListView):
 # Separate page for each category
 class CategoryDetail(generic.DetailView):
     model = Category
+
+
+class CategoryCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+    permission_required = 'rodatraden.add_category'
+    model = Category
+    form_class = CategoryForm
+    template_name = 'rodatraden/category_create.html'
+    success_message = 'Kategori skapades utan problem'
+    success_url = reverse_lazy('category-list')
+
+
+class CategoryUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+    permission_required = 'rodatraden.change_category'
+    model = Category
+    form_class = CategoryForm
+    template_name = 'rodatraden/category_update.html'
+    success_message = 'Kategori uppdaterades utan problem'
+    success_url = reverse_lazy('category-list')
+
+
+class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+    permission_required = 'rodatraden.delete_category'
+    model = Category
+    template_name = 'rodatraden/category_confirm_delete.html'
+    success_message = 'Kategori togs bort utan problem'
+    success_url = reverse_lazy('category-list')
 
 
 class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, generic.ListView):
@@ -254,8 +329,8 @@ class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateV
                 kwargs={'username':self.kwargs['username']})
 
 
-class BlockCreate(CorrectUserPermissionMixin,
-        LoginRequiredMixin, BSModalCreateView):
+class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
+        BSModalCreateView):
     """ 
     Create block
     """

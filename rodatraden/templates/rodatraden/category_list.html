@@ -6,27 +6,27 @@
 {% load bootstrap4 %}
 
 {% block title %}
-{% if is_occasion %}
-  Kurstillfällen
-{% else %}
   Kategorier
+{% endblock %}
+
+{% block menu %}
+{% if user.is_staff %}
+<a class="btn btn-gone add-item"
+  data-id="{% url 'category-create' %}"
+  data-toggle="tooltip" title="Skapa nytt">
+  <span class="fa fa-plus"></span>
+</a> 
 {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% if is_occasion %}
-      {% breadcrumb "Kurstillfällen" "courseoccasion-list" %}
-    {% else %}
-      {% breadcrumb "Kategorier" "course-list" %}
-    {% endif %}
+    {% breadcrumb "Kategorier" "category-list" %}
 {% endblock %}
 
 {% block page_title %}Kategorier{% endblock %}
 
 {% block content %}
-
-<div class="starter-template">
 
   <p class="lead">Under din tid på programmet ska du ha läst kurser inom ett
   antal olika områden som översiktligt beskrivs nedan.</p>
@@ -60,8 +60,6 @@
     </div>
   </div>
   {% endfor %}
-
-</div>
 
 {% endblock %}
 

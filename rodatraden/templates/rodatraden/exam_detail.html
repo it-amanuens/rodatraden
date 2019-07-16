@@ -1,0 +1,61 @@
+{% extends 'rodatraden/exam_list.html' %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}{{ exam.title }}{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb exam.title "exam-detail" exam.slug %}
+{% endblock %}
+
+{% block menu %}
+<a class="btn btn-gone" 
+  href="{% url 'exam-list' %}"
+  data-toggle="tooltip" title="Profiler">
+  <span class="fa fa-list"></span>
+</a>
+{% if user.is_staff %}
+<a class="btn btn-gone update-item" 
+  data-id="{% url 'exam-update' exam.slug %}"
+  data-toggle="tooltip" title="Ändra">
+  <span class="fa fa-edit"></span>
+</a>
+<a class="btn btn-gone delete-item"
+  data-id="{% url 'exam-delete' exam.slug %}"
+  data-toggle="tooltip" title="Radera">
+  <span class="fa fa-trash"></span>
+</a> 
+{% endif %}
+{% endblock %}
+
+{% block page_title %}{{ exam.title }}{% endblock %}
+
+{% block content %}
+
+<div class="row px-3">
+  <div class="col-lg-6 p-3 course-main">
+    {{ exam.description | safe }}
+  </div>
+  <div class="col-lg-6 text-center">
+    <div class="card">
+      <h5 class="card-header">Examenskrav</h5>
+      <div class="card-body">
+        <p class="card-text">
+          <table class="table", style="border-collapse: separate;border-spacing:1rem 0;">
+          {% for category in exam.categoryexam_set.all %}
+          <tr>
+            <td>
+            <a href="{% url 'category-detail' category.id %}"
+            style="font-weight:bold;">{{ category.category.title }}</a>
+            </td>
+            <td>{{ category.ects }}</td>
+          </tr>
+          {% endfor %}
+          </table>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

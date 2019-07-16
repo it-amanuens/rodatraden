@@ -1,7 +1,7 @@
 # Configuration for django-tables2
 
 import django_tables2 as tables
-from .models import Course, CourseOccasion, Category
+from .models import Course, CourseOccasion, Category, Exam
 
 class CourseTable(tables.Table):
     # Urls from respective models
@@ -21,7 +21,7 @@ class CourseTable(tables.Table):
 
     # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
-        if request.user.has_perm('auth.is_superuser'):
+        if request.user.is_staff:
             self.columns.show('edit')
         else:
             self.columns.hide('edit')
@@ -33,6 +33,7 @@ class CourseTable(tables.Table):
         # Fields to show and order
         fields = ('title', 'ects', 'level', 'categories',) # fields to display
         order_by = ('title',)
+
 
 class CourseOccasionTable(tables.Table):
     # Need to fetch url from courseoccasion model
@@ -58,7 +59,7 @@ class CourseOccasionTable(tables.Table):
 
     # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
-        if request.user.has_perm('auth.is_superuser'):
+        if request.user.is_staff:
             self.columns.show('edit')
         else:
             self.columns.hide('edit')
@@ -71,3 +72,18 @@ class CourseOccasionTable(tables.Table):
         fields = ('official', 'course', 'academic_year', 'time_period', 'weeks',
                 'course.ects', 'categories')
         order_by = ('course', '-academic_year', )
+
+
+class ExamTable(tables.Table):
+    title = tables.Column(linkify=lambda record: record.get_absolute_url())
+
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/exam_edit.html', 
+            verbose_name="")
+
+    class Meta:
+        model = Exam
+        # Style template
+        template_name = 'django_tables2/bootstrap4.html'
+        fields = ('title', 'ects', 'created_at', 'updated_at')

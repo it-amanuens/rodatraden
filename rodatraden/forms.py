@@ -2,14 +2,12 @@ import datetime
 from django.db.models import Max, Min
 from .models import (
         Course, Block, CourseOccasion, Category, Track, CategoryCourse, Profile,
-        AcademicYear
+        AcademicYear, CategoryExam, Exam
         )
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
 from django.forms import formset_factory, MultiWidget
 from decimal import Decimal
-
-import pdb
 
 
 class CategoryEctsWidget(MultiWidget):
@@ -174,6 +172,48 @@ class CourseForm(SaveWithCategoryMixin, BSModalForm):
                 'note', 'categories']
 
 
+class ExamForm(SaveWithCategoryMixin, BSModalForm):
+    """
+    Form for creating and updating exams
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['ects'].widget.attrs.update({'min':0})
+
+        # Get all associations between course and category
+        categories = CategoryExam.objects.filter (
+            exam = self.instance
+        )
+
+        # Create fields for every category and pre-fill
+        for i in range(0, len(categories) + 1):
+            field_name = 'category_%s' % (i,)
+            # Set new fields
+            self.fields[field_name] = CategoryEctsField(
+                    queryset=Category.objects.all()
+            )
+            try:
+                self.initial[field_name] = {
+                        'category': categories[i].category.id,
+                        'ects': categories[i].ects}
+            except IndexError:
+                self.initial[field_name] = ''
+
+    def get_category_fields(self):
+        """
+        Yields the category fields
+        """
+        for field_name in self.fields:
+            if field_name.startswith('category_'):
+                yield self[field_name]
+
+    class Meta:
+        model = Exam
+        exclude = ['note']
+
+
 class ProfileForm(BSModalForm):
     
     class Meta:
@@ -205,10 +245,16 @@ class BlockForm(BSModalForm):
         if not self.request.user.is_superuser:
             del self.fields['track']
 
-    # Hide remove and edit buttons if not properly auth
-    def get_form(self, request):
-        pdb.set_trace()
+    class Meta:
+        model = Block
+        exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
+
+
+class CategoryForm(BSModalForm):
+    """
+    Form for creating new categories
+    """
 
     class Meta:
-            model = Block
-            exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
+        model = Category
+        exclude = ['title_eng', 'description_eng']

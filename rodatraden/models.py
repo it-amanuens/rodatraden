@@ -18,9 +18,8 @@ class Department(models.Model):
     University departments
     """
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=5000, blank=True, null=True)
-    title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=5000, blank=True, null=True)
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
@@ -37,9 +36,8 @@ class Level(models.Model):
     Course level such as Basic or Advanced
     """
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=5000, blank=True, null=True)
-    title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=5000, blank=True, null=True)
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -91,10 +89,8 @@ class Profile(models.Model):
     Program profiles
     """
     title = models.CharField(max_length=250, verbose_name="Titel")
-    description = models.CharField(max_length=5000, blank=True, null=True,
-            verbose_name="Beskrivning")
-    title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=5000, blank=True, null=True)
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     abbreviation = models.CharField(max_length=20, blank=True, null=True,
             verbose_name="Förkortning")
     # Image storage
@@ -143,9 +139,8 @@ class Category(models.Model):
     Categories for different exam goals
     """
     title = models.CharField(max_length=250)
-    description = models.CharField(max_length=5000, blank=True, null=True)
-    title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=5000, blank=True, null=True)
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     abbreviation = models.CharField(max_length=20, blank=True, null=True)
     # Image storage
     # path will be MEDIA_ROOT/categories
@@ -223,9 +218,8 @@ class Track(models.Model):
     title = models.CharField(max_length=250)
     # If the track is valid
     valid = models.BooleanField(default=True, blank=True, null=True)
-    description = models.CharField(max_length=5000, blank=True, null=True)
-    title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=5000, blank=True, null=True)
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     # Connected to profiles
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     # Timestamp
@@ -285,8 +279,6 @@ class Course(models.Model):
     closed = models.BooleanField(default=False, verbose_name="Stängd")
     # Note sure what this is for
     note = models.CharField(max_length=250, blank=True, null=True)
-    title_eng = models.CharField(max_length=250, blank=True, null=True)
-    description_eng = models.CharField(max_length=5000, blank=True, null=True)
     # Url homepages
     homepage_url = models.URLField(blank=True, null=True, verbose_name='Hemsida')
     evaluation_url = models.URLField(blank=True, null=True)
@@ -555,8 +547,8 @@ class Exam(models.Model):
     title = models.CharField(max_length=250, verbose_name='Examensnamn')
     ects = models.DecimalField(max_digits=4,decimal_places=1,
             verbose_name='Poäng')
-    description = models.CharField(max_length=5000, blank=True, null=True,
-            verbose_name="Beskrivning")
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     # Kurskod
     code = models.CharField(max_length=10, blank=True, null=True)
     note = models.CharField(max_length=250, blank=True, null=True)
@@ -696,8 +688,8 @@ class Block(models.Model):
     Blockscheman!
     """
     title = models.CharField(max_length=250, verbose_name="Titel")
-    description = models.CharField(max_length=5000, blank=True, null=True,
-            verbose_name="Beskrivning")
+    description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Beskrivning')
     start_year = models.IntegerField(default=datetime.now().year,
             verbose_name="Startår")
     # Not open for the public

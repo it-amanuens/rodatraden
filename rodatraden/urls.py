@@ -9,6 +9,12 @@ urlpatterns = [
 
     # Categories
     path('kategorier/', views.CategoryList.as_view(), name='category-list'),
+    path('kategorier/skapa/', views.CategoryCreate.as_view(),
+        name='category-create'),
+    path('kategorier/<slug:slug>/radera/', views.CategoryDelete.as_view(),
+        name='category-delete'),
+    path('kategorier/<slug:slug>/andra/', views.CategoryUpdate.as_view(),
+        name='category-update'),
     path('kategorier/<slug:slug>/', views.CategoryDetail.as_view(),
         name='category-detail'),
 
@@ -64,4 +70,14 @@ urlpatterns = [
         views.ProfileUpdate.as_view(), name='profile-update'),
     path('profiler/<slug:slug>/', views.ProfileDetail.as_view(),
         name='profile-detail'),
+
+    ## Administrative stuff
+    # Exams
+    path('examina/', views.ExamList.as_view(), name='exam-list'),
+    path('examina/skapa/', views.ExamCreate.as_view(), name='exam-create'),
+    path('examina/<slug:slug>/', views.ExamDetail.as_view(), name='exam-detail'),
+    path('examina/<slug:slug>/andra/', views.ExamUpdate.as_view(),
+            name='exam-update'),
+    path('examina/<slug:slug>/radera/', views.ExamDelete.as_view(),
+            name='exam-delete'),
 ]

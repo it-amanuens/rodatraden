@@ -1,40 +1,40 @@
-{% extends 'rodatraden/course_list.html' %}
+{% extends 'rodatraden/courseoccasion_list.html' %}
 {% load django_bootstrap_breadcrumbs %}
 
-{% block title %}{{ course.title }}{% endblock %}
+{% block title %}{{ courseoccasion.title }}{% endblock %}
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% breadcrumb course "course-detail" course.title %}
+    {% breadcrumb courseoccasion.course.title "courseoccasion-detail" courseoccasion.title %}
 {% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 
-  href="{% url 'course-list' %}"
+  href="{% url 'courseoccasion-list' %}"
   data-toggle="tooltip" title="Kurser">
   <span class="fa fa-list"></span>
 </a>
 {% if user.is_staff %}
 <a class="btn btn-gone update-item" 
-  data-id="{% url 'course-update' course.slug %}"
+  data-id="{% url 'courseoccasion-update' courseoccasion.academic_year.year courseoccasion.slug %}"
   data-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-item"
-  data-id="{% url 'course-delete' course.slug %}"
+  data-id="{% url 'courseoccasion-delete' courseoccasion.academic_year.year courseoccasion.slug %}"
   data-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endif %}
 {% endblock %}
 
-{% block page_title %}{{ course.title }}{% endblock %}
+{% block page_title %}{{ courseoccasion.course.title }} ({{ courseoccasion.academic_year.year }}){% endblock %}
 
 {% block content %}
 
 <div class="row px-3">
   <div class="col-lg-8 p-3 course-main">
-    {{ course.description | safe }}
+    {{ courseoccasion.course.description | safe }}
   </div>
 
   <div class="col-lg-4 p-3">
@@ -45,21 +45,21 @@
         <p class="card-text">
         <h5 class="card-title">
           <a href="">
-            {{ course.department }}
+            {{ courseoccasion.course.department }}
           </a>
         </h5>
         <table style="border-collapse: separate;border-spacing:1rem 0;">
           <tr>
             <td>Poäng</td>
-            <td>{{ course.ects }}</td>
+            <td>{{ courseoccasion.course.ects }}</td>
           </tr>
           <tr>
             <td>Nivå</td>
-            <td>{{ course.level }}</td>
+            <td>{{ courseoccasion.course.level }}</td>
           </tr>
           <tr>
             <td>Kod</td>
-            <td>{{ course.code }}</td>
+            <td>{{ courseoccasion.course.code }}</td>
           </tr>
         </table>
 
@@ -69,7 +69,7 @@
         </h5>
 
         <table style="border-collapse: separate;border-spacing:1rem 0;">
-          {% for category in course.categorycourse_set.all %}
+          {% for category in courseoccasion.course.categorycourse_set.all %}
             <tr>
               <td>
                 <a href="{% url 'category-detail' category.category.slug %}">{{ category.category.title }}</a>
@@ -85,7 +85,7 @@
         </h5>
 
         <ul class="list-group list-group-flush">
-          {% for track in course.tracks.all %}
+          {% for track in courseoccasion.course.tracks.all %}
           <li class="list-group list-group-flush">
             <a href="#">{{ track.title }}</a>
           </li>
@@ -94,7 +94,7 @@
 
         <hr>
         <form action="https://www.umu.se/student/mina-studier/hitta-kurs-och-utbildningsplan/" method="get">
-          <button name="q" value="{{ course.code }}" type="submit" class="btn
+          <button name="q" value="{{ courseoccasion.course.code }}" type="submit" class="btn
             btn-rt btn-sm">UMU Kursplanesök</button>
         </form>
       </div>
@@ -111,7 +111,7 @@
       <div class="card-body">
         <p class="card-text">
           <ul class="list-group list-group-flush m-0">
-          {% for prereq in course.prerequisites.all %}
+          {% for prereq in courseoccasion.course.prerequisites.all %}
           <li class="list-group-item">
             <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
           </li>

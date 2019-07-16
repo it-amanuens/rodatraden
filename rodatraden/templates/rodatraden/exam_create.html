@@ -5,7 +5,7 @@
   {% csrf_token %}
 
   <div class="modal-header">
-    <h3 class="modal-title">Skapa ny kurs</h3>
+    <h3 class="modal-title">Skapa ny examen</h3>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -19,7 +19,7 @@
       {% endfor %}
     </div>
 
-    {% for field in form.visible_fields|slice:":11" %}
+    {% for field in form.visible_fields|slice:":4" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class+="form-control" placeholder=field.label %}
@@ -67,10 +67,6 @@
 <script src='{% static 'rodatraden/category_form.js' %}'></script>
 <script type="text/javascript">
   $(document).ready(function() {
-    $(function () {
-       $(".select2-mult-choice").select2({ width: '100%' });
-    });
-
     $(function () {
       $('[data-toggle="tooltip"]').tooltip()
     });
