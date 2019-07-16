@@ -282,14 +282,14 @@ class SaveAndSendMailMixin(object):
         return instance
 
 
-class ReportForm(SaveAndSendMailMixin, BSModalForm):
+class ReportForm(BSModalForm):
 
     class Meta:
         model = Report
         fields = ['from_email', 'subject', 'message']
 
 
-class ReportEditForm(SaveAndSendMailMixin, BSModalForm):
+class ReportEditForm(BSModalForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
