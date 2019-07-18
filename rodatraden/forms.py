@@ -384,8 +384,18 @@ class SaveAndSendMailMixin(object):
         return instance
 
 
-class ReportForm(SaveAndSendMailMixin, BSModalForm):
+class ReportForm(BSModalForm):
 
+<<<<<<< HEAD
+=======
+    class Meta:
+        model = Report
+        fields = ['from_email', 'subject', 'message']
+
+
+class ReportEditForm(BSModalForm):
+
+>>>>>>> d4c6f97cbb79272e4b9f952713bf005eaaeeecca
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Ignore if the report already exists
