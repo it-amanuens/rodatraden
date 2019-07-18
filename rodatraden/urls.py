@@ -36,6 +36,17 @@ urlpatterns = [
     path('kurser/<slug:slug>/', views.CourseDetail.as_view(),
         name='course-detail'),
 
+    # Private courses
+    path('privata-kurser/<str:username>/', views.PrivateCourseList.as_view(), name='privatecourse-list'),
+    path('privata-kurser/<str:username>/skapa/', views.PrivateCourseCreate.as_view(),
+        name='privatecourse-create'),
+    path('privata-kurser/<str:username>/<slug:slug>/radera/',
+        views.PrivateCourseDelete.as_view(), name='privatecourse-delete'),
+    path('privata-kurser/<str:username>/<slug:slug>/andra/', views.PrivateCourseUpdate.as_view(),
+        name='privatecourse-update'),
+    path('privata-kurser/<str:username>/<slug:slug>/', views.PrivateCourseDetail.as_view(),
+        name='privatecourse-detail'),
+
     # Courseoccasions
     path('kurstillfallen/', views.CourseOccasionList.as_view(), 
         name='courseoccasion-list'),

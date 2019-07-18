@@ -33,7 +33,32 @@
       {% endfor %}
     </tbody>
   </table>
-  <table>
+
+  <h2>Egna kurser</h2>
+  <hr>
+  <table class="table table-hover table-sm">
+    <thead>
+      <tr>
+        <th>Kursnamn</th>
+        <th>År</th>
+        <th>Längd</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for privatecourse in privatecourses %}
+      <tr>
+        <td><a href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}">{{ privatecourse.title }}</a></td>
+        <td>{{ privatecourse.year }}</td>
+        <td>{{ privatecourse.weeks }}</td>
+        <td>
+          <a href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1">
+            <span class="fa fa-plus"></span>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
 
 </div>

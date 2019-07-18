@@ -44,9 +44,13 @@
       <div class="card-body">
         <p class="card-text">
         <h5 class="card-title">
-          <a href="">
+          {% if course.department.url %}
+          <a href="{{ course.department.url }}">
             {{ course.department }}
           </a>
+          {% else %}
+            {{ course.department }}
+          {% endif %}
         </h5>
         <table style="border-collapse: separate;border-spacing:1rem 0;">
           <tr>
@@ -87,7 +91,7 @@
         <ul class="list-group list-group-flush">
           {% for track in course.tracks.all %}
           <li class="list-group list-group-flush">
-            <a href="#">{{ track.title }}</a>
+            <a href="{% url 'profile-detail' track.profile.slug %}">{{ track.title }}</a>
           </li>
           {% endfor %}
         </ul>

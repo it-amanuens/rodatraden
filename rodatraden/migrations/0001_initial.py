@@ -278,6 +278,11 @@ class Migration(migrations.Migration):
             name='course',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rodatraden.Course'),
         ),
+        migrations.AddField(
+            model_name='course',
+            name='recommended',
+            field=models.ManyToManyField(blank=True, related_name='recommended_track', to='rodatraden.Track', verbose_name='Rekommenderad'),
+        ),
         migrations.CreateModel(
             name='Block',
             fields=[

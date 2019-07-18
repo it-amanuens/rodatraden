@@ -19,13 +19,16 @@ from django.forms import formset_factory
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
-        CategoryExam, CategoryCourse, AcademicYear, Exam, Report
+        CategoryExam, CategoryCourse, AcademicYear, Exam, Report, PrivateCourse
 )
-from .tables import CourseTable, CourseOccasionTable, ExamTable, ReportTable
+from .tables import (
+        CourseTable, CourseOccasionTable, ExamTable, ReportTable,
+        PrivateCourseTable
+        )
 from .filters import CourseFilter, CourseOccasionFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
-        CategoryForm, ReportForm, ReportEditForm
+        CategoryForm, ReportForm, PrivateCourseForm
 )
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -85,7 +88,7 @@ class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalUpdateView):
     permission_required = 'rodatraden.change_report'
     model = Report
-    form_class = ReportEditForm
+    form_class = ReportForm
     template_name = 'rodatraden/report_update.html'
     success_message = 'Rapport uppdaterades utan problem'
     success_url = reverse_lazy('report-list')
@@ -125,7 +128,10 @@ class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView)
     form_class = ExamForm
     template_name = 'rodatraden/exam_update.html'
     success_message = 'Examina uppdaterades utan problem'
-    success_url = reverse_lazy('exam-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -172,7 +178,10 @@ class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateVie
     template_name = 'rodatraden/course_update.html'
     form_class = CourseForm
     success_message = 'Kursen uppdaterades utan problem'
-    success_url = reverse_lazy('course-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -244,7 +253,10 @@ class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalU
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion_update.html'
     success_message = 'Kurstillfälle uppdaterat'
-    success_url = reverse_lazy('courseoccasion-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -296,7 +308,10 @@ class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateVi
     form_class = ProfileForm
     template_name = 'rodatraden/profile_update.html'
     success_message = 'Profilen uppdaterades utan problem'
-    success_url = reverse_lazy('profile-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class ProfileDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -335,7 +350,10 @@ class CategoryUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateV
     form_class = CategoryForm
     template_name = 'rodatraden/category_update.html'
     success_message = 'Kategori uppdaterades utan problem'
-    success_url = reverse_lazy('category-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
@@ -344,6 +362,71 @@ class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteV
     template_name = 'rodatraden/category_confirm_delete.html'
     success_message = 'Kategori togs bort utan problem'
     success_url = reverse_lazy('category-list')
+
+
+class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
+        SingleTableView):
+    """
+    List that shows the current users private courses
+    """
+    model = PrivateCourse
+    table_class = PrivateCourseTable
+    template_name = 'rodatraden/privatecourse_list.html'
+
+    def get_queryset(self, *args, **kwargs):
+        self.qs = super().get_queryset()
+        # Filter the private courses for the given user
+        return self.qs.filter(user__username=self.kwargs['username'])
+
+
+class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin, generic.DetailView):
+    """
+    Detail view for private course
+    """
+    model = PrivateCourse
+
+
+class PrivateCourseUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateView):
+    """
+    Update basic info for the private courses
+    """
+    model = PrivateCourse
+    template_name = 'rodatraden/privatecourse_update.html'
+    form_class = PrivateCourseForm
+    success_message = 'Ändringarna i blockschemat sparades'
+    
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
+
+
+class PrivateCourseCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
+        BSModalCreateView):
+    """ 
+    Create block
+    """
+    model = PrivateCourse
+    template_name = 'rodatraden/privatecourse_create.html'
+    form_class = PrivateCourseForm
+    success_message = 'Egen kurs skapad'
+
+    def get_success_url(self, **kwargs):
+        return reverse_lazy('privatecourse-list', 
+                kwargs={'username':self.kwargs['username']})
+
+
+class PrivateCourseDelete(CorrectUserPermissionMixin, LoginRequiredMixin,
+        BSModalDeleteView):
+    """
+    Remove private course
+    """
+    model = PrivateCourse
+    template_name = 'rodatraden/privatecourse_confirm_delete.html'
+    success_message = 'Egen kurs raderat'
+
+    def get_success_url(self, **kwargs):
+        return reverse_lazy('privatecourse-list', 
+                kwargs={'username':self.kwargs['username']})
 
 
 class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, generic.ListView):
@@ -362,9 +445,9 @@ class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateV
     form_class = BlockForm
     success_message = 'Ändringarna i blockschemat sparades'
     
-    def get_success_url(self, **kwargs):
-        return reverse_lazy('block-list', 
-                kwargs={'username':self.kwargs['username']})
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
@@ -418,13 +501,14 @@ def block_detail(request, username, slug):
 
     # Ajax request for jquery for rendering block
     if request.is_ajax():
-        results = [ob.as_json() for ob in block.courseoccasions.all()]
-        return JsonResponse({'course_occasions': results, 'start_year':
-            block.start_year})
+        courses = [ob.as_json() for ob in block.courseoccasions.all()]
+        privcourses = [ob.as_json() for ob in block.privatecourses.all()]
+        return JsonResponse({'course_occasions': courses, 'private_courses':
+            privcourses, 'start_year': block.start_year})
     else:
         # Define categories dict and get the sum of points for each category for
         # this block
-        categories = CategoryExam.objects.all()
+        categories = CategoryExam.objects.filter(exam=block.exam)
         category_sum = dict.fromkeys([category.category.title for category in
             categories], 0)
         block.total_category_ects(category_sum)
@@ -463,11 +547,16 @@ def block_course_list(request, username, slug):
             time_period__week__gte=start, 
             time_period__week__lt=start+10).exclude(
             block__id=block.id).order_by('course__title')
+    # All courses defined by user
+    privatecourses = PrivateCourse.objects.filter(user=request.user,
+            start__gte=start, start__lt=start+10).exclude(
+                    block__id=block.id).order_by('title')
 
     context = {
             'b_slug': slug,
             'username': username,
             'courseoccasions': courseoccasions,
+            'privatecourses': privatecourses,
             }
 
     return render(request, 'rodatraden/block_course_list.html', context)
@@ -480,14 +569,23 @@ def add_course_to_block(request, username, b_slug):
     """
     # Get slug from request
     c_slug = request.GET.get('slug', '')
-    # Get block and courseoccasion
+    is_priv = request.GET.get('private', '')
+
+    # Get block
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
+
     # Only blocks made by same user
     if (block.user.username != request.user.username):
         return redirect(reverse("index"))
-    course = get_object_or_404(CourseOccasion, slug=c_slug)
-    # Add
-    block.courseoccasions.add(course)
+
+    if (is_priv == '1'):
+        privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)
+        # Add
+        block.privatecourses.add(privatecourse)
+    else:
+        course = get_object_or_404(CourseOccasion, slug=c_slug)
+        # Add
+        block.courseoccasions.add(course)
 
     return redirect('block-detail', username=username, slug=b_slug)
 
@@ -499,13 +597,23 @@ def remove_course_from_block(request, username, b_slug):
     """
     # Get slug from request
     c_slug = request.GET.get('slug', '')
+    is_priv = request.GET.get('private', '')
+
     # Get block and courseoccasion
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
+
     # Only blocks made by same user
     if (block.user.username != request.user.username):
         return redirect(reverse("index"))
-    course = get_object_or_404(CourseOccasion, slug=c_slug)
+
     # Remove
-    block.courseoccasions.remove(course)
+    if (is_priv == '1'):
+        privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)
+        # Add
+        block.privatecourses.remove(privatecourse)
+    else:
+        course = get_object_or_404(CourseOccasion, slug=c_slug)
+        # Add
+        block.courseoccasions.remove(course)
 
     return redirect('block-detail', username=username, slug=b_slug)

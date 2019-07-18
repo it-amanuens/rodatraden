@@ -2,7 +2,8 @@ import datetime
 from django.core.mail import send_mail, BadHeaderError
 from .models import (
         Course, Block, CourseOccasion, Category, Track, CategoryCourse, Profile,
-        AcademicYear, CategoryExam, Exam, Report
+        AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
+        PrivateCourseCategory, User
         )
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
@@ -100,7 +101,10 @@ class SaveWithCategoryMixin(object):
 
             # Removes all categories (easier to just reinsert all the
             # connections than to make smart logic)
-            instance.categories.clear()
+            try:
+                instance.categories.clear()
+            except:
+                pass
 
             for key, val in categories.items():
                 # Skip if the key corresponds to ects or no category is chosen
@@ -139,6 +143,8 @@ class CourseForm(SaveWithCategoryMixin, BSModalForm):
             'select2-mult-choice'})
         self.fields['prerequisites'].widget.attrs.update({'class' :
             'select2-mult-choice'})
+        self.fields['recommended'].widget.attrs.update({'class' :
+            'select2-mult-choice'})
         self.fields['ects'].widget.attrs.update({'min':0})
 
         # Get all associations between course and category
@@ -170,8 +176,9 @@ class CourseForm(SaveWithCategoryMixin, BSModalForm):
 
     class Meta:
         model = Course
-        exclude = ['title_eng', 'description_eng', 'evaluation_url',
-                'note', 'categories']
+        fields = ['title', 'description', 'code', 'ects', 'approved',
+        'department', 'level', 'homepage_url', 'evaluation_url', 'closed',
+        'prerequisites', 'tracks', 'recommended']
 
 
 class ExamForm(SaveWithCategoryMixin, BSModalForm):
@@ -214,6 +221,51 @@ class ExamForm(SaveWithCategoryMixin, BSModalForm):
     class Meta:
         model = Exam
         exclude = ['note']
+        
+
+class PrivateCourseForm(SaveWithCategoryMixin, BSModalForm):
+
+    def __init__(self, *args, **kwargs):
+        super(PrivateCourseForm, self).__init__(*args, **kwargs)
+        # Get choices given from academic years
+        years = [(x.year, x.year) for x in AcademicYear.objects.all()]
+        self.fields['year'] = forms.ChoiceField(choices=years,
+                initial=datetime.datetime.now().year)
+        # Always save to current user
+        self.fields['user'].queryset = User.objects.filter(username=self.request.user.username)
+        self.fields['user'].initial = self.request.user
+
+        # Get all associations between course and category
+        categories = PrivateCourseCategory.objects.filter (
+            private_course = self.instance
+        )
+
+        # Create fields for every category and pre-fill
+        for i in range(0, len(categories) + 1):
+            field_name = 'category_%s' % (i,)
+            # Set new fields
+            self.fields[field_name] = CategoryEctsField(
+                    queryset=Category.objects.all()
+            )
+            try:
+                self.initial[field_name] = {
+                        'category': categories[i].category.id,
+                        'ects': categories[i].ects}
+            except IndexError:
+                self.initial[field_name] = ''
+
+    def get_category_fields(self):
+        """
+        Yields the category fields
+        """
+        for field_name in self.fields:
+            if field_name.startswith('category_'):
+                yield self[field_name]
+
+    class Meta:
+        model = PrivateCourse
+        fields = ['title', 'ects', 'note', 'year', 'start', 'weeks', 'user']
+        widgets = {'user': forms.HiddenInput()}
 
 
 class ProfileForm(BSModalForm):
@@ -231,21 +283,71 @@ class CourseOccasionForm(BSModalForm):
         'contact_name', 'contact_email', 'official']
 
 
-class BlockForm(BSModalForm):
+class SaveAndImportBlockMixin(object):
+    """
+    Saves a new block and imports courseoccasions from a given public block
+    within a track.
+    """
+
+    def save(self, commit=True):
+        # The if case is due to bootstrap modal forms, which performs two posts
+        # due to reasons
+        if not self.request.is_ajax():
+            instance = super(SaveAndImportBlockMixin, self).save(commit=commit)
+
+            # Skip if field not set
+            if 'import_from' in self.fields:
+                # Skip if no import block or if the block already exists
+                if (self.cleaned_data['import_from']):
+                    # Get all of the courseoccasions from import block and order by year
+                    # and start
+                    courseoccasions = self.cleaned_data['import_from'].courseoccasions.all().order_by('academic_year__year', 'time_period__week')
+                    # Difference in years from new block to the import block
+                    year_diff = int(self.cleaned_data['start_year']) - courseoccasions.first().academic_year.year
+
+                    # Main insertion loop
+                    for courseocc in courseoccasions:
+                        # Get the new courseoccasion
+                        new_courseocc = CourseOccasion.objects.get(course=courseocc.course,
+                                academic_year__year=courseocc.academic_year.year+year_diff,
+                                time_period__week=courseocc.time_period.week)
+
+                        # Just skip if something bad happens
+                        if not new_courseocc:
+                            pass
+                        try:
+                            instance.courseoccasions.add(new_courseocc)
+                        except:
+                            pass
+
+        else:
+            instance = super(SaveAndImportBlockMixin, self).save(commit=False)
+        return instance
+
+
+class BlockForm(SaveAndImportBlockMixin, BSModalForm):
     """
     Form for creating new blocks
     """
+    import_from = forms.ModelChoiceField(queryset=None, required=False,
+            label="Importera från blockschema")
 
     def __init__(self, *args, **kwargs):
         super(BlockForm, self).__init__(*args, **kwargs)
         # Get choices given from academic years
         years = [(x.year, x.year) for x in AcademicYear.objects.all()]
+        years.sort()
+        self.fields['import_from'].queryset = Block.objects.filter(private=False).exclude(track__isnull=True) | Block.objects.filter(user=self.request.user)
         self.fields['start_year'] = forms.ChoiceField(choices=years,
                 initial=datetime.datetime.now().year)
         self.fields['track'].widget.attrs['class'] = 'block-track'
 
-        if not self.request.user.is_superuser:
+        if not self.request.user.is_staff:
             del self.fields['track']
+
+        # Ignore if the block already exists
+        if self.instance.pk:
+            del self.fields['import_from']
 
     class Meta:
         model = Block
@@ -284,20 +386,15 @@ class SaveAndSendMailMixin(object):
 
 class ReportForm(SaveAndSendMailMixin, BSModalForm):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ignore if the report already exists
+        if self.instance.pk:
+            # Disable some fields
+            self.fields['from_email'].widget.attrs['readonly'] = True
+            self.fields['subject'].widget.attrs['readonly'] = True
+            self.fields['message'].widget.attrs['readonly'] = True
+
     class Meta:
         model = Report
         fields = ['from_email', 'subject', 'message']
-
-
-class ReportEditForm(SaveAndSendMailMixin, BSModalForm):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Disable some fields
-        self.fields['from_email'].widget.attrs['readonly'] = True
-        self.fields['subject'].widget.attrs['readonly'] = True
-        self.fields['message'].widget.attrs['readonly'] = True
-
-    class Meta:
-        model = Report
-        fields = ['from_email', 'subject', 'message', 'fixed', 'note']

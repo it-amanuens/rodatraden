@@ -51,21 +51,24 @@
 {% for track in tracks %}
 <hr>
 <h2 class="mb-3">{{ track.title }}</h2>
+{% if track.description %}
+<div class="course-etc p-2 m-2">
+{{ track.description | safe}}
+</div>
+{% endif %}
 <div class="row">
   <div class="col-lg-4">
     <div class="card">
       <h5 class="card-header">Profilkurser</h5>
       <div class="card-body">
-        <p class="card-text">
-          <ul class="list-group list-group-flush m-0">
-          {% for course in track.course_set.all %}
-          <li class="list-group-item">
-            <a href="{% url 'course-detail' course.slug %}"
-            style="font-weight:bold;">{{ course.title }}</a>
-          </li>
-          {% endfor %}
-          </ul>
-        </p>
+        <ul class="list-group list-group-flush m-0">
+        {% for course in track.course_set.all %}
+        <li class="list-group-item">
+          <a href="{% url 'course-detail' course.slug %}"
+          style="font-weight:bold;">{{ course.title }}</a>
+        </li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
   </div>
@@ -73,8 +76,14 @@
     <div class="card">
       <h5 class="card-header">Rekommenderade kurser</h5>
       <div class="card-body">
-        <p class="card-text">
-        </p>
+        <ul class="list-group list-group-flush m-0">
+        {% for course in track.recommended_track.all %}
+        <li class="list-group-item">
+          <a href="{% url 'course-detail' course.slug %}"
+          style="font-weight:bold;">{{ course.title }}</a>
+        </li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
   </div>

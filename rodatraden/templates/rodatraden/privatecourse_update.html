@@ -1,11 +1,11 @@
 {% load widget_tweaks %}
 {% load static %}
 
-<form method="post" action="">
+<form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
 
   <div class="modal-header">
-    <h3 class="modal-title">Skapa ny kurs</h3>
+    <h3 class="modal-title">Skapa ny egen kurs</h3>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -19,7 +19,7 @@
       {% endfor %}
     </div>
 
-    {% for field in form.visible_fields|slice:":11" %}
+    {% for field in form.visible_fields|slice:":6" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class+="form-control" placeholder=field.label %}
@@ -31,12 +31,8 @@
       </div>
     {% endfor %}
 
-    <h2>Spår</h2>
-    <hr>
-
-    {% for field in form.visible_fields|slice:"11:13" %}
+    {% for field in form.hidden_fields %}
       <div class="form-group">
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class+="form-control" placeholder=field.label %}
         <div class="pt-1 {% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}

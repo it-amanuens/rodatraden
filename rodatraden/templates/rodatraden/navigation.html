@@ -58,6 +58,9 @@
           <a style="font-size:small" class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
           {% endfor %}
           <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Privata
+            kurser</a>
+          <div class="dropdown-divider"></div>
           <a class="dropdown-item" href="{% url 'cas_ng_logout' %}">Logga ut</a>
         </div>
       </li>

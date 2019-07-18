@@ -57,6 +57,7 @@ class Department(models.Model):
     description = models.TextField(max_length=5000, blank=True, null=True,
             verbose_name='Beskrivning')
     abbreviation = models.CharField(max_length=20, blank=True, null=True)
+    url = models.URLField(blank=True, null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -65,6 +66,10 @@ class Department(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        verbose_name = 'Institut'
+        verbose_name_plural = 'Institution'
 
 
 class Level(models.Model):
@@ -87,6 +92,10 @@ class Level(models.Model):
         # Get first letter of title
         return self.title[0]
 
+    class Meta:
+        verbose_name = 'Nivå'
+        verbose_name_plural = 'Nivåer'
+
 
 class AcademicYear(models.Model):
     """
@@ -103,6 +112,10 @@ class AcademicYear(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = 'Akademiskt år'
+        verbose_name_plural = 'Akademiska år'
+
 
 class TimePeriod(models.Model):
     """
@@ -118,6 +131,10 @@ class TimePeriod(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        verbose_name = 'Tidsperiod'
+        verbose_name_plural = 'Tidsperioder'
 
 
 class Profile(models.Model):
@@ -292,6 +309,10 @@ class Track(models.Model):
             num += 1
         return unique_slug
 
+    class Meta:
+        verbose_name = 'Spår'
+        verbose_name_plural = 'Spår'
+
 
 class Course(models.Model):
     """
@@ -328,7 +349,9 @@ class Course(models.Model):
     # Connected to categories and tracks via many-to-many
     categories = models.ManyToManyField(Category, blank=True,
             through='CategoryCourse', verbose_name='Kategorier')
-    tracks = models.ManyToManyField(Track, blank=True, verbose_name='Spår')
+    tracks = models.ManyToManyField(Track, blank=True, verbose_name='Ingår')
+    recommended = models.ManyToManyField(Track, blank=True,
+            related_name='recommended_track', verbose_name='Rekommenderad',)
     # Connected to itself via prerequisites
     prerequisites = models.ManyToManyField('self', blank=True, through='Prerequisite',
             symmetrical = False, verbose_name='Förkunskapskrav')
@@ -473,11 +496,8 @@ class CourseOccasion(models.Model):
     # Slug
     slug = models.SlugField(max_length=100, unique=True, editable=False)
 
-    year = models.IntegerField()
-    start = models.IntegerField()
-
     def __str__(self):
-        return "ass"
+        return self.course.title + " - " + str(self.academic_year.year)
 
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
@@ -511,6 +531,7 @@ class CourseOccasion(models.Model):
                 weeks=self.weeks,
                 prerequisites=1,
                 slug = self.slug,
+                is_priv = '',
                 )
 
     def get_tempo(self):
@@ -603,17 +624,16 @@ class PrivateCourse(models.Model):
     """
     Courses that users can specify themselves
     """
-    title = models.CharField(max_length=250)
+    title = models.CharField(max_length=250, verbose_name='Kursnamn')
     # Points - no more than 3 digits and one decimal point
-    ects = models.DecimalField(max_digits=3,decimal_places=1)
+    ects = models.DecimalField(max_digits=3,decimal_places=1,
+            verbose_name='Poäng')
     note = models.CharField(max_length=250, blank=True, null=True)
-    weeks = models.IntegerField()
+    year = models.IntegerField(verbose_name='Startår')
+    start = models.IntegerField(verbose_name='Startvecka')
+    weeks = models.IntegerField(verbose_name='Längd')
     # Conected to a user
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
-            null=True)
-    time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
-            null=True)
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -634,6 +654,10 @@ class PrivateCourse(models.Model):
     def __str__(self):
         return self.title + " - " + self.user.username
 
+    def get_absolute_url(self):
+        return reverse('privatecourse-detail', kwargs={'username':
+            self.user.username, 'slug': self.slug})
+
     # Override .save() to add unique slug
     def save(self, *args, **kwargs):
         if self.title != self.__original_title or not self.slug:
@@ -652,6 +676,31 @@ class PrivateCourse(models.Model):
             unique_slug = '{}-{}'.format(slug, num)
             num += 1
         return unique_slug
+
+    def as_json(self):
+        return dict(
+                year=self.year,
+                start=self.start,
+                title=self.title,
+                ects=self.ects,
+                weeks=self.weeks,
+                prerequisites=1,
+                slug = self.slug,
+                is_priv = 1,
+                )
+
+    def category_ects(self, category_sum):
+        """
+        Sums through the points for each category given the input dict
+        category_sum. Only sums for categories already defined in the dict
+        """
+        for category in self.privatecoursecategory_set.all():
+            title = category.category.title
+            # Only sum if key is existent in dict
+            if title in category_sum:
+                category_sum[title] += category.ects
+
+        return category_sum
 
 
 class PrivateCourseCategory(models.Model):
@@ -690,6 +739,9 @@ class Block(models.Model):
     # Can be associated to a track
     track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True,
             blank=True, verbose_name="Spår")
+    # Associate to an exam
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, 
+            verbose_name="Examen")
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -734,6 +786,9 @@ class Block(models.Model):
         """
         for courseoccasion in self.courseoccasions.all():
             courseoccasion.category_ects(category_sum)
+
+        for privatecourse in self.privatecourses.all():
+            privatecourse.category_ects(category_sum)
 
     def time_since_updated(self):
         """

@@ -1,7 +1,9 @@
 # Configuration for django-tables2
 
 import django_tables2 as tables
-from .models import Course, CourseOccasion, Category, Exam, Report
+from .models import (
+        Course, CourseOccasion, Category, Exam, Report, PrivateCourse
+        )
 
 class CourseTable(tables.Table):
     # Urls from respective models
@@ -87,6 +89,21 @@ class ExamTable(tables.Table):
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
         fields = ('title', 'ects', 'created_at', 'updated_at')
+
+
+class PrivateCourseTable(tables.Table):
+    title = tables.Column(linkify=lambda record: record.get_absolute_url())
+
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/privatecourse_edit.html', 
+            verbose_name="")
+
+    class Meta:
+        model = PrivateCourse
+        # Style template
+        template_name = 'django_tables2/bootstrap4.html'
+        fields = ('title', 'year', 'ects', 'start', 'weeks')
 
 
 class ReportTable(tables.Table):

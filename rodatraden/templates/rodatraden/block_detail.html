@@ -41,9 +41,11 @@
 <input class="btn btn-default show-chart" type="button" value="Kategorier" />
 <hr>
 
+<h5>Examen: {{ this_block.exam.title }}</h5>
+
 <div id="study-block"></div>
 
-<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto" >
+<div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" >
 
 
 {% endblock %}
@@ -52,14 +54,14 @@
 
   <script>
     /* Show and hide block and chart */
-    $("#container").hide("fast");
+    $("#chart").hide("fast");
     $(".show-block").click(function() {
       $("#study-block").show("slow");
-      $("#container").hide("fast");
+      $("#chart").hide("fast");
     });
 
     $(".show-chart").click(function() {
-      $("#container").show("slow");
+      $("#chart").show("slow");
       $("#study-block").hide("fast");
     });
 
@@ -68,7 +70,7 @@
         colors: ['var(--gray)', 'var(--main-color)']
     });
 
-    Highcharts.chart('container', {
+    Highcharts.chart('chart', {
 
         chart: {
             type: 'bar'
@@ -394,7 +396,7 @@
             .append("a").attr("class", "fa fa-times")
             .attr('href', function(d) {
               return "{% url 'block-remove-course' this_block.user this_block.slug %}" 
-                + "?slug=" + d.slug;
+                + "?slug=" + d.slug + "&private=" + d.is_priv;
           });
 
           /* Add year button at end */
