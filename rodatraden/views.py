@@ -435,6 +435,11 @@ class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, generic.ListView
     """
     model = Block
 
+    def get_queryset(self, *args, **kwargs):
+        self.qs = super().get_queryset()
+        # Filter the private courses for the given user
+        return self.qs.filter(user__username=self.kwargs['username'])
+
 
 class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateView):
     """
