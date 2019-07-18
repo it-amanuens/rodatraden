@@ -364,38 +364,8 @@ class CategoryForm(BSModalForm):
         exclude = ['title_eng', 'description_eng']
 
 
-class SaveAndSendMailMixin(object):
-
-    def save(self, commit=True):
-        # The if case is due to bootstrap modal forms, which performs two posts
-        # due to reasons
-        if not self.request.is_ajax():
-            instance = super(SaveAndSendMailMixin, self).save(commit=commit)
-
-            subject = self.cleaned_data['subject']
-            from_email = self.cleaned_data['from_email']
-            message = self.cleaned_data['message']
-            try:
-                send_mail(subject, message, from_email, ['lucash@fastmail.com'])
-            except BadHeaderError:
-                pass
-        else:
-            instance = super(SaveAndSendMailMixin, self).save(commit=False)
-        return instance
-
-
 class ReportForm(BSModalForm):
 
-<<<<<<< HEAD
-=======
-    class Meta:
-        model = Report
-        fields = ['from_email', 'subject', 'message']
-
-
-class ReportEditForm(BSModalForm):
-
->>>>>>> d4c6f97cbb79272e4b9f952713bf005eaaeeecca
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Ignore if the report already exists
