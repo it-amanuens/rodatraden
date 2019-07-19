@@ -1,8 +1,18 @@
 # Röda Tråden 4
 
-### Förbättringar
+The fourth version of Röda Tråden written in Django!
 
-Saker som kan göra Röda Tråden ÄNNU bättre.
+More information is coming soon!
 
-* Automatisk generering av examensbilagan
-* Sökfunktion för hela sidan
+## About Django
+
+## Installation
+
+## Deployment
+
+### Improvements
+
+Potential future improvements,
+
+- [ ] Automatic generation of 'examensbilagan'
+- [ ] Search function for whole site
