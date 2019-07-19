@@ -1,28 +1,26 @@
-# Configuration for django-filters
-
 import django_filters
-from django_filters import ModelChoiceFilter
 from .models import (
     Course, Category, Level, Department, Profile, Track, AcademicYear,
     CourseOccasion, TimePeriod
 )
 
 class CourseFilter(django_filters.FilterSet):
+    """Filter settings for the list of courses."""
 
     title = django_filters.ModelChoiceFilter(queryset=Course.objects.all(),
-            empty_label="Kursnamn"
+        empty_label='Kursnamn'
     )
     categories = django_filters.ModelChoiceFilter(
-            queryset=Category.objects.all(), empty_label="Kategori"
+        queryset=Category.objects.all(), empty_label='Kategori'
     )
     level = django_filters.ModelChoiceFilter(queryset=Level.objects.all(),
-            empty_label="Nivå"
+        empty_label='Nivå'
     )
     department = django_filters.ModelChoiceFilter(
-            queryset=Department.objects.all(), empty_label="Institution"
+        queryset=Department.objects.all(), empty_label='Institution'
     )
     profile = django_filters.ModelChoiceFilter(queryset=Track.objects.all(),
-            empty_label="Profil", field_name="tracks"
+        empty_label='Profil', field_name='tracks'
     )
 
     class Meta:
@@ -31,31 +29,36 @@ class CourseFilter(django_filters.FilterSet):
 
 
 class CourseOccasionFilter(django_filters.FilterSet):
-   
+    """Filter settings for the list of course occasions."""
+    
+    # A lot of the filters refer to the course that the courseoccasion is
+    # connected to, hence the 'field_name' argument
     title = django_filters.ModelChoiceFilter(queryset=Course.objects.all(),
-            empty_label="Kursnamn", to_field_name="title", field_name="course"
+            empty_label='Kursnamn', to_field_name='title', field_name='course'
     )
     year = django_filters.ModelChoiceFilter(
             queryset=AcademicYear.objects.all().order_by('year'),
-            empty_label="Läsår", field_name="academic_year"
+            empty_label='Läsår', field_name='academic_year'
     )
     time_period = django_filters.ModelChoiceFilter(
             queryset=TimePeriod.objects.all().order_by('week'),
-            empty_label="Läsperiod", field_name="time_period"
+            empty_label='Läsperiod', field_name='time_period'
     )
     categories = django_filters.ModelChoiceFilter(
-            queryset=Category.objects.all(), field_name="course__categories",
-            empty_label="Kategori"
+            queryset=Category.objects.all(), field_name='course__categories',
+            empty_label='Kategori'
     )
     department = django_filters.ModelChoiceFilter(
-            queryset=Department.objects.all(), field_name="course__department",
-            empty_label="Institution"
+            queryset=Department.objects.all(), field_name='course__department',
+            empty_label='Institution'
     )
     official = django_filters.ChoiceFilter(
-            choices=((True, "Godkänd"), (False, "Ej godkänd")), 
-            empty_label="Status"
+            choices=((True, 'Godkänd'), (False, 'Ej godkänd')), 
+            empty_label='Status'
     )
 
     class Meta:
         model = CourseOccasion
-        fields = ['title', 'year', 'time_period', 'categories', 'department', 'official']
+        fields = ['title', 'year', 'time_period', 'categories', 'department',
+            'official'
+        ]

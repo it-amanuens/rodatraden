@@ -21,15 +21,15 @@ import django_cas_ng.views
 
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
-    # Admin
     path('admin/', admin.site.urls), # Admin page
-    # # Authentication against CAS
+
+    # Authentication against CAS
     path('anvandare/login/', django_cas_ng.views.LoginView.as_view(),
         name='cas_ng_login'),
     path('anvandare/logout/', django_cas_ng.views.LogoutView.as_view(),
         name='cas_ng_logout'),
 ]
 
-# For correct handling of static files
+# This is added for correct handling of static files
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
