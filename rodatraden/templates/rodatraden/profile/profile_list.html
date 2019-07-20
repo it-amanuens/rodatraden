@@ -29,7 +29,11 @@ Profiler
 
 <div class="starter-template">
 
-  <p class="lead">Som student på Teknisk Fysik i Umeå har du, utöver möjligheten att fritt välja kurser också tillgång till flera fördefinerade profiler anpassade för att ge dig en djupare insikt inom de olika områdena. Självklart kan du följa någon av dessa profiler och byta ut individuella kurser för att hitta det spår som passar just dig bäst.</p>
+  <p class="lead">Som student på Teknisk Fysik i Umeå har du, utöver möjligheten
+  att fritt välja kurser också tillgång till flera fördefinerade profiler
+  anpassade för att ge dig en djupare insikt inom de olika områdena. Självklart
+  kan du följa någon av dessa profiler och byta ut individuella kurser för att
+  hitta det spår som passar just dig bäst.</p>
 
   {% for profile in profile_list %}
   <hr>
@@ -49,7 +53,11 @@ Profiler
       <h4><a href="{% url 'profile-detail' profile.slug %}">
           {{ profile.title }}
       </a></h4>
+      {% if profile.description %}
       {{ profile.description|safe|truncatewords:"50"|linebreaks }}
+      {% else %}
+      <p>Denna profil saknar beskrivning.</p>
+      {% endif %}
       <a href="{% url 'profile-detail' profile.slug %}">
         <span class="badge badge-rt">
         Läs mer

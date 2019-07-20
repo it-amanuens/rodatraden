@@ -1,6 +1,5 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load static %}
 {% load django_bootstrap_breadcrumbs %}
 {% load render_table from django_tables2 %}
 {% load bootstrap4 %}
@@ -29,9 +28,8 @@
 {% block content %}
 
   <p class="lead">Under din tid på programmet ska du ha läst kurser inom ett
-  antal olika områden som översiktligt beskrivs nedan.</p>
-  <p class="lead">Du ska ha läst minst the angivna poängantalet för att kunna ta ut din
-  examen.</p>
+  antal olika områden som översiktligt beskrivs nedan.<br>Du ska ha läst minst
+  the angivna poängantalet för att kunna ta ut din examen.</p>
 
   {% for category in category_list %}
   <hr>
@@ -43,7 +41,7 @@
       {% else %} 
          src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ category.abbreviation }}" 
       {% endif %}
-           alt="{{ category.title }}" class="rounded mx-auto d-block img-fluid">
+         alt="{{ category.title }}" class="rounded mx-auto d-block img-fluid">
       </img>
     </div>
     <div class="col-ld-1"></div>
@@ -51,7 +49,12 @@
       <h4><a href="{% url 'category-detail' category.slug %}">
           {{ category.title }}
       </a></h4>
+      {% if category.description %}
       {{ category.description|safe|truncatewords:"50"|linebreaks }}
+      {% else %}
+      <p>Denna kategori saknar en beskrivning.<p>
+      {% endif %}
+
       <a href="{% url 'category-detail' category.slug %}">
         <span class="badge badge-rt">
         Läs mer

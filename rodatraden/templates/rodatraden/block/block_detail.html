@@ -1,5 +1,6 @@
-{% extends 'rodatraden/block_list.html' %}
+{% extends 'rodatraden/block/block_list.html' %}
 {% load django_bootstrap_breadcrumbs %}
+
 <!-- For localization -->
 {% load l10n %}
 {% load static %}
@@ -35,22 +36,33 @@
 
 {% block content %}
 
-<p class="lead">{{ this_block.description}}</p>
+{% if this_block.description %}
+{{ this_block.description | safe }}
+{% else %}
+<p class="lead">Detta blockschema saknar en beskrivning.</p>
+{% endif %}
 
-<input class="btn btn-default show-block" type="button" value="Blockschema" />
-<input class="btn btn-default show-chart" type="button" value="Kategorier" />
 <hr>
 
 <h5>Examen: {{ this_block.exam.title }}</h5>
+
+<input class="btn btn-default show-block" type="button" value="Blockschema" />
+<input class="btn btn-default show-chart" type="button" value="Kategorier" />
 
 <div id="study-block"></div>
 
 <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" >
 
-
 {% endblock %}
 
 {% block extra_scripts %}
+
+  <!-- highcharts -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/data.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <!-- Helper scripts for rendering blocks -->
+  <script src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
 
   <script>
     /* Show and hide block and chart */
@@ -123,12 +135,6 @@
         
         }]
     });
-  </script>
-
-  <!-- Helper scripts for rendering blocks -->
-  <script type="text/javascript" src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
-
-  <script type="text/javascript">
 
     $(".update-block").each(function () {
       $(this).modalForm({formURL: $(this).data('id')});

@@ -1,11 +1,11 @@
-{% extends 'rodatraden/course_list.html' %}
+{% extends 'rodatraden/course/course_list.html' %}
 {% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ course.title }}{% endblock %}
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% breadcrumb course "course-detail" course.title %}
+    {% breadcrumb course.title "course-detail" course.title %}
 {% endblock %}
 
 {% block menu %}
@@ -34,15 +34,17 @@
 
 <div class="row px-3">
   <div class="col-lg-8 p-3 course-main">
+    {% if course.description %}
     {{ course.description | safe }}
+    {% else %}
+    <p class="lead">Denna kurs saknar en beskrivning.<p>
+    {% endif %}
   </div>
 
   <div class="col-lg-4 p-3">
-
     <div class="card">
       <h5 class="card-header">Info</h5>
       <div class="card-body">
-        <p class="card-text">
         <h5 class="card-title">
           {% if course.department.url %}
           <a href="{{ course.department.url }}">
@@ -113,15 +115,13 @@
     <div class="card">
       <h5 class="card-header">Förkunskapskrav</h5>
       <div class="card-body">
-        <p class="card-text">
-          <ul class="list-group list-group-flush m-0">
-          {% for prereq in course.prerequisites.all %}
-          <li class="list-group-item">
-            <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
-          </li>
-          {% endfor %}
-          </ul>
-        </p>
+        <ul class="list-group list-group-flush m-0">
+        {% for prereq in course.prerequisites.all %}
+        <li class="list-group-item">
+          <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
+        </li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
   </div>
@@ -130,15 +130,13 @@
     <div class="card">
       <h5 class="card-header">Ger behörighet</h5>
       <div class="card-body">
-        <p class="card-text">
-          <ul class="list-group list-group-flush m-0">
-          {% for course in prereq_courses %}
-          <li class="list-group-item">
-            <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
-          </li>
-          {% endfor %}
-          </ul>
-        </p>
+        <ul class="list-group list-group-flush m-0">
+        {% for course in prereq_courses %}
+        <li class="list-group-item">
+          <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
+        </li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
   </div>

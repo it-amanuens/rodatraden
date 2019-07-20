@@ -1,4 +1,4 @@
-{% extends 'rodatraden/privatecourse_list.html' %}
+{% extends 'rodatraden/privatecourse/privatecourse_list.html' %}
 {% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ privatecourse.title }}{% endblock %}
@@ -32,25 +32,27 @@
 
 <div class="row px-3">
   <div class="col-lg-6 p-3 course-main">
+    {% if privatecourse.note %}
     {{ privatecourse.note | safe }}
+    {% else %}
+    Ingen anteckning.
+    {% endif %}
   </div>
   <div class="col-lg-6 text-center">
     <div class="card">
       <h5 class="card-header">Kategorier</h5>
       <div class="card-body">
-        <p class="card-text">
-          <table class="table", style="border-collapse: separate;border-spacing:1rem 0;">
-          {% for category in privatecourse.privatecoursecategory_set.all %}
-          <tr>
-            <td>
-            <a href="{% url 'category-detail' category.id %}"
-            style="font-weight:bold;">{{ category.category.title }}</a>
-            </td>
-            <td>{{ category.ects }}</td>
-          </tr>
-          {% endfor %}
-          </table>
-        </p>
+        <table class="table", style="border-collapse: separate;border-spacing:1rem 0;">
+        {% for category in privatecourse.privatecoursecategory_set.all %}
+        <tr>
+          <td>
+          <a href="{% url 'category-detail' category.id %}"
+          style="font-weight:bold;">{{ category.category.title }}</a>
+          </td>
+          <td>{{ category.ects }}</td>
+        </tr>
+        {% endfor %}
+        </table>
       </div>
     </div>
   </div>

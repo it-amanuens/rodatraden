@@ -174,4 +174,4 @@ class ReportForm(BSModalForm):
 
     class Meta:
         model = Report
-        fields = ['from_email', 'subject', 'message']
+        fields = ['from_email', 'subject', 'message', 'fixed', 'note']

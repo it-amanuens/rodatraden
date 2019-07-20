@@ -2,19 +2,19 @@
   {% csrf_token %}
 
   <div class="modal-header">
-    <h3 class="modal-title">Delete Book</h3>
+    <h3 class="modal-title">Radera egen kurs</h3>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
 
   <div class="modal-body">
-    <p class="delete-text">Are you sure you want to delete course with title
-      <strong>{{ course.title }}</strong>?</p>
+    <p class="delete-text">Är du säker på att du vill radera din egna kurs
+      <strong>{{ privatecourse.title }}</strong>?</p>
   </div>
 
   <div class="modal-footer">
-    <button type="submit" class="delete-btn btn btn-danger">Delete</button>
+    <button type="submit" class="delete-btn btn btn-rt">Radera</button>
   </div>
 
 </form>

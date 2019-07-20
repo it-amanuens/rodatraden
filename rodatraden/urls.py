@@ -90,7 +90,6 @@ urlpatterns = [
     path('profiler/<slug:slug>/', views.ProfileDetail.as_view(),
         name='profile-detail'),
 
-    ## Administrative stuff
     # Exams
     path('examina/', views.ExamList.as_view(), name='exam-list'),
     path('examina/skapa/', views.ExamCreate.as_view(), name='exam-create'),

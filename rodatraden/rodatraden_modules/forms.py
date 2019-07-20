@@ -11,7 +11,7 @@ class CategoryEctsWidget(forms.MultiWidget):
     """
 
     def __init__(self, attrs=None, step=0.1, minimum=0, required=False):
-        """Inherit the init class of multiwidget to initialize our own inputs.
+        """Extend the init class of multiwidget to initialize our own inputs.
 
         Keyword arguments:
         step -- Step size for number input

@@ -1,4 +1,4 @@
-{% extends 'rodatraden/profile_list.html' %}
+{% extends 'rodatraden/profile/profile_list.html' %}
 {% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ profile.title }}{% endblock %}
@@ -34,7 +34,11 @@
 
 <div class="row px-3">
   <div class="col-lg-8 p-3 course-main">
+    {% if profile.description %}
     {{ profile.description | safe }}
+    {% else %}
+    Denna profil saknar beskrivning.
+    {% endif %}
   </div>
   <div class="col-lg-4 text-center">
     <img 

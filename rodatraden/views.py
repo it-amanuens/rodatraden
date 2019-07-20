@@ -5,17 +5,12 @@ from bootstrap_modal_forms.generic import (
         BSModalReadView
 )
 
-from django.core.mail import send_mail, BadHeaderError
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.decorators import user_passes_test
-from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponseRedirect
-from django.views import generic
-from django.core import serializers
-from django.forms import formset_factory
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
@@ -30,32 +25,12 @@ from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
         CategoryForm, ReportForm, PrivateCourseForm
 )
-
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-
-import pdb
-
-class CorrectUserPermissionMixin:
-    """
-    Mixing to only allow the creator of a certain item to be able to edit
-    """
-
-    def dispatch(self, request, *args, **kwargs):
-        # Ignore if not logged in
-        if not request.user.is_authenticated:
-            return super().dispatch(request, *args, **kwargs)
-        # Otherwise send user to index
-        else:
-            if kwargs['username'] == request.user.username:
-                return super().dispatch(request, *args, **kwargs)
-            else:
-                return redirect(reverse("index"), {"poo":1})
+from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 
 
 def index(request):
-    """
-    Homepage of the site
-    """
+    """Homepage of site."""
+
     context = {
             'latest_courses': Course.objects.all().order_by('-updated_at')[:7],
             'latest_blocks':
@@ -63,13 +38,19 @@ def index(request):
             'categories': Category.objects.all().order_by('title'),
             'profiles': Profile.objects.all(),
             }
+
     return render(request, 'rodatraden/index.html', context)
 
+#############
+## REPORTS ##
+#############
 
 class ReportCreate(BSModalCreateView):
+    """Creation view for reports."""
+
     model = Report
     form_class = ReportForm
-    template_name = 'rodatraden/report_create.html'
+    template_name = 'rodatraden/report/report_create.html'
     success_message = 'Tack för din hjälp!'
 
     def get_success_url(self):
@@ -78,55 +59,78 @@ class ReportCreate(BSModalCreateView):
 
 
 class ReportList(LoginRequiredMixin, PermissionRequiredMixin, SingleTableView):
+    """List view for reports."""
+
     permission_required = 'rodatraden.show_report'
     model = Report
     table_class = ReportTable
-    template_name = 'rodatraden/report_list.html'
+    template_name = 'rodatraden/report/report_list.html'
 
 
 class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalUpdateView):
+    """Update view for reports."""
+
     permission_required = 'rodatraden.change_report'
     model = Report
     form_class = ReportForm
-    template_name = 'rodatraden/report_update.html'
+    template_name = 'rodatraden/report/report_update.html'
     success_message = 'Rapport uppdaterades utan problem'
-    success_url = reverse_lazy('report-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalDeleteView):
+    """Delete view for reports."""
+
     permission_required = 'rodatraden.delete_report'
     model = Report
-    template_name = 'rodatraden/report_confirm_delete.html'
+    template_name = 'rodatraden/report/report_confirm_delete.html'
     success_message = 'Rapport raderad'
     success_url = reverse_lazy('report-list')
 
+###########
+## EXAMS ##
+###########
 
 class ExamList(SingleTableView):
+    """List view for exams"""
+
     model = Exam
     table_class = ExamTable
-    template_name = 'rodatraden/exam_list.html'
+    template_name = 'rodatraden/exam/exam_list.html'
 
 
-class ExamDetail(generic.DetailView):
+class ExamDetail(DetailView):
+    """Detail view for exams"""
+
     model = Exam
+    template_name = 'rodatraden/exam/exam_detail.html'
 
 
-class ExamCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+class ExamCreate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalCreateView):
+    """Creation view for exams."""
+
     permission_required = 'rodatraden.add_exam'
     model = Exam
     form_class = ExamForm
-    template_name = 'rodatraden/exam_create.html'
+    template_name = 'rodatraden/exam/exam_create.html'
     success_message = 'Examina skapades utan problem'
     success_url = reverse_lazy('exam-list')
 
 
-class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    """Update view for exams."""
+
     permission_required = 'rodatraden.change_exam'
     model = Exam
     form_class = ExamForm
-    template_name = 'rodatraden/exam_update.html'
+    template_name = 'rodatraden/exam/exam_update.html'
     success_message = 'Examina uppdaterades utan problem'
 
     def get_success_url(self):
@@ -134,49 +138,67 @@ class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView)
         return self.request.META['HTTP_REFERER']
 
 
-class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    """Delete view for exams."""
+    
     permission_required = 'rodatraden.delete_exam'
     model = Exam
-    template_name = 'rodatraden/exam_confirm_delete.html'
+    template_name = 'rodatraden/exam/exam_confirm_delete.html'
     success_message = 'Examina togs bort utan problem'
     success_url = reverse_lazy('exam-list')
 
+###########
+# COURSES #
+###########
 
 class CourseList(SingleTableMixin, FilterView):
+    """List view for courses."""
+
     model = Course
-    # Define table class
     table_class = CourseTable
     filterset_class = CourseFilter
-    paginate_by = 15  # if pagination is desired
-    template_name = 'rodatraden/course_list.html'
+    # Amount of queries per page
+    paginate_by = 15
+    template_name = 'rodatraden/course/course_list.html'
 
 
-class CourseDetail(generic.DetailView):
+class CourseDetail(DetailView):
+    """Detail view for courses."""
+
     model = Course
+    template_name = 'rodatraden/course/course_detail.html'
 
-    # Needs to also return courses which has the current course as a requirement
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
+        """Extend get_context_data to return courses that is required for the
+        given course."""
+
         context = super().get_context_data(**kwargs)
         # Get all courses with the current id as prerequisite
         context['prereq_courses'] = self.object.course_set.all()
+
         return context
 
 
-class CourseCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+class CourseCreate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalCreateView):
+    """Creation view for courses."""
+
     permission_required = 'rodatraden.add_course'
     model = Course
     form_class = CourseForm
-    template_name = 'rodatraden/course_create.html'
+    template_name = 'rodatraden/course/course_create.html'
     success_message = 'Kursen skapades utan problem'
-    success_url = reverse_lazy('course-list')
 
 
-class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    """Update view for courses."""
+
     permission_required = 'rodatraden.change_course'
     model = Course
-    template_name = 'rodatraden/course_update.html'
     form_class = CourseForm
+    template_name = 'rodatraden/course/course_update.html'
     success_message = 'Kursen uppdaterades utan problem'
 
     def get_success_url(self):
@@ -184,49 +206,61 @@ class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateVie
         return self.request.META['HTTP_REFERER']
 
 
-class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    """Delete view for courses."""
+
     permission_required = 'rodatraden.delete_course'
     model = Course
-    template_name = 'rodatraden/course_confirm_delete.html'
+    template_name = 'rodatraden/course/course_confirm_delete.html'
     success_message = 'Kursen togs bort utan problem'
     success_url = reverse_lazy('course-list')
 
+###################
+# COURSEOCCASIONS #
+###################
 
 class CourseOccasionList(SingleTableMixin, FilterView):
+    """List view for courseoccasions."""
+
     model = CourseOccasion
-    # Define table class
     table_class = CourseOccasionTable
     filterset_class = CourseOccasionFilter
-    paginate_by = 15  # if pagination is desired
-    template_name = 'rodatraden/courseoccasion_list.html'
+    paginate_by = 15 
+    template_name = 'rodatraden/courseoccasion/courseoccasion_list.html'
 
 
-class CourseOccasionDetail(generic.DetailView):
+class CourseOccasionDetail(DetailView):
+    """Detail view for courseoccasions."""
+
     model = CourseOccasion
-    template_name = 'rodatraden/courseoccasion_detail.html'
+    template_name = 'rodatraden/courseoccasion/courseoccasion_detail.html'
 
-    # Filter by slug and year
     def get_queryset(self):
-        # Original filter
+        """Extend get_queryset to filter also by year"""
+
         self.qs = super().get_queryset()
+
         return self.qs.filter(
                 academic_year__year=self.kwargs['year'])
 
-    # Needs to also return courses which has the current course as a requirement
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
+        """Extend get_context_data to return courses that is required for the
+        given course."""
+
         context = super().get_context_data(**kwargs)
-        # Get all courses with the current id as prerequisite
         context['prereq_courses'] = self.object.course.course_set.all()
+
         return context
 
 
 def courseoccasion_info(request):
+    """Small info view for courseoccasions used in blocks."""
+
     # Get year and start from get request
     year = int(request.GET.get('year', ''))
     slug = request.GET.get('slug', '')
 
-    # Get block id so we don't show courses already in block
     courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year, 
             slug=slug)
 
@@ -235,23 +269,30 @@ def courseoccasion_info(request):
             'course': courseoccasion.course
             }
 
-    return render(request, 'rodatraden/courseoccasion_info.html', context)
+    return render(request, 'rodatraden/courseoccasion/courseoccasion_info.html',
+            context)
 
 
-class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalCreateView):
+    """Creation view for courseoccasions."""
+
     permission_required = 'rodatraden.add_courseoccasion'
     model = CourseOccasion
     form_class = CourseOccasionForm
-    template_name = 'rodatraden/courseoccasion_create.html'
+    template_name = 'rodatraden/courseoccasion/courseoccasion_create.html'
     success_message = 'Kurstillfället skapades utan problem'
     success_url = reverse_lazy('courseoccasion-list')
 
 
-class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    """Update view for courseoccasions."""
+
     permission_required = 'rodatraden.change_courseoccasion'
     model = CourseOccasion
     form_class = CourseOccasionForm
-    template_name = 'rodatraden/courseoccasion_update.html'
+    template_name = 'rodatraden/courseoccasion/courseoccasion_update.html'
     success_message = 'Kurstillfälle uppdaterat'
 
     def get_success_url(self):
@@ -259,54 +300,59 @@ class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalU
         return self.request.META['HTTP_REFERER']
 
 
-class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    """Delete view for courseoccasions."""
+
     permission_required = 'rodatraden.delete_courseoccasion'
     model = CourseOccasion
     template_name = 'rodatraden/courseoccasion_confirm_delete.html'
     success_message = 'Kurstillfället togs bort utan problem'
     success_url = reverse_lazy('courseoccasion-list')
 
+############
+# PROFILES #
+############
 
-class ProfileList(generic.ListView):
-    """
-    List with the profiles
-    """
+class ProfileList(ListView):
+    """List view for profiles."""
+
     model = Profile
+    template_name = 'rodatraden/profile/profile_list.html'
+    
 
+class ProfileDetail(DetailView):
+    """Detail view for profiles."""
 
-class ProfileDetail(generic.DetailView):
-    """
-    Detail view for profiles
-    """
     model = Profile
 
     def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
         context['tracks'] = self.object.track_set.all()
+
         return context
 
 
-class ProfileCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
-    """
-    Creating new profiles
-    """
+class ProfileCreate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalCreateView):
+    """Creation view for profiles."""
+
     permission_required = 'rodatraden.add_profile'
     model = Profile
     form_class = ProfileForm
-    template_name = 'rodatraden/profile_create.html'
+    template_name = 'rodatraden/profile/profile_create.html'
     success_message = 'Profilen skapades utan problem'
     success_url = reverse_lazy('profile-list')
 
 
-class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
-    """
-    Updating current profiles
-    """
+class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    """Update view for profiles."""
+
     permission_required = 'rodatraden.change_profile'
     model = Profile
     form_class = ProfileForm
-    template_name = 'rodatraden/profile_update.html'
+    template_name = 'rodatraden/profile/profile_update.html'
     success_message = 'Profilen uppdaterades utan problem'
 
     def get_success_url(self):
@@ -314,41 +360,65 @@ class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateVi
         return self.request.META['HTTP_REFERER']
 
 
-class ProfileDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
-    """
-    Deleting current profiles
-    """
+class ProfileDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    """Delete view for profiles."""
+
     permission_required = 'rodatraden.delete_profile'
     model = Profile
-    template_name = 'rodatraden/profile_confirm_delete.html'
+    template_name = 'rodatraden/profile/profile_confirm_delete.html'
     success_message = 'Profilen togs bort utan problem'
     success_url = reverse_lazy('profile-list')
 
+##############
+# CATEGORIES #
+##############
 
-# Page with list of all categories
-class CategoryList(generic.ListView):
+class CategoryList(ListView):
+    """List view for categories."""
+
     model = Category
+    template_name = 'rodatraden/category/category_list.html'
 
 
-# Separate page for each category
-class CategoryDetail(generic.DetailView):
+class CategoryDetail(DetailView):
+    """Detail view for categories."""
+
     model = Category
+    template_name = 'rodatraden/category/category_detail.html'
+
+    def get_context_data(self, **kwargs):
+        """Extend get_context_data to return the connections between categories
+        and course"""
+
+        context = super().get_context_data(**kwargs)
+        context['courses'] = CategoryCourse.objects.filter(
+            category=context['category']
+        )
+
+        return context
 
 
-class CategoryCreate(LoginRequiredMixin, PermissionRequiredMixin, BSModalCreateView):
+class CategoryCreate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalCreateView):
+    """Creation view for categories."""
+
     permission_required = 'rodatraden.add_category'
     model = Category
     form_class = CategoryForm
-    template_name = 'rodatraden/category_create.html'
-    success_message = 'Kategori skapades utan problem'
+    template_name = 'rodatraden/category/category_create.html'
+    success_message = 'Kategorin skapades utan problem'
     success_url = reverse_lazy('category-list')
 
 
-class CategoryUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateView):
+class CategoryUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    """Update view for categories."""
+
     permission_required = 'rodatraden.change_category'
     model = Category
     form_class = CategoryForm
-    template_name = 'rodatraden/category_update.html'
+    template_name = 'rodatraden/category/category_update.html'
     success_message = 'Kategori uppdaterades utan problem'
 
     def get_success_url(self):
@@ -356,43 +426,51 @@ class CategoryUpdate(LoginRequiredMixin, PermissionRequiredMixin, BSModalUpdateV
         return self.request.META['HTTP_REFERER']
 
 
-class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin, BSModalDeleteView):
+class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    """Deletion view for categories"""
+
     permission_required = 'rodatraden.delete_category'
     model = Category
-    template_name = 'rodatraden/category_confirm_delete.html'
+    template_name = 'rodatraden/category/category_confirm_delete.html'
     success_message = 'Kategori togs bort utan problem'
     success_url = reverse_lazy('category-list')
 
+###################
+# PRIVATE COURSES #
+###################
 
 class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
         SingleTableView):
-    """
-    List that shows the current users private courses
-    """
+    """List view for private courses."""
+
     model = PrivateCourse
     table_class = PrivateCourseTable
-    template_name = 'rodatraden/privatecourse_list.html'
+    template_name = 'rodatraden/privatecourse/privatecourse_list.html'
 
     def get_queryset(self, *args, **kwargs):
+        """Extend get_queryset to filter only private courses for user."""
+
         self.qs = super().get_queryset()
-        # Filter the private courses for the given user
+
         return self.qs.filter(user__username=self.kwargs['username'])
 
 
-class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin, generic.DetailView):
-    """
-    Detail view for private course
-    """
+class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin,
+        DetailView):
+    """Detail view for private courses."""
+
     model = PrivateCourse
+    template_name = 'rodatraden/privatecourse/privatecourse_detail.html'
 
 
-class PrivateCourseUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateView):
-    """
-    Update basic info for the private courses
-    """
+class PrivateCourseUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
+        BSModalUpdateView):
+    """Update view for private courses"""
+
     model = PrivateCourse
-    template_name = 'rodatraden/privatecourse_update.html'
     form_class = PrivateCourseForm
+    template_name = 'rodatraden/privatecourse/privatecourse_update.html'
     success_message = 'Ändringarna i blockschemat sparades'
     
     def get_success_url(self):
@@ -402,12 +480,11 @@ class PrivateCourseUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModa
 
 class PrivateCourseCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalCreateView):
-    """ 
-    Create block
-    """
+    """Create view for private courses."""
+
     model = PrivateCourse
-    template_name = 'rodatraden/privatecourse_create.html'
     form_class = PrivateCourseForm
+    template_name = 'rodatraden/privatecourse/privatecourse_create.html'
     success_message = 'Egen kurs skapad'
 
     def get_success_url(self, **kwargs):
@@ -417,37 +494,39 @@ class PrivateCourseCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
 
 class PrivateCourseDelete(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalDeleteView):
-    """
-    Remove private course
-    """
+    """Delete view for private courses."""
+
     model = PrivateCourse
-    template_name = 'rodatraden/privatecourse_confirm_delete.html'
+    template_name = 'rodatraden/privatecourse/privatecourse_confirm_delete.html'
     success_message = 'Egen kurs raderat'
 
     def get_success_url(self, **kwargs):
         return reverse_lazy('privatecourse-list', 
                 kwargs={'username':self.kwargs['username']})
 
+##########
+# BLOCKS #
+##########
 
-class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, generic.ListView):
-    """
-    List that shows the current users blocks
-    """
+class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
+    """List view for blocks."""
+
     model = Block
+    template_name = 'rodatraden/block/block_list.html'
 
     def get_queryset(self, *args, **kwargs):
         self.qs = super().get_queryset()
-        # Filter the private courses for the given user
+        # Filter the blocks for the given user
         return self.qs.filter(user__username=self.kwargs['username'])
 
 
-class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateView):
-    """
-    Update basic info for the block
-    """
+class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
+        BSModalUpdateView):
+    """Update view for blocks."""
+    
     model = Block
-    template_name = 'rodatraden/block_update.html'
     form_class = BlockForm
+    template_name = 'rodatraden/block/block_update.html'
     success_message = 'Ändringarna i blockschemat sparades'
     
     def get_success_url(self):
@@ -457,16 +536,16 @@ class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin, BSModalUpdateV
 
 class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalCreateView):
-    """ 
-    Create block
-    """
+    """Create view for blocks."""
+
     model = Block
-    template_name = 'rodatraden/block_create.html'
     form_class = BlockForm
+    template_name = 'rodatraden/block/block_create.html'
     success_message = 'Blockschema skapat'
 
     def form_valid(self, form):
-        # Override form_valid to add current user to block
+        """Extend form_valid to add current user to block."""
+
         instance = form.save(commit=False)
         instance.user = self.request.user
 
@@ -479,11 +558,10 @@ class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
 
 class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalDeleteView):
-    """
-    Remove block
-    """
+    """Remove view for blocks."""
+
     model = Block
-    template_name = 'rodatraden/block_delete.html'
+    template_name = 'rodatraden/block/block_delete.html'
     success_message = 'Blockschema raderat'
 
     def get_success_url(self, **kwargs):
@@ -492,9 +570,8 @@ class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
 
 
 def block_detail(request, username, slug):
-    """
-    Detail view for a block
-    """
+    """Detail view for block."""
+
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
     # If the block is not private, show without authentication
@@ -502,20 +579,23 @@ def block_detail(request, username, slug):
         if not request.user.is_authenticated:
             return redirect(reverse('cas_ng_login'))
         elif request.user.username != block.user.username:
-            return redirect(reverse("index"))
+            return redirect(reverse('index'))
 
-    # Ajax request for jquery for rendering block
+    # Ajax request for jquery when rendering block with javascript
     if request.is_ajax():
+        # Get courses and private courses
         courses = [ob.as_json() for ob in block.courseoccasions.all()]
         privcourses = [ob.as_json() for ob in block.privatecourses.all()]
+
         return JsonResponse({'course_occasions': courses, 'private_courses':
             privcourses, 'start_year': block.start_year})
     else:
-        # Define categories dict and get the sum of points for each category for
-        # this block
+        # Get all categories for the block exam and build dict with those as
+        # keys
         categories = CategoryExam.objects.filter(exam=block.exam)
         category_sum = dict.fromkeys([category.category.title for category in
             categories], 0)
+        # Get sum from block
         block.total_category_ects(category_sum)
 
         context = {
@@ -527,15 +607,14 @@ def block_detail(request, username, slug):
                 request.user.username == block.user.username
                 }
 
-        return render(request, 'rodatraden/block_detail.html', context)
+        return render(request, 'rodatraden/block/block_detail.html', context)
 
 
 @login_required
 def block_course_list(request, username, slug):
-    """
-    List courseoccasions that can be added to a block for a specific year and
-    time period
-    """
+    """Custom list view with all courses that can be added a specific year and
+    time period range."""
+
     # Get year and start from get request
     year = int(request.GET.get('year', ''))
     start = int(request.GET.get('start', ''))
@@ -545,13 +624,14 @@ def block_course_list(request, username, slug):
 
     # Only blocks made by same user
     if (block.user.username != request.user.username):
-        return redirect(reverse("index"))
+        return redirect(reverse('index'))
 
-    # SOrt by year, start, if not in block and order by title
+    # Sort by year, start, if not in block and order by title
     courseoccasions = CourseOccasion.objects.filter(academic_year__year=year, 
             time_period__week__gte=start, 
             time_period__week__lt=start+10).exclude(
             block__id=block.id).order_by('course__title')
+
     # All courses defined by user
     privatecourses = PrivateCourse.objects.filter(user=request.user,
             start__gte=start, start__lt=start+10).exclude(
@@ -564,14 +644,13 @@ def block_course_list(request, username, slug):
             'privatecourses': privatecourses,
             }
 
-    return render(request, 'rodatraden/block_course_list.html', context)
+    return render(request, 'rodatraden/block/block_course_list.html', context)
 
 
 @login_required
 def add_course_to_block(request, username, b_slug):
-    """
-    Add a given courseoccasion to a given block
-    """
+    """Add a course to block from GET info."""
+
     # Get slug from request
     c_slug = request.GET.get('slug', '')
     is_priv = request.GET.get('private', '')
@@ -581,7 +660,7 @@ def add_course_to_block(request, username, b_slug):
 
     # Only blocks made by same user
     if (block.user.username != request.user.username):
-        return redirect(reverse("index"))
+        return redirect(reverse('index'))
 
     if (is_priv == '1'):
         privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)
@@ -597,9 +676,8 @@ def add_course_to_block(request, username, b_slug):
 
 @login_required
 def remove_course_from_block(request, username, b_slug):
-    """
-    Remove a given courseoccasion to a given block
-    """
+    """Remove a course from a block."""
+
     # Get slug from request
     c_slug = request.GET.get('slug', '')
     is_priv = request.GET.get('private', '')
@@ -609,9 +687,8 @@ def remove_course_from_block(request, username, b_slug):
 
     # Only blocks made by same user
     if (block.user.username != request.user.username):
-        return redirect(reverse("index"))
+        return redirect(reverse('index'))
 
-    # Remove
     if (is_priv == '1'):
         privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)
         # Add

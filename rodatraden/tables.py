@@ -1,12 +1,11 @@
-# Configuration for django-tables2
-
 import django_tables2 as tables
 from .models import (
-        Course, CourseOccasion, Category, Exam, Report, PrivateCourse
-        )
+    Course, CourseOccasion, Category, Exam, Report, PrivateCourse
+)
 
 class CourseTable(tables.Table):
-    # Urls from respective models
+    """Table for courses."""
+
     title = tables.Column(linkify=True)
     
     # Editing buttons
@@ -21,8 +20,9 @@ class CourseTable(tables.Table):
             template_name='rodatraden/tables/category_table.html',
             orderable=False)
 
-    # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
+        """Override before_render to hide edit if not staff."""
+
         if request.user.is_staff:
             self.columns.show('edit')
         else:
@@ -32,12 +32,13 @@ class CourseTable(tables.Table):
         model = Course
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
-        # Fields to show and order
-        fields = ('title', 'ects', 'level', 'categories',) # fields to display
+        fields = ('title', 'ects', 'level', 'categories',)
         order_by = ('title',)
 
 
 class CourseOccasionTable(tables.Table):
+    """Table for courseoccasions"""
+
     # Need to fetch url from courseoccasion model
     course = tables.Column(linkify=lambda record: record.get_absolute_url())
     academic_year = tables.Column(accessor="academic_year.year",
@@ -45,22 +46,23 @@ class CourseOccasionTable(tables.Table):
     time_period = tables.Column(accessor="time_period.title",
             verbose_name="Läsperiod")
 
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/courseoccasion_edit.html', 
+            verbose_name="")
+    # Official
+    official = tables.TemplateColumn(
+            template_name='rodatraden/tables/official_table.html', 
+            verbose_name="")
     # Categories with nice look
     categories = tables.TemplateColumn(
             template_name='rodatraden/tables/category_table_occ.html',
             verbose_name="Kategorier",
             orderable=False)
-    # Official
-    official = tables.TemplateColumn(
-            template_name='rodatraden/tables/official_table.html', 
-            verbose_name="")
-    # Editing buttons
-    edit = tables.TemplateColumn(
-            template_name='rodatraden/tables/courseoccasion_edit.html', 
-            verbose_name="")
 
-    # Hide remove and edit buttons if not properly auth
     def before_render(self, request):
+        """Override before_render to hide edit if not staff."""
+
         if request.user.is_staff:
             self.columns.show('edit')
         else:
@@ -70,13 +72,15 @@ class CourseOccasionTable(tables.Table):
         model = CourseOccasion
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
-        # Fields to show and order
         fields = ('official', 'course', 'academic_year', 'time_period', 'weeks',
                 'course.ects', 'categories')
         order_by = ('course', '-academic_year', )
 
 
 class ExamTable(tables.Table):
+    """Table for exams"""
+
+    # Need to fetch url from exam model
     title = tables.Column(linkify=lambda record: record.get_absolute_url())
 
     # Editing buttons
@@ -92,6 +96,9 @@ class ExamTable(tables.Table):
 
 
 class PrivateCourseTable(tables.Table):
+    """Table for private courses"""
+
+    # Need to fetch url from private course model
     title = tables.Column(linkify=lambda record: record.get_absolute_url())
 
     # Editing buttons
@@ -107,6 +114,8 @@ class PrivateCourseTable(tables.Table):
 
 
 class ReportTable(tables.Table):
+    """Table for reports"""
+    
     from_email = tables.EmailColumn(verbose_name="Mailadress")
 
     # Editing buttons

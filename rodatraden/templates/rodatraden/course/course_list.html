@@ -21,11 +21,7 @@
 
 {% block breadcrumbs %}
     {{ block.super }}
-    {% if is_occasion %}
-      {% breadcrumb "Kurstillfällen" "courseoccasion-list" %}
-    {% else %}
-      {% breadcrumb "Kurser" "course-list" %}
-    {% endif %}
+    {% breadcrumb "Kurser" "course-list" %}
 {% endblock %}
 
 {% block page_title %}Kurser{% endblock %}
@@ -52,13 +48,12 @@
 
   <script type="text/javascript">
 
-    $(".course-list-filter").select2({ width: '20%' });
-    $(document).ready(function() {
+    $(function() {
       $("form :input").change(function() {
         $("form:first").submit();
       });
+      $(".course-list-filter").select2({ width: '20%' });
     });
-
 
   </script>
 

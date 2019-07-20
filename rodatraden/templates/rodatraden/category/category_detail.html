@@ -1,4 +1,4 @@
-{% extends 'rodatraden/category_list.html' %}
+{% extends 'rodatraden/category/category_list.html' %}
 
 {% block title %}{{ category.title }}{% endblock %}
 
@@ -28,7 +28,11 @@
 
 <div class="row px-3">
   <div class="col-lg-7 p-3 course-main">
+    {% if category.description %}
     {{ category.description | safe }}
+    {% else %}
+    <p class="lead">Denna kategori saknar en beskrivning.<p>
+    {% endif %}
   </div>
   <div class="col-lg-5">
     <div class="card">
@@ -36,19 +40,17 @@
       <div class="card-body">
         <p class="card-text">
           <ul class="list-group list-group-flush m-0">
-          {% for course in category.course_set.all %}
-          <li class="list-group-item">
-            <table style="border-collapse: separate;border-spacing:1rem 0;">
-              <tr>
-                <td>
-                <a href="{% url 'course-detail' course.slug %}"
-                style="font-weight:bold;">{{ course.title }}</a>
-                </td>
-                <!--<td>{{ course.category.ects }}</td>-->
-              </tr>
-            </table>
-          </li>
+          <table class="table", style="border-collapse: separate;border-spacing:1rem 0;">
+          {% for course in courses %}
+            <tr>
+              <td>
+              <a href="{% url 'course-detail' course.course.slug %}"
+              style="font-weight:bold;">{{ course.course.title }}</a>
+              </td>
+              <td>{{ course.ects }}</td>
+            </tr>
           {% endfor %}
+          </table>
           </ul>
         </p>
       </div>

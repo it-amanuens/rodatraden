@@ -151,3 +151,22 @@ class SaveAndImportBlockMixin(object):
             instance = super().save(commit=False)
 
         return instance
+
+
+class CorrectUserPermissionMixin:
+    """Mixin to check if the current user is accessing only its own stuff.
+
+    Allows staff users to access all information, regardless of username.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        # Ignore if not logged in
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        # Allow only the current user access or staff users
+        else:
+            if (kwargs['username'] == request.user.username or
+                request.user.is_staff):
+                return super().dispatch(request, *args, **kwargs)
+            else:
+                return redirect(reverse("index"))

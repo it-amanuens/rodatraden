@@ -1,3 +1,5 @@
+/* Helper code for rendering blocks. */
+
   /**
    * ORDERING AND FIXING COURSESDATA
    */
