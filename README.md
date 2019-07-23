@@ -44,7 +44,7 @@ which might help with installation on Windows.
 5. Since this is for local development, not much has to be changed. However, the
    variable `DATABASES` has to be changed to suit your setup. Django supports a
    myriad of databases. This project is configured for MySQL, and a guide of how
-   to setup local MySQL-server can be found
+   to setup a local MySQL-server can be found
    [here](https://dev.mysql.com/doc/mysql-getting-started/en/).
 
 6. After your database is setup, change the settings in the `settings.py` file
@@ -55,13 +55,35 @@ which might help with installation on Windows.
 
 8. Make new migrations for your database by running `python manage.py
    makemigrations` in the cloned repository. After this, migrate to the database
-   by running `python manage.py migrations`.
+   by running `python manage.py migrate`.
 
 9. If everything went well and it is all setup, start the server by running
    `python manage.py runserver`. Your local version should then be accessible
    via 127.0.0.1:8000 in your browser. Congratulations!
 
 ### Production
+
+I assume that you already have an http server with e.g. Apache or Nginx and a database setup.
+
+1. Follow steps 1-3 in the local development section.
+
+2. Setup a media folder in e.g. `var/www/` named `media` with a folder inside called `profiles`. The user `www-data` should have read and write access to this folder. This could be done by adding a group to the folders where `www-data` is included, and run `chmod 770 -R media`.
+
+3. In the `tf/settings.py`-file more has to be changed than for local development.
+
+    * Change the `SECRET_KEY` to a random 20-30 character string.
+    * Set `DEBUG=False`.
+    * Add the server adress to `ALLOWED_HOSTS`.
+    * Add database information in the variable `DATABASES`.
+    * Set the `MEDIA_ROOT` variable to the writeable media folder setup in step 2.
+    
+4. Save the `settings.py`-file.
+
+5. Run `python manage.py makemigrations` and `python manage.py migrate` to fill the database.
+
+6. Run `python manage.py collectstatic` to gather all the static files to the site root folder.
+
+7. Everything should be ready to be configured with your HTTP-server. This step is mostly up to you and what you prefer to do. Django supports `WSGI`, and more detailed explanations can be found [here](https://docs.djangoproject.com/en/2.2/howto/deployment/wsgi/). A possible deployment method is to run the server with `python manage.py runserver` and use a proxy to redirect requests to `127.0.0.1`, but I can't give more detail than that.
 
 ## Improvements
 
