@@ -326,6 +326,7 @@ class ProfileDetail(DetailView):
     """Detail view for profiles."""
 
     model = Profile
+    template_name = 'rodatraden/profile/profile_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

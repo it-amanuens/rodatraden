@@ -101,15 +101,12 @@ WSGI_APPLICATION = 'tf.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql-psycopg2',
         'NAME': 'db',
         'USER': 'user',
         'PASSWORD': 'pass',
         'HOST': 'url',
         'PORT': '',
-        'OPTIONS': {
-            'charset': 'utf8mb4', 
-            }
     }
 }
 

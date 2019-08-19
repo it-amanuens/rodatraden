@@ -3,7 +3,7 @@ django-bootstrap4
 django-crispy-forms
 django-cas-ng
 Pillow
-mysqlclient
+psycopg2
 django-view-breadcrumbs
 django-tables2
 django-filter
