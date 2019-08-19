@@ -22,3 +22,5 @@ db.sqlite3
 *.swo
 rodatraden/migrations/0*_*.py
 tf/settings.py
+media
+static
