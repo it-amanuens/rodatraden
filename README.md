@@ -38,8 +38,9 @@ which might help with installation on Windows.
 3. With this installed, make a new virtual environment with a suitable name.
    *Make sure that the Python version is at least 3.6+*
 
-4. Enter the cloned git repository `cd rodatraden` and edit the file
-   `tf/setting.py` with your favorite editor.
+4. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf` and
+   copy the file `settings-template.py` to `settings.py` and edit the file with
+   your favorite editor.
 
 5. Since this is for local development, not much has to be changed. However, the
    variable `DATABASES` has to be changed to suit your setup. Django supports a
@@ -65,31 +66,45 @@ which might help with installation on Windows.
 
 I assume that you already have an http server with e.g. Apache or Nginx and a database setup.
 
-1. Follow steps 1-3 in the local development section.
+1. Follow steps 1-4 in the local development section.
 
-2. Setup a media folder in e.g. `var/www/` named `media` with a folder inside called `profiles`. The user `www-data` should have read and write access to this folder. This could be done by adding a group to the folders where `www-data` is included, and run `chmod 770 -R media`.
+2. Setup a media folder in e.g. `var/www/` named `media` with a folder inside
+   called `profiles`. The user `www-data` should have read and write access to
+   this folder. This could be done by adding a group to the folders where
+   `www-data` is included, and run `chmod 770 -R media`.
 
-3. In the `tf/settings.py`-file more has to be changed than for local development.
+3. In the `tf/settings.py`-file more has to be changed than for local
+   development.
 
     * Change the `SECRET_KEY` to a random 20-30 character string.
     * Set `DEBUG=False`.
     * Add the server adress to `ALLOWED_HOSTS`.
     * Add database information in the variable `DATABASES`.
-    * Set the `MEDIA_ROOT` variable to the writeable media folder setup in step 2.
+    * Set the `MEDIA_ROOT` variable to the writeable media folder setup in step
+      2.
     
 4. Save the `settings.py`-file.
 
-5. Run `python manage.py makemigrations` and `python manage.py migrate` to fill the database.
+5. Run `python manage.py makemigrations` and `python manage.py migrate` to fill
+   the database.
 
-6. Run `python manage.py collectstatic` to gather all the static files to the site root folder.
+6. Run `python manage.py collectstatic` to gather all the static files to the
+   site root folder.
 
-7. Everything should be ready to be configured with your HTTP-server. This step is mostly up to you and what you prefer to do. Django supports `WSGI`, and more detailed explanations can be found [here](https://docs.djangoproject.com/en/2.2/howto/deployment/wsgi/). A possible deployment method is to run the server with `python manage.py runserver` and use a proxy to redirect requests to `127.0.0.1`, but I can't give more detail than that.
+7. Everything should be ready to be configured with your HTTP-server. This step
+   is mostly up to you and what you prefer to do. Django supports `WSGI`, and
+   more detailed explanations can be found
+   [here](https://docs.djangoproject.com/en/2.2/howto/deployment/wsgi/). A
+   possible deployment method is to run the server with `python manage.py
+   runserver` and use a proxy to redirect requests to `127.0.0.1`, but I can't
+   give more detail than that.
 
 ## Improvements
 
 Potential future improvements,
 
 - [ ] Copy all courseoccasions from one year to another year
+- [ ] Automatically send mail to reporter when updating an issue
 - [ ] Associate Profiles with Exams
 - [ ] Automatic generation of 'examensbilagan'
 - [ ] Search function for whole site

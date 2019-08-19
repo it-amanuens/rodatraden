@@ -721,6 +721,20 @@ class Block(models.Model):
 
         super().save(*args, **kwargs)
 
+    def total_course_ects(self):
+        """Sum the total ects for the block.
+
+        Loops over all courseoccasions and adds together the total ECTS for the
+        block.
+        """
+
+        ects_sum = 0
+
+        for courseoccasion in self.courseoccasions.all():
+            ects_sum += courseoccasion.course.ects
+
+        return ects_sum
+
     def total_category_ects(self, category_sum):
         """Sum all ects per categories for a block.
         

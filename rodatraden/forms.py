@@ -171,6 +171,10 @@ class ReportForm(BSModalForm):
             self.fields['from_email'].widget.attrs['readonly'] = True
             self.fields['subject'].widget.attrs['readonly'] = True
             self.fields['message'].widget.attrs['readonly'] = True
+        else:
+            # Remove fields if creating new report
+            del self.fields['fixed']
+            del self.fields['note']
 
     class Meta:
         model = Report

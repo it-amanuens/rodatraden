@@ -102,10 +102,10 @@ WSGI_APPLICATION = 'tf.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'rodatraden',
-        'USER': 'rodatraden',
-        'PASSWORD': 'rt',
-        'HOST': 'localhost',
+        'NAME': 'db',
+        'USER': 'user',
+        'PASSWORD': 'pass',
+        'HOST': 'url',
         'PORT': '',
         'OPTIONS': {
             'charset': 'utf8mb4', 

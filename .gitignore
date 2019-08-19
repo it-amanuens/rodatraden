@@ -21,3 +21,4 @@ db.sqlite3
 *.swp
 *.swo
 rodatraden/migrations/0*_*.py
+tf/settings.py

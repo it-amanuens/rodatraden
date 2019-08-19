@@ -189,6 +189,7 @@ class CourseCreate(LoginRequiredMixin, PermissionRequiredMixin,
     form_class = CourseForm
     template_name = 'rodatraden/course/course_create.html'
     success_message = 'Kursen skapades utan problem'
+    success_url = reverse_lazy('course-list')
 
 
 class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin,
@@ -603,6 +604,7 @@ def block_detail(request, username, slug):
                 'current_path': request.get_full_path,
                 'categories': categories,
                 'categories_sum': category_sum,
+                'total_ects': block.total_course_ects(),
                 'logged_in': request.user.is_authenticated and
                 request.user.username == block.user.username
                 }
