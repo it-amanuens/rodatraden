@@ -104,7 +104,7 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 Potential future improvements,
 
 - [ ] Copy all courseoccasions from one year to another year
-- [ ] Automatically send mail to reporter when updating an issue
+- [ ] Make it so users can see their pending reports
 - [ ] Associate Profiles with Exams
 - [ ] Automatic generation of 'examensbilagan'
 - [ ] Search function for whole site
