@@ -9,7 +9,7 @@ Blockscheman - {{ user }}
 {% endblock %}
 
 {% block menu %}
-<a class="btn btn-gone add-item"
+<a class="btn btn-gone add-block"
   data-id="{% url 'block-create' user %}"
   data-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
@@ -51,4 +51,15 @@ planera din studietid på ett bättre sätt!</p>
 {% endfor %}
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+  $(function () {
+    /* Open modal for creation form */
+    $(".add-block").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+  });
+</script>
 {% endblock %}
