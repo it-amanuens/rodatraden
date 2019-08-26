@@ -10,7 +10,7 @@ Egna kurser
 {% endblock %}
 
 {% block menu %}
-<a class="btn btn-gone add-item"
+<a class="btn btn-gone add-privatecourse"
   data-id="{% url 'privatecourse-create' user.username %}"
   data-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
@@ -28,4 +28,15 @@ Egna kurser
 
 {% render_table table %}
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+  $(function () {
+    /* Open modal for creation form */
+    $(".add-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+  });
+</script>
 {% endblock %}
