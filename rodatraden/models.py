@@ -733,6 +733,9 @@ class Block(models.Model):
         for courseoccasion in self.courseoccasions.all():
             ects_sum += courseoccasion.course.ects
 
+        for privatecourse in self.privatecourses.all():
+            ects_sum += privatecourse.ects
+
         return ects_sum
 
     def total_category_ects(self, category_sum):
