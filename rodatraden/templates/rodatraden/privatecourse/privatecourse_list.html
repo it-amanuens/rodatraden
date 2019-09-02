@@ -37,6 +37,12 @@ Egna kurser
     $(".add-privatecourse").each(function () {
       $(this).modalForm({formURL: $(this).data('id')});
     });
+    $(".update-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+    $(".delete-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
   });
 </script>
 {% endblock %}

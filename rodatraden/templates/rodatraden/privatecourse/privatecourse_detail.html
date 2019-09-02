@@ -14,12 +14,12 @@
   data-toggle="tooltip" title="Egna kurser">
   <span class="fa fa-list"></span>
 </a>
-<a class="btn btn-gone update-item" 
+<a class="btn btn-gone update-privatecourse" 
   data-id="{% url 'privatecourse-update' privatecourse.user.username privatecourse.slug %}"
   data-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
-<a class="btn btn-gone delete-item"
+<a class="btn btn-gone delete-privatecourse"
   data-id="{% url 'privatecourse-delete' privatecourse.user.username privatecourse.slug %}"
   data-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
@@ -58,4 +58,17 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+  $(function () {
+    $(".update-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+    $(".delete-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+  });
+</script>
 {% endblock %}
