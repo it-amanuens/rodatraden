@@ -563,7 +563,7 @@ class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
     """Remove view for blocks."""
 
     model = Block
-    template_name = 'rodatraden/block/block_delete.html'
+    template_name = 'rodatraden/block/block_confirm_delete.html'
     success_message = 'Blockschema raderat'
 
     def get_success_url(self, **kwargs):
