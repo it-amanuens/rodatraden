@@ -1,7 +1,7 @@
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
 from bootstrap_modal_forms.generic import (
-        BSModalDeleteView, BSModalCreateView, BSModalUpdateView, 
+        BSModalDeleteView, BSModalCreateView, BSModalUpdateView,
         BSModalReadView
 )
 
@@ -141,7 +141,7 @@ class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin,
 class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalDeleteView):
     """Delete view for exams."""
-    
+
     permission_required = 'rodatraden.delete_exam'
     model = Exam
     template_name = 'rodatraden/exam/exam_confirm_delete.html'
@@ -227,7 +227,7 @@ class CourseOccasionList(SingleTableMixin, FilterView):
     model = CourseOccasion
     table_class = CourseOccasionTable
     filterset_class = CourseOccasionFilter
-    paginate_by = 15 
+    paginate_by = 15
     template_name = 'rodatraden/courseoccasion/courseoccasion_list.html'
 
 
@@ -262,7 +262,7 @@ def courseoccasion_info(request):
     year = int(request.GET.get('year', ''))
     slug = request.GET.get('slug', '')
 
-    courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year, 
+    courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
             slug=slug)
 
     context = {
@@ -320,7 +320,7 @@ class ProfileList(ListView):
 
     model = Profile
     template_name = 'rodatraden/profile/profile_list.html'
-    
+
 
 class ProfileDetail(DetailView):
     """Detail view for profiles."""
@@ -474,7 +474,7 @@ class PrivateCourseUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
     form_class = PrivateCourseForm
     template_name = 'rodatraden/privatecourse/privatecourse_update.html'
     success_message = 'Ändringarna i blockschemat sparades'
-    
+
     def get_success_url(self):
         # Return to last page
         return self.request.META['HTTP_REFERER']
@@ -490,7 +490,7 @@ class PrivateCourseCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
     success_message = 'Egen kurs skapad'
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy('privatecourse-list', 
+        return reverse_lazy('privatecourse-list',
                 kwargs={'username':self.kwargs['username']})
 
 
@@ -503,7 +503,7 @@ class PrivateCourseDelete(CorrectUserPermissionMixin, LoginRequiredMixin,
     success_message = 'Egen kurs raderat'
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy('privatecourse-list', 
+        return reverse_lazy('privatecourse-list',
                 kwargs={'username':self.kwargs['username']})
 
 ##########
@@ -525,12 +525,12 @@ class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
 class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalUpdateView):
     """Update view for blocks."""
-    
+
     model = Block
     form_class = BlockForm
     template_name = 'rodatraden/block/block_update.html'
     success_message = 'Ändringarna i blockschemat sparades'
-    
+
     def get_success_url(self):
         # Return to last page
         return self.request.META['HTTP_REFERER']
@@ -554,7 +554,7 @@ class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
         return super(BlockCreate, self).form_valid(form)
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy('block-list', 
+        return reverse_lazy('block-list',
                 kwargs={'username':self.kwargs['username']})
 
 
@@ -567,12 +567,20 @@ class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
     success_message = 'Blockschema raderat'
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy('block-list', 
+        return reverse_lazy('block-list',
                 kwargs={'username':self.kwargs['username']})
 
-
+import openpyxl
+from openpyxl.styles import Alignment
+import os
+from django.views.static import serve
 def block_detail(request, username, slug):
     """Detail view for block."""
+
+#       för att ta ut kursnamn
+#       block = get_object_or_404(Block, user__username=username, slug=slug)
+#        # for co in block.courseoccasions.all()
+#    co.course.title
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
@@ -591,6 +599,42 @@ def block_detail(request, username, slug):
 
         return JsonResponse({'course_occasions': courses, 'private_courses':
             privcourses, 'start_year': block.start_year})
+
+    # POST request to upload and download ISP
+    elif request.method == 'POST':
+
+        excel_file = request.FILES["excel_file"]
+
+        # you may put validations here to check extension or file size
+
+
+        nongen_courses = []
+        wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
+        for co in block.courseoccasions.all():
+            match = 0
+            for sheet in wb:
+                if ((sheet.title == 'Profilkurser') | (sheet.title == 'Basterminer') | (sheet.title == 'Övriga kurser')):
+                    # ws = wb[sheet.title]
+                    for rowNumber in sheet.iter_rows(min_row=8, max_row=15, min_col=1, max_col=2):
+                        # temp = ws.cell(row=ro, column=2)
+
+                        if (co.course.title == rowNumber[1].value):
+                            rowNumber[0].value='x'
+                            match = 1
+                            break
+                if (match == 1):
+                    break
+            if (match == 0):
+                nongen_courses.append(co.course.title)
+
+                
+
+        path_to_file = 'excel/' + username + '.xlsm'
+        wb.save(path_to_file)
+        if (os.path.isfile(path_to_file)):
+            return serve(request, os.path.basename(path_to_file), os.path.dirname(path_to_file))
+
+
     else:
         # Get all categories for the block exam and build dict with those as
         # keys
@@ -612,7 +656,6 @@ def block_detail(request, username, slug):
 
         return render(request, 'rodatraden/block/block_detail.html', context)
 
-
 @login_required
 def block_course_list(request, username, slug):
     """Custom list view with all courses that can be added a specific year and
@@ -630,8 +673,8 @@ def block_course_list(request, username, slug):
         return redirect(reverse('index'))
 
     # Sort by year, start, if not in block and order by title
-    courseoccasions = CourseOccasion.objects.filter(academic_year__year=year, 
-            time_period__week__gte=start, 
+    courseoccasions = CourseOccasion.objects.filter(academic_year__year=year,
+            time_period__week__gte=start,
             time_period__week__lt=start+10).exclude(
             block__id=block.id).order_by('course__title')
 

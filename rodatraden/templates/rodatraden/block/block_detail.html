@@ -9,12 +9,12 @@
 
 {% block menu %}
 {% if logged_in %}
-<a class="btn btn-gone" 
+<a class="btn btn-gone"
   href="{% url 'block-list' this_block.user %}"
   data-toggle="tooltip" title="Blockscheman">
   <span class="fa fa-list"></span>
 </a>
-<a class="btn btn-gone update-block" 
+<a class="btn btn-gone update-block"
   data-id="{% url 'block-update' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
@@ -23,7 +23,7 @@
   data-id="{% url 'block-delete' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
-</a> 
+</a>
 {% endif %}
 {% endblock %}
 
@@ -48,12 +48,29 @@
 
 <input class="btn btn-default show-block" type="button" value="Blockschema" />
 <input class="btn btn-default show-chart" type="button" value="Kategorier" />
+<input class="btn btn-default show-ISP" type="button" value="Generera ISP" />
+
 
 <div class="text-center"><p class="lead">Total hp: {{ total_ects }}</p></div>
 
 <div id="study-block"></div>
 
-<div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" >
+<div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" ></div>
+
+<div id="ISP" style="min-width: 310px; height: 400px; margin: 0 auto" >
+  <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file"
+             title="Upload excel file"
+             name="excel_file"
+             style="border: 1px solid black; padding: 5px;"
+             required="required">
+      <p>
+      <input type="submit"
+             value="Ladda upp"
+             style="border: 1px solid black; padding:5px; border-radius: 5px; cursor: pointer;">
+  </form>
+</div>
 
 {% endblock %}
 
@@ -69,14 +86,23 @@
   <script>
     /* Show and hide block and chart */
     $("#chart").hide("fast");
+    $("#ISP").hide("fast");
     $(".show-block").click(function() {
       $("#study-block").show("slow");
       $("#chart").hide("fast");
+      $("#ISP").hide("fast");
     });
 
     $(".show-chart").click(function() {
       $("#chart").show("slow");
       $("#study-block").hide("fast");
+      $("#ISP").hide("fast");
+    });
+
+    $(".show-ISP").click(function() {
+      $("#ISP").show("slow");
+      $("#study-block").hide("fast");
+      $("#chart").hide("fast");
     });
 
     /* Category sum chart options */
@@ -134,7 +160,7 @@
               {% for key, value in categories_sum.items %}{{ value|unlocalize }}
               {% if not forloop.last %}, {% endif %}{% endfor %}
             ]
-        
+
         }]
     });
 
@@ -213,8 +239,8 @@
         //Contains the blockrows absolute coordinates
         var studyBlock = d3.select("#study-block")
           .style("position", "relative")
-          .style("height", 
-            (topOffset(coursesData.length) + yearButtonHeight() 
+          .style("height",
+            (topOffset(coursesData.length) + yearButtonHeight()
               + blockRowMargin()*2) + "px");
 
         //Data join - update selection
@@ -245,7 +271,7 @@
           .duration(animLength)
           .style("opacity", 1);
 
-        /* Add title container */ 
+        /* Add title container */
         var header = blockRowNew
           .append("div")
           .attr("class", "block-header");
@@ -255,7 +281,7 @@
             return [
               {year: parseInt(d.year), term: "HT"},
               {year: parseInt(d.year) + 1, term: "VT"}
-            ];          
+            ];
           })
           .enter()
           .append("div")
@@ -394,7 +420,7 @@
             .attr("data-placement", "left")
             .attr('data-id', function(d) {
               var start = (d.lp - 1)*10;
-              return "{% url 'block-course-list' this_block.user this_block.slug %}" 
+              return "{% url 'block-course-list' this_block.user this_block.slug %}"
                 + "?year=" + d.year + "&start=" + start;
           });
 
@@ -403,7 +429,7 @@
             .append("p").attr("class", "btn btn-link delete-course block-remove-button")
             .append("a").attr("class", "fa fa-times")
             .attr('href', function(d) {
-              return "{% url 'block-remove-course' this_block.user this_block.slug %}" 
+              return "{% url 'block-remove-course' this_block.user this_block.slug %}"
                 + "?slug=" + d.slug + "&private=" + d.is_priv;
           });
 
