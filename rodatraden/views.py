@@ -571,16 +571,14 @@ class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
                 kwargs={'username':self.kwargs['username']})
 
 import openpyxl
-from openpyxl.styles import Alignment
+from openpyxl.styles import Alignment, Font
 import os
+import string
 from django.views.static import serve
+from django.utils.crypto import get_random_string
+from bisect import bisect_left
 def block_detail(request, username, slug):
     """Detail view for block."""
-
-#       för att ta ut kursnamn
-#       block = get_object_or_404(Block, user__username=username, slug=slug)
-#        # for co in block.courseoccasions.all()
-#    co.course.title
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
@@ -605,34 +603,67 @@ def block_detail(request, username, slug):
 
         excel_file = request.FILES["excel_file"]
 
-        # you may put validations here to check extension or file size
+        # you may put validations here to check extension or file size, inte klar
+        allowed_extensions = [".xls", ".xlsm", ".xlsx"]
 
-
-        nongen_courses = []
-        wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
+        # Create new sorted list with block courses
+        block_courses = []
         for co in block.courseoccasions.all():
-            match = 0
+            block_courses.append(str(co.course.title))
+        block_courses.sort()
+
+        wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
+        # loop through each sheet in excel
+        for sheet in wb:
+            if ((sheet.title == 'Profilkurser') |
+                (sheet.title == 'Basterminer') |
+                (sheet.title == 'Övriga kurser')|
+                (sheet.title == 'Allmänna ingenjörskurser')):
+                # loop through each course in excel
+                for rowNumber in sheet.iter_rows(min_row=7, max_row=100,
+                    min_col=1, max_col=2):
+                    # If sheet done go to next sheet
+                    if(rowNumber[1].value == ''):
+                        break
+                    # binary search in course list
+                    index = bisect_left(block_courses, str(rowNumber[1].value))
+                    # If perfect match found, add to excel
+                    # and remove from block list
+                    if (index != len(block_courses)
+                    and (str(block_courses[index]).lower()
+                    == str(rowNumber[1].value).lower())):
+                        rowNumber[0].value='x'
+                        rowNumber[0].alignment = Alignment(horizontal
+                        = "center", vertical = "bottom")
+                        block_courses.pop(index)
+
+        # Add all private courses to list
+        # and add the list to a new sheet in excel
+        for co in block.privatecourses.all():
+            block_courses.append(co.title)
+        if block_courses:
+            count = 4
             for sheet in wb:
-                if ((sheet.title == 'Profilkurser') | (sheet.title == 'Basterminer') | (sheet.title == 'Övriga kurser')):
-                    # ws = wb[sheet.title]
-                    for rowNumber in sheet.iter_rows(min_row=8, max_row=15, min_col=1, max_col=2):
-                        # temp = ws.cell(row=ro, column=2)
+                if sheet.title == "Ej inlagda kurser":
+                    wb.remove_sheet(sheet)
+            ws3 = wb.create_sheet(title="Ej genererade kurser")
+            ws3["A1"].value=("OBS! Lägg in dessa kurser manuellt under rätt "
+            "flik. Töm denna kurslista innan du genererar sammanfattningen")
+            ws3["B3"].value='Kursnamn'
+            ws3["B3"].font=Font(bold=True)
+            for item in block_courses:
+                pos = 'B' + str(count)
+                ws3[pos].value=item
+                count = count + 1
 
-                        if (co.course.title == rowNumber[1].value):
-                            rowNumber[0].value='x'
-                            match = 1
-                            break
-                if (match == 1):
-                    break
-            if (match == 0):
-                nongen_courses.append(co.course.title)
-
-                
-
-        path_to_file = 'excel/' + username + '.xlsm'
+        # save file
+        id = get_random_string(length=15)
+        path_to_file = 'excel/' + id + '.xlsm'
         wb.save(path_to_file)
+
         if (os.path.isfile(path_to_file)):
-            return serve(request, os.path.basename(path_to_file), os.path.dirname(path_to_file))
+            return serve(request, os.path.basename(path_to_file),
+            os.path.dirname(path_to_file))
 
 
     else:

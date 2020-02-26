@@ -58,6 +58,7 @@
 <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" ></div>
 
 <div id="ISP" style="min-width: 310px; height: 400px; margin: 0 auto" >
+  <h5>Ladda upp ISP för att få den ifylld</h5>
   <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="file"
@@ -70,6 +71,12 @@
              value="Ladda upp"
              style="border: 1px solid black; padding:5px; border-radius: 5px; cursor: pointer;">
   </form>
+  <h5>OBS!</h5>
+  <h10>Denna funktion är endast kompatibel med den senaste versionen av den individuella studieplanen.
+      Kurser i ditt blockschema som inte återfinns i den individuella
+      studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
+      Dessa kurser måste sedan läggas in manuellt på rätt plats.
+      Kontrollera att allt stämmer i den nedladdade filen.</h10>
 </div>
 
 {% endblock %}
