@@ -1,6 +1,6 @@
 import os, time
 
-# Set directory to delete files from
+# set directory to delete files from
 directory = '/Users/Anna/desktop/projekt/rodatraden/excel'
 
 # Files in 'directory' that are older than 'age_days' will be deleted

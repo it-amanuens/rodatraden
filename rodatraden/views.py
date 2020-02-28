@@ -27,6 +27,13 @@ from .forms import (
 )
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 
+import openpyxl
+from openpyxl.styles import Alignment, Font
+import os
+import string
+from django.views.static import serve
+from django.utils.crypto import get_random_string
+
 
 def index(request):
     """Homepage of site."""
@@ -570,13 +577,7 @@ class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
         return reverse_lazy('block-list',
                 kwargs={'username':self.kwargs['username']})
 
-import openpyxl
-from openpyxl.styles import Alignment, Font
-import os
-import string
-from django.views.static import serve
-from django.utils.crypto import get_random_string
-from bisect import bisect_left
+
 def block_detail(request, username, slug):
     """Detail view for block."""
 
@@ -603,9 +604,6 @@ def block_detail(request, username, slug):
 
         excel_file = request.FILES["excel_file"]
 
-        # you may put validations here to check extension or file size, inte klar
-        allowed_extensions = [".xls", ".xlsm", ".xlsx"]
-
         # Create new sorted list with block courses
         block_courses = []
         for co in block.courseoccasions.all():
@@ -615,6 +613,7 @@ def block_detail(request, username, slug):
         wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
         # loop through each sheet in excel
         for sheet in wb:
+            # Specific sheet titles that contains courses
             if ((sheet.title == 'Profilkurser') |
                 (sheet.title == 'Basterminer') |
                 (sheet.title == 'Övriga kurser')|
@@ -625,17 +624,13 @@ def block_detail(request, username, slug):
                     # If sheet done go to next sheet
                     if(rowNumber[1].value == ''):
                         break
-                    # binary search in course list
-                    index = bisect_left(block_courses, str(rowNumber[1].value))
-                    # If perfect match found, add to excel
-                    # and remove from block list
-                    if (index != len(block_courses)
-                    and (str(block_courses[index]).lower()
-                    == str(rowNumber[1].value).lower())):
-                        rowNumber[0].value='x'
-                        rowNumber[0].alignment = Alignment(horizontal
-                        = "center", vertical = "bottom")
-                        block_courses.pop(index)
+                    # loop through each course in block list and modify the list
+                    for index, item in enumerate(block_courses):
+                        if (str(item).lower() == str(rowNumber[1].value).lower()):
+                            rowNumber[0].value='x'
+                            rowNumber[0].alignment = Alignment(horizontal
+                            = "center", vertical = "bottom")
+                            block_courses.pop(index)
 
         # Add all private courses to list
         # and add the list to a new sheet in excel
@@ -646,7 +641,7 @@ def block_detail(request, username, slug):
             for sheet in wb:
                 if sheet.title == "Ej inlagda kurser":
                     wb.remove_sheet(sheet)
-            ws3 = wb.create_sheet(title="Ej genererade kurser")
+            ws3 = wb.create_sheet(title="Ej inlagda kurser")
             ws3["A1"].value=("OBS! Lägg in dessa kurser manuellt under rätt "
             "flik. Töm denna kurslista innan du genererar sammanfattningen")
             ws3["B3"].value='Kursnamn'
@@ -661,9 +656,8 @@ def block_detail(request, username, slug):
         path_to_file = 'excel/' + id + '.xlsm'
         wb.save(path_to_file)
 
-        if (os.path.isfile(path_to_file)):
-            return serve(request, os.path.basename(path_to_file),
-            os.path.dirname(path_to_file))
+        return serve(request, os.path.basename(path_to_file),
+        os.path.dirname(path_to_file))
 
 
     else:
