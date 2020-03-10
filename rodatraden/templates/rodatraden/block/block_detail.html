@@ -61,22 +61,28 @@
   <h5>Ladda upp ISP för att få den ifylld</h5>
   <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      <input type="file"
-             title="Upload excel file"
-             name="excel_file"
-             style="border: 1px solid black; padding: 5px;"
-             required="required">
-      <p>
-      <input type="submit"
-             value="Ladda upp"
-             style="border: 1px solid black; padding:5px; border-radius: 5px; cursor: pointer;">
+
+      <div class="button-wrap">
+        <label class="new-button-upload" for="upload">Välj ISP
+        <input id="upload" type="file" name="excel_file">
+      </div>
+
+      <div class="button-wrap">
+        <label class="new-button-download" for="download">Ladda ner
+        <input id="download" type="submit">
+      </div>
+
   </form>
-  <h5>OBS!</h5>
-  <h10>Denna funktion är endast kompatibel med den senaste versionen av den individuella studieplanen.
-      Kurser i ditt blockschema som inte återfinns i den individuella
-      studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
-      Dessa kurser måste sedan läggas in manuellt på rätt plats.
-      Kontrollera att allt stämmer i den nedladdade filen.</h10>
+  <div style="max-width: 40%;" >
+    <h5>OBS!</h5>
+      <h10 word-wrap: break-word; width: 50%;>
+        Denna funktion är endast kompatibel med den senaste
+        versionen av den individuella studieplanen.
+        Kurser i ditt blockschema som inte återfinns i den individuella
+        studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
+        Dessa kurser måste sedan läggas in manuellt på rätt plats.
+        Kontrollera att allt stämmer i den nedladdade filen.</h10>
+  </div>
 </div>
 
 {% endblock %}

@@ -1,0 +1,41 @@
+.new-button-upload {
+  display: inline-block;
+  padding: 5px 22px;
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: #D6001E;
+  font-size: 16px;
+  color: #fff;
+}
+
+.new-button-download {
+  display: inline-block;
+  padding: 5px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: #D6001E;
+  font-size: 16px;
+  color: #fff;
+}
+
+input[type="file"] {
+  position: absolute;
+  z-index: -1;
+  top: 4px;
+  left: 3px;
+  font-size: 15px;
+  color: black;
+}
+
+input[type="submit"] {
+  position: absolute;
+  z-index: -1;
+  top: 4px;
+  left: 0;
+  font-size: 15px;
+  color: black;
+}
+
+.button-wrap {
+  position: relative;
+}

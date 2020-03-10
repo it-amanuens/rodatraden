@@ -28,11 +28,15 @@ from .forms import (
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 
 import openpyxl
-from openpyxl.styles import Alignment, Font
 import os
 import string
+import math
+import re
 from django.views.static import serve
 from django.utils.crypto import get_random_string
+from operator import itemgetter
+from rodatraden import validator
+from openpyxl.styles import Alignment, Font
 
 
 def index(request):
@@ -604,51 +608,84 @@ def block_detail(request, username, slug):
 
         excel_file = request.FILES["excel_file"]
 
-        # Create new sorted list with block courses
+        # Check the file size and name length
+        if (validator.file_validation(excel_file) != 0):
+            return render(request, 'rodatraden/block/block_detail.html')
+
+        # Create new list with block courses and credits, sort by course name
         block_courses = []
         for co in block.courseoccasions.all():
-            block_courses.append(str(co.course.title))
-        block_courses.sort()
+            block_courses.append([str(co.course.title), str(co.course.ects)])
+        block_courses.sort(key = itemgetter(0))
+
+        # regex is used later when matching course names. With this, only
+        # alphabetic (swedish) characters and numbers will be used when comparing
+        # course names.
+        regex = re.compile('[^åäöÅÄÖa-zA-Z0-9]')
 
         wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
+
         # loop through each sheet in excel
         for sheet in wb:
+
             # Specific sheet titles that contains courses
             if ((sheet.title == 'Profilkurser') |
                 (sheet.title == 'Basterminer') |
-                (sheet.title == 'Övriga kurser')|
+                (sheet.title == 'Övriga kurser') |
                 (sheet.title == 'Allmänna ingenjörskurser')):
-                # loop through each course in excel
-                for rowNumber in sheet.iter_rows(min_row=7, max_row=100,
-                    min_col=1, max_col=2):
-                    # If sheet done go to next sheet
-                    if(rowNumber[1].value == ''):
+
+                # loop through each course in excel, where:
+                #   course[0]: Checkbox
+                #   course[1]: Course name
+                #   course[6]: Course credit
+                for course in sheet.iter_rows(min_row=7, max_row=300,
+                min_col=1, max_col=7):
+
+                    # If there are no more courses on current sheet,
+                    # go to next sheet
+                    if not (course[1].value):
                         break
-                    # loop through each course in block list and modify the list
+
+                    # loop through each course in the block list, where:
+                    # index: Index of current element in ‘block_courses’
+                    # item[0]: course name
+                    # item[1]: course credit
                     for index, item in enumerate(block_courses):
-                        if (str(item).lower() == str(rowNumber[1].value).lower()):
-                            rowNumber[0].value='x'
-                            rowNumber[0].alignment = Alignment(horizontal
+
+                        # If a match of course name (case insensitive, disregard
+                        # all whitespaces) and credit can be found, tick
+                        # checkbox in excel and modify block list
+                        if (regex.sub('', str(item[0]).lower())
+                        == regex.sub('', str(course[1].value).lower())
+                        and course[6].value
+                        and math.isclose(float(item[1]),
+                        float(course[6].value), abs_tol=0.1)):
+                            course[0].value='x'
+                            course[0].alignment = Alignment(horizontal
                             = "center", vertical = "bottom")
                             block_courses.pop(index)
+                            break
 
         # Add all private courses to list
         # and add the list to a new sheet in excel
         for co in block.privatecourses.all():
-            block_courses.append(co.title)
+            block_courses.append([str(co.title), str(co.ects)])
+
         if block_courses:
             count = 4
             for sheet in wb:
                 if sheet.title == "Ej inlagda kurser":
                     wb.remove_sheet(sheet)
-            ws3 = wb.create_sheet(title="Ej inlagda kurser")
-            ws3["A1"].value=("OBS! Lägg in dessa kurser manuellt under rätt "
+            ws = wb.create_sheet(title="Ej inlagda kurser")
+            ws["A1"].value=("OBS! Lägg in dessa kurser manuellt under rätt "
             "flik. Töm denna kurslista innan du genererar sammanfattningen")
-            ws3["B3"].value='Kursnamn'
-            ws3["B3"].font=Font(bold=True)
+            ws["B3"].value='Kursnamn'
+            ws["B3"].font=Font(bold=True)
             for item in block_courses:
-                pos = 'B' + str(count)
-                ws3[pos].value=item
+                coursename_pos = 'B' + str(count)
+                coursecredit_pos = 'C' + str(count)
+                ws[coursename_pos].value = item[0]
+                ws[coursecredit_pos].value = item[1]
                 count = count + 1
 
         # save file
