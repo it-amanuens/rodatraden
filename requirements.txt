@@ -1,4 +1,4 @@
-django
+django==2.7.*
 django-bootstrap4
 django-crispy-forms
 django-cas-ng
@@ -9,3 +9,4 @@ django-tables2
 django-filter
 django-bootstrap-modal-forms
 django-widget-tweaks
+openpyxl==3.0.3

@@ -48,7 +48,7 @@ urlpatterns = [
         name='privatecourse-detail'),
 
     # Courseoccasions
-    path('kurstillfallen/', views.CourseOccasionList.as_view(), 
+    path('kurstillfallen/', views.CourseOccasionList.as_view(),
         name='courseoccasion-list'),
     path('kurstillfallen/skapa/', views.CourseOccasionCreate.as_view(),
         name='courseoccasion-create'),
@@ -66,9 +66,9 @@ urlpatterns = [
         name='block-list'),
     path('blockscheman/<str:username>/skapa', views.BlockCreate.as_view(),
         name='block-create'),
-    path('blockscheman/<str:username>/<slug:slug>/', 
+    path('blockscheman/<str:username>/<slug:slug>/',
         views.block_detail, name='block-detail'),
-    path('blockscheman/<str:username>/<slug:slug>/radera', 
+    path('blockscheman/<str:username>/<slug:slug>/radera',
         views.BlockRemove.as_view(), name='block-delete'),
     path('blockscheman/<str:username>/<slug:slug>/andra/',
         views.BlockUpdate.as_view(), name='block-update'),

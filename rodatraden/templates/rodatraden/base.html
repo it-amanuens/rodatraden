@@ -14,6 +14,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" type="image/png" href="{% static 'rodatraden/RTlogo.svg' %}"/>
@@ -22,6 +23,7 @@
 
     <!-- Custom styles -->
     <link rel="stylesheet" type="text/css" href="{% static 'rodatraden/rodatraden.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'rodatraden/upload_button.css' %}">
     <!-- Select 2 -->
     <link href="{% static 'assets/css/select2.min.css' %}" rel="stylesheet" />
   </head>
@@ -29,7 +31,7 @@
   <body>
     <!-- HTML with navbar at top -->
     {% include "rodatraden/navigation.html" %}
-    
+
     <main role="main" class="container">
       <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">
         <a class="send-report" data-id="{% url 'report-create' %}">
