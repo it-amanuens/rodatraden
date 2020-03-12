@@ -62,22 +62,22 @@
   <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
 
-      <div class="button-wrap">
-        <label class="new-button-upload" for="upload">Välj ISP
-        <input id="upload" type="file" name="excel_file">
-      </div>
-
-      <div class="button-wrap">
-        <label class="new-button-download" for="download">Ladda ner
-        <input id="download" type="submit">
-      </div>
-
+        <input type="file"
+                   title="Upload excel file"
+                   name="excel_file"
+                   required="required">
+        <p>
+        <p>
+        <input id="download"
+                type="submit"
+                value="Ladda ner"
+                for="download">
   </form>
   <div style="max-width: 40%;" >
     <h5>OBS!</h5>
       <h10 word-wrap: break-word; width: 50%;>
         Denna funktion är endast kompatibel med den senaste
-        versionen av den individuella studieplanen.
+        versionen av den individuella studieplanen i .xlsm-format.
         Kurser i ditt blockschema som inte återfinns i den individuella
         studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
         Dessa kurser måste sedan läggas in manuellt på rätt plats.
