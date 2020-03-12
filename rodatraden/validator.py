@@ -10,7 +10,7 @@ def file_validation(file):
     # Specify the allowed file size in kB
     # Index 0: Minimum file size
     # Index 1: Maximum file size
-    allowed_filesize = [60, 100]
+    allowed_filesize = [20, 100]
 
     # Checks if the length of the file name is
     if (len(file.name) < allowed_filename[0] or len(file.name) > allowed_filename[1]):
