@@ -37,6 +37,7 @@ from django.utils.crypto import get_random_string
 from operator import itemgetter
 from rodatraden import validator
 from openpyxl.styles import Alignment, Font
+from django.conf import settings
 
 
 def index(request):
@@ -690,7 +691,7 @@ def block_detail(request, username, slug):
 
         # save file
         id = get_random_string(length=15)
-        path_to_file = 'excel/' + id + '.xlsm'
+        path_to_file = settings.MEDIA_ROOT + '/excel/' + id + '.xlsm'
         wb.save(path_to_file)
 
         return serve(request, os.path.basename(path_to_file),
