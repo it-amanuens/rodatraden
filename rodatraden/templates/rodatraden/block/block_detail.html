@@ -57,31 +57,43 @@
 
 <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" ></div>
 
-<div id="ISP" style="min-width: 310px; height: 400px; margin: 0 auto" >
-  <h5>Ladda upp ISP för att få den ifylld</h5>
-  <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
+<div id="ISP" class="container" style="min-width: 310px; height: 400px; margin: 0 auto" >
 
-        <input type="file"
-                   title="Upload excel file"
-                   name="excel_file"
-                   required="required">
-        <p>
-        <p>
-        <input id="download"
-                type="submit"
-                value="Ladda ner"
-                for="download">
-  </form>
-  <div style="max-width: 40%;" >
-    <h5>OBS!</h5>
-      <h10 word-wrap: break-word; width: 50%;>
-        Denna funktion är endast kompatibel med den senaste
-        versionen av den individuella studieplanen i .xlsm-format.
-        Kurser i ditt blockschema som inte återfinns i den individuella
-        studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
-        Dessa kurser måste sedan läggas in manuellt på rätt plats.
-        Kontrollera att allt stämmer i den nedladdade filen.</h10>
+  <h5 class="text-center">Ladda upp din ISP för att få den ifylld</h5>
+
+  <div class="row pt-4">
+	  <div class="col-sm">
+	  <form method="post" enctype="multipart/form-data">
+	      {% csrf_token %}
+		
+	      <div class="input-group mb-3">
+		      <div class="input-group-prepend">
+			<input id="download"
+			       class="btn btn-outline-secondary"
+				type="submit"
+				value="Ladda ner"
+				for="download">
+			</input>
+		      </div>
+		      <div class="custom-file">
+			      <input type="file" class="custom-file-input" name="excel_file" required="required" id="inputExcelFile">
+			      <label class="custom-file-label" for="inputExcelFile">Välj fil</label>
+		      </div>
+	      </div>
+
+
+	  </form>
+	  </div>
+	  <div class="col-sm">
+	    <h5>OBS!</h5>
+	      <h10 word-wrap: break-word; width: 50%;>
+		Denna funktion är endast kompatibel med den senaste
+		versionen av den individuella studieplanen i .xlsm-format.
+		Kurser i ditt blockschema som inte återfinns i den individuella
+		studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
+		Dessa kurser måste sedan läggas in manuellt på rätt plats.
+		Kontrollera att allt stämmer i den nedladdade filen.</h10>
+	  </div>
   </div>
 </div>
 
