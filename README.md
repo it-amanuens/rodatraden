@@ -106,7 +106,7 @@ Potential future improvements,
 - [ ] Copy all courseoccasions from one year to another year
 - [ ] Make it so users can see their pending reports
 - [ ] Associate Profiles with Exams
-- [ ] Automatic generation of 'examensbilagan'
+- [X] Automatic generation of 'examensbilagan'
 - [ ] Search function for whole site
 - [ ] Less hardcoding for the forms with categories
 - [ ] Redirect to created object after creation
