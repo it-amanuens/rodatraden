@@ -98,4 +98,7 @@ urlpatterns = [
             name='exam-update'),
     path('examina/<slug:slug>/radera/', views.ExamDelete.as_view(),
             name='exam-delete'),
+
+    # Staff tools
+    path('verktyg/', views.tools, name='tools'),
 ]

@@ -103,7 +103,8 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 
 Potential future improvements,
 
-- [ ] Copy all courseoccasions from one year to another year
+- [X] All staff can change any block
+- [X] Copy all courseoccasions from one year to another year
 - [ ] Make it so users can see their pending reports
 - [ ] Associate Profiles with Exams
 - [X] Automatic generation of 'examensbilagan'

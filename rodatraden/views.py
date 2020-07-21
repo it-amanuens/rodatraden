@@ -40,6 +40,8 @@ from openpyxl.styles import Alignment, Font
 from django.conf import settings
 
 
+import pdb
+
 def index(request):
     """Homepage of site."""
 
@@ -52,6 +54,43 @@ def index(request):
             }
 
     return render(request, 'rodatraden/index.html', context)
+
+def tools(request):
+    """Various tools for usage"""
+
+    # Only staff can access this site
+    if not request.user.is_staff:
+        return redirect(reverse('index'))
+
+    # Incoming info
+    if request.method == 'POST':
+        # Copying courseoccasions tool
+        if 'courseocc_copy' in request.POST:
+            from_acyear = AcademicYear.objects.get(id=request.POST['from'])
+            to_acyear   = AcademicYear.objects.get(id=request.POST['to'])
+            # Make sure that the years exist
+            if from_acyear and to_acyear:
+                # From all the current courseoccasions
+                for courseocc in CourseOccasion.objects.filter(
+                        academic_year=from_acyear
+                        ):
+                    # Only create a new for the new year if it does not already
+                    # exist
+                    if not CourseOccasion.objects.filter(academic_year=to_acyear,
+                            course=courseocc.course):
+                        courseocc.pk = None
+                        courseocc.academic_year= to_acyear
+                        courseocc.save()
+
+    # Get all academic years
+    acyears = AcademicYear.objects.all().order_by('year')
+
+    context = {
+            'acyears': acyears,
+    }
+
+    return render(request, 'rodatraden/tools.html', context)
+
 
 #############
 ## REPORTS ##
@@ -319,7 +358,8 @@ class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
 
     permission_required = 'rodatraden.delete_courseoccasion'
     model = CourseOccasion
-    template_name = 'rodatraden/courseoccasion_confirm_delete.html'
+    template_name = 'rodatraden/courseoccasion/courseoccasion_confirm_delete.html'
+
     success_message = 'Kurstillfället togs bort utan problem'
     success_url = reverse_lazy('courseoccasion-list')
 
