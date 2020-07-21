@@ -713,8 +713,9 @@ def block_detail(request, username, slug):
                 'categories': categories,
                 'categories_sum': category_sum,
                 'total_ects': block.total_course_ects(),
-                'logged_in': request.user.is_authenticated and
-                request.user.username == block.user.username
+                'logged_in': (request.user.is_authenticated and
+                request.user.username == block.user.username) or
+                (request.user.is_staff and not block.private)
                 }
 
         return render(request, 'rodatraden/block/block_detail.html', context)
@@ -732,8 +733,9 @@ def block_course_list(request, username, slug):
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
     # Only blocks made by same user
-    if (block.user.username != request.user.username):
-        return redirect(reverse('index'))
+    if not request.user.is_staff:
+        if (block.user.username != request.user.username):
+            return redirect(reverse('index'))
 
     # Sort by year, start, if not in block and order by title
     courseoccasions = CourseOccasion.objects.filter(academic_year__year=year,
@@ -768,8 +770,9 @@ def add_course_to_block(request, username, b_slug):
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
 
     # Only blocks made by same user
-    if (block.user.username != request.user.username):
-        return redirect(reverse('index'))
+    if not request.user.is_staff:
+        if (block.user.username != request.user.username):
+            return redirect(reverse('index'))
 
     if (is_priv == '1'):
         privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)
@@ -795,8 +798,9 @@ def remove_course_from_block(request, username, b_slug):
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
 
     # Only blocks made by same user
-    if (block.user.username != request.user.username):
-        return redirect(reverse('index'))
+    if not request.user.is_staff:
+        if (block.user.username != request.user.username):
+            return redirect(reverse('index'))
 
     if (is_priv == '1'):
         privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)

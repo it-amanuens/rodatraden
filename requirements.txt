@@ -7,6 +7,6 @@ psycopg2
 django-view-breadcrumbs
 django-tables2
 django-filter
-django-bootstrap-modal-forms
+django-bootstrap-modal-forms==1.4.2
 django-widget-tweaks
 openpyxl==3.0.3
