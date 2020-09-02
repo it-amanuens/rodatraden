@@ -1,7 +1,7 @@
 {% load widget_tweaks %}
 
 <div class="modal-header">
-  <h3 class="modal-title"><a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a></h3>
+  <h3 class="modal-title"><a target="_blank" href="{% url 'course-detail' course.slug %}">{{ course.title }}</a></h3>
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
@@ -14,7 +14,7 @@
         <h5 class="card-header">Kursinfo</h5>
         <div class="card-body">
           <p class="lead">
-            <a href="">{{ course.department }}</a>
+            <a target="_blank" href="">{{ course.department }}</a>
           </p>
           <table style="border-collapse: separate;border-spacing:1rem 0;">
             <tr>
@@ -40,7 +40,7 @@
             {% for category in course.categorycourse_set.all %}
               <tr>
                 <td>
-                  <a href="{% url 'category-detail' category.category.slug %}">{{ category.category.title }}</a>
+                  <a target="_blank" href="{% url 'category-detail' category.category.slug %}">{{ category.category.title }}</a>
                 </td>
                 <td>{{ category.ects }}</td>
               </tr>
@@ -56,7 +56,7 @@
 
             {% for track in course.tracks.all %}
             <li class="list-group list-group-flush">
-              <a href="#">{{ track.title }}</a>
+              <a target="_blank" href="#">{{ track.title }}</a>
             </li>
             {% endfor %}
 
@@ -76,7 +76,7 @@
       <div class="card">
         <h5 class="card-header">Kurstillfälle</h5>
         <div class="card-body">
-          <p class="lead"><a href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
+          <p class="lead"><a target="_blank" href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
             {{ course.title }}, {{courseoccasion.year }}
           </a></p>
 
@@ -96,7 +96,7 @@
             {% if courseoccasion.contact_name %}
             <tr>
               <td>Kontaktperson</td>
-              <td><a href="mailto:{{ courseoccasion.contact_email }}">{{ courseoccasion.contact_name }}</a></td>
+              <td><a target="_blank" href="mailto:{{ courseoccasion.contact_email }}">{{ courseoccasion.contact_name }}</a></td>
             </tr>
             {% endif %}
           </table>
