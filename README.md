@@ -103,10 +103,6 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 
 Potential future improvements,
 
-- [ ] Default ISP-file
-- [ ] Separate basblock in menu
-- [ ] Open in new tab for block courses
-- [ ] Video of how to upload ISP to site
 - [X] All staff can change any block
 - [X] Copy all courseoccasions from one year to another year
 - [ ] Make it so users can see their pending reports

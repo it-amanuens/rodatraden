@@ -36,6 +36,8 @@
 
 {% block content %}
 
+<h5 class="pb-3">Examen: {{ this_block.exam.title }}</h5>
+
 {% if this_block.description %}
 {{ this_block.description | safe }}
 {% else %}
@@ -44,11 +46,11 @@
 
 <hr>
 
-<h5>Examen: {{ this_block.exam.title }}</h5>
+<input class="btn btn-rt show-block" type="button" value="Blockschema" />
+<input class="btn btn-rt show-chart" type="button" value="Kategorier" />
+<input class="btn btn-rt show-ISP" type="button" value="Generera ISP" />
 
-<input class="btn btn-default show-block" type="button" value="Blockschema" />
-<input class="btn btn-default show-chart" type="button" value="Kategorier" />
-<input class="btn btn-default show-ISP" type="button" value="Generera ISP" />
+<hr>
 
 
 <div class="text-center"><p class="lead">Total hp: {{ total_ects }}</p></div>
@@ -59,41 +61,46 @@
 
 <div id="ISP" class="container" style="min-width: 310px; height: 400px; margin: 0 auto" >
 
-  <h5 class="text-center">Ladda upp din ISP för att få den ifylld</h5>
+  <h5>Ladda upp din ISP för att få den ifylld</h5>
+
+  <p>Om du inte laddar upp en egen ISP så kommer en default-isp användas, så det
+  räcker med att trycka "Ladda ner" om du inte har något speciellt skäl att ladda
+  upp en fil.</p>
+  <p>En lämplig guide för hur du laddar upp din ISP finns <a target="_blank"
+    href="http://www.tp.umu.se/tekniskfysik/Instruktionsvideo_R%C3%B6daTr%C3%A5den_v1.mp4">här</a></p>
+
 
   <div class="row pt-4">
-	  <div class="col-sm">
-	  <form method="post" enctype="multipart/form-data">
-	      {% csrf_token %}
-		
-	      <div class="input-group mb-3">
-		      <div class="input-group-prepend">
-			<input id="download"
-			       class="btn btn-outline-secondary"
-				type="submit"
-				value="Ladda ner"
-				for="download">
-			</input>
-		      </div>
-		      <div class="custom-file">
-			      <input type="file" class="custom-file-input" name="excel_file" required="required" id="inputExcelFile">
-			      <label class="custom-file-label" for="inputExcelFile">Välj fil</label>
-		      </div>
-	      </div>
-
-
-	  </form>
-	  </div>
-	  <div class="col-sm">
-	    <h5>OBS!</h5>
-	      <h10 word-wrap: break-word; width: 50%;>
-		Denna funktion är endast kompatibel med den senaste
-		versionen av den individuella studieplanen i .xlsm-format.
-		Kurser i ditt blockschema som inte återfinns i den individuella
-		studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
-		Dessa kurser måste sedan läggas in manuellt på rätt plats.
-		Kontrollera att allt stämmer i den nedladdade filen.</h10>
-	  </div>
+    <div class="col-6">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <input id="download"
+                   class="btn btn-outline-secondary"
+                   type="submit"
+                   value="Ladda ner"
+                   for="download">
+            </input>
+          </div>
+          <div class="custom-file">
+            <input type="file" class="custom-file-input" name="excel_file" id="inputExcelFile">
+            <label class="custom-file-label" for="inputExcelFile">Välj fil eller
+            ladda ner</label>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="row p-3">
+    <h5>OBS!</h5>
+    <h10 word-wrap: break-word; width: 50%;>
+    Denna funktion är endast kompatibel med den senaste
+    versionen av den individuella studieplanen i .xlsm-format.
+    Kurser i ditt blockschema som inte återfinns i den individuella
+    studieplanen kommer att läggas in under fliken "Ej inlagda kurser".
+    Dessa kurser måste sedan läggas in manuellt på rätt plats.
+    Kontrollera att allt stämmer i den nedladdade filen.</h10>
   </div>
 </div>
 
@@ -238,6 +245,14 @@
           addCourseYear(coursesData);
           renderBlock(coursesData); //INCEPTION! :D
         });
+      });
+
+      /* Filename in upload */
+      document.querySelector('.custom-file-input').addEventListener('change',
+            function(e) {
+        var fileName = document.getElementById("inputExcelFile").files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
       });
 
 

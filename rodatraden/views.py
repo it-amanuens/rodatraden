@@ -647,24 +647,28 @@ def block_detail(request, username, slug):
     # POST request to upload and download ISP
     elif request.method == 'POST':
 
-        excel_file = request.FILES["excel_file"]
+        # If no supplied file, fall to default
+        if not "excel_file" in request.FILES:
+            excel_file = os.path.join(settings.MEDIA_ROOT, 'ISP_mall_v1.1.xlsm')
+            wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
+        else:
+            excel_file = request.FILES["excel_file"]
+            # Check the file size and name length
+            if (validator.file_validation(excel_file) != 0):
+                return render(request, 'rodatraden/block/block_detail.html')
 
-        # Check the file size and name length
-        if (validator.file_validation(excel_file) != 0):
-            return render(request, 'rodatraden/block/block_detail.html')
-
-        # Create new list with block courses and credits, sort by course name
-        block_courses = []
-        for co in block.courseoccasions.all():
-            block_courses.append([str(co.course.title), str(co.course.ects)])
-        block_courses.sort(key = itemgetter(0))
+            wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
 
         # regex is used later when matching course names. With this, only
         # alphabetic (swedish) characters and numbers will be used when comparing
         # course names.
         regex = re.compile('[^åäöÅÄÖa-zA-Z0-9]')
 
-        wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
+        # Create new list with block courses and credits, sort by course name
+        block_courses = []
+        for co in block.courseoccasions.all():
+            block_courses.append([str(co.course.title), str(co.course.ects)])
+        block_courses.sort(key = itemgetter(0))
 
         # loop through each sheet in excel
         for sheet in wb:
