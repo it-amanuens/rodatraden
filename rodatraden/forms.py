@@ -111,7 +111,7 @@ class CourseOccasionForm(BSModalForm):
     class Meta:
         model = CourseOccasion
         fields = ['course', 'academic_year', 'time_period', 'weeks',
-        'contact_name', 'contact_email', 'official']
+        'note', 'contact_name', 'contact_email', 'official']
 
 
 class BlockForm(SaveAndImportBlockMixin, BSModalForm):

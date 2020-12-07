@@ -34,7 +34,7 @@ class CourseOccasionFilter(django_filters.FilterSet):
     # A lot of the filters refer to the course that the courseoccasion is
     # connected to, hence the 'field_name' argument
     title = django_filters.ModelChoiceFilter(queryset=Course.objects.all(),
-            empty_label='Kursnamn', to_field_name='title', field_name='course'
+            empty_label='Kursnamn', to_field_name='id', field_name='course'
     )
     year = django_filters.ModelChoiceFilter(
             queryset=AcademicYear.objects.all().order_by('year'),

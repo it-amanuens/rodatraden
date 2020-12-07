@@ -458,12 +458,15 @@ class CourseOccasion(models.Model):
     """Occasions for a given course."""
     weeks = models.IntegerField(verbose_name='Längd')
     official = models.BooleanField(default=True, verbose_name='Godkänd')
-    note = models.CharField(max_length=250, blank=True, null=True)
+    note = models.TextField(max_length=250, blank=True, null=True,
+            verbose_name="Anteckning")
     homepage_url = models.URLField(blank=True, null=True)
     evaluation_url = models.URLField(blank=True, null=True)
     syllabus_url = models.URLField(blank=True, null=True)
-    contact_name = models.CharField(max_length=250, blank=True, null=True)
-    contact_email = models.EmailField(blank=True, null=True)
+    contact_name = models.CharField(max_length=250, blank=True, null=True,
+            verbose_name='Kontaktperson')
+    contact_email = models.EmailField(blank=True, null=True,
+            verbose_name='Kontaktadress')
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
             verbose_name='Kurs')
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
@@ -483,9 +486,21 @@ class CourseOccasion(models.Model):
     def save(self, *args, **kwargs):
         """Extend save to add unique slug."""
 
-        if self.course.slug != self.slug or not self.slug:
+        if not self.slug:
             self.slug = get_unique_slug(to_slug=self.course.title,
                     model=CourseOccasion)
+        else:
+            # To avoid trailing number
+            course_slug = self.course.slug.split('-')
+            courseocc_slug = self.course.slug.split('-')
+
+            # Remove trailing number if applicable
+            if len(course_slug) != len(courseocc_slug):
+                courseocc_slug = courseocc_slug[:-1]
+
+            if not "".join(course_slug) == "".join(courseocc_slug):
+                self.slug = get_unique_slug(to_slug=self.course.title,
+                        model=CourseOccasion)
 
         super().save(*args, **kwargs)
 

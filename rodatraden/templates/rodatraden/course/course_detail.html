@@ -34,11 +34,55 @@
 
 <div class="row px-3">
   <div class="col-lg-8 p-3 course-main">
-    {% if course.description %}
-    {{ course.description | safe }}
-    {% else %}
-    <p class="lead">Denna kurs saknar en beskrivning.<p>
-    {% endif %}
+    <div class="row m-2 pb-3">
+      <div class="col">
+        <p class="lead">
+          Aktuellt kursbeskrivning finns i kursplanen.
+        </p>
+        <form action="https://www.umu.se/student/mina-studier/hitta-kurs-och-utbildningsplan/" method="get">
+          <button name="q" value="{{ courseoccasion.course.code }}" type="submit" class="btn
+            btn-rt btn-lg">
+            UMU Kursplanesök
+          </button>
+        </form>
+        <hr>
+        {% if course.description %}
+          {{ course.description | safe }}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col m-1 pb-3">
+        <div class="card">
+          <h5 class="card-header">Förkunskapskrav</h5>
+          <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+            {% for prereq in course.prerequisites.all %}
+            <li class="list-group-item">
+              <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
+            </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5 m-1 pb-3">
+        <div class="card">
+          <h5 class="card-header">Ger behörighet</h5>
+          <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+            {% for course in prereq_courses %}
+            <li class="list-group-item">
+              <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
+            </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="col-lg-4 p-3">
@@ -96,46 +140,6 @@
             <a href="{% url 'profile-detail' track.profile.slug %}">{{ track.title }}</a>
           </li>
           {% endfor %}
-        </ul>
-
-        <hr>
-        <form action="https://www.umu.se/student/mina-studier/hitta-kurs-och-utbildningsplan/" method="get">
-          <button name="q" value="{{ course.code }}" type="submit" class="btn
-            btn-rt btn-sm">UMU Kursplanesök</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<hr>
-
-<div class="row justify-content-md-center">
-  <div class="col-lg-5 m-1 pb-3">
-    <div class="card">
-      <h5 class="card-header">Förkunskapskrav</h5>
-      <div class="card-body">
-        <ul class="list-group list-group-flush m-0">
-        {% for prereq in course.prerequisites.all %}
-        <li class="list-group-item">
-          <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
-        </li>
-        {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-5 m-1 pb-3">
-    <div class="card">
-      <h5 class="card-header">Ger behörighet</h5>
-      <div class="card-body">
-        <ul class="list-group list-group-flush m-0">
-        {% for course in prereq_courses %}
-        <li class="list-group-item">
-          <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
-        </li>
-        {% endfor %}
         </ul>
       </div>
     </div>

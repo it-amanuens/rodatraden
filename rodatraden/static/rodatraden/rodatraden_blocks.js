@@ -325,7 +325,7 @@ function hpSumInPeriod(coursesData, year, lp) {
     //} else {
       //var speed = parseFloat(correctCourses[i].ects)/length;
     //}
-      var speed = parseFloat(correctCourses[i].ects)/length;
+    var speed = parseFloat(correctCourses[i].ects)/length;
     var temp = 0;
 
     if (start < 10 * (lp - 1)) {
