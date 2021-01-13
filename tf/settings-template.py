@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     # third-party
     'bootstrap4',
     'crispy_forms',
-    'django_cas_ng',
     'django_bootstrap_breadcrumbs',
     'view_breadcrumbs',
     'django_tables2',
@@ -62,9 +61,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # third-party
-    'django_cas_ng.middleware.CASMiddleware',
 ]
 
 ROOT_URLCONF = 'tf.urls'
@@ -111,9 +107,19 @@ DATABASES = {
 }
 
 # Email
+DEFAULT_FROM_EMAIL = 'lucash@fastmail.com'
+
 # Temporary for development purposes
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+# EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+# EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+
+# SMTP
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_SSL = True
+EMAIL_HOST = 'host'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'user'
+EMAIL_HOST_PASSWORD = 'pass'
 
 
 # Password validation
@@ -166,6 +172,3 @@ LOGIN_URL = '/anvandare/login/' # Url for login
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-
-# CAS
-CAS_SERVER_URL = 'https://cas.umu.se/cas/login'
