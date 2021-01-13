@@ -10,3 +10,4 @@ django-filter
 django-bootstrap-modal-forms==1.4.2
 django-widget-tweaks
 openpyxl==3.0.3
+django-registration

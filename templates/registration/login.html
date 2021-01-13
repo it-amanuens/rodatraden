@@ -1,0 +1,28 @@
+{% extends 'rodatraden/index.html' %}
+{% load django_bootstrap_breadcrumbs %}
+{% load crispy_forms_tags %}
+
+{% block title %}Logga in{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb course.title "course-detail" course.title %}
+{% endblock %}
+
+{% block page_title %}Logga in{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="submit-btn btn btn-rt" type="submit">Logga in</button>
+    <a href="{% url 'django_registration_register' %}">
+    <button class="submit-btn btn btn-secondary" type="button">Skapa ny
+      användare</button>
+    </a>
+  </form>
+
+  <p><a href="{% url 'password_reset' %}">Glömt bort ditt lösenord?</a></p>
+
+{% endblock %}

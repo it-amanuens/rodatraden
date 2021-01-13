@@ -17,17 +17,14 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns, static
 from django.conf import settings
 from django.urls import path, include
-import django_cas_ng.views
 
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
     path('admin/', admin.site.urls), # Admin page
 
-    # Authentication against CAS
-    path('anvandare/login/', django_cas_ng.views.LoginView.as_view(),
-        name='cas_ng_login'),
-    path('anvandare/logout/', django_cas_ng.views.LogoutView.as_view(),
-        name='cas_ng_logout'),
+    # Authentication
+    path('anvandare/', include('django_registration.backends.one_step.urls')),
+    path('anvandare/', include('django.contrib.auth.urls')),
 ]
 
 # This is added for correct handling of static files

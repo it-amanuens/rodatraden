@@ -25,6 +25,7 @@ tf/settings.py
 media
 static
 excel/
+env/
 
 !excel/.gitkeep
 !media/excel
