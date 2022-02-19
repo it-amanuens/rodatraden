@@ -486,13 +486,13 @@ class CourseOccasion(models.Model):
     def save(self, *args, **kwargs):
         """Extend save to add unique slug."""
 
-        if not self.slug:
+        if not self.slug:  # Create a new slug if it doesn't exist
             self.slug = get_unique_slug(to_slug=self.course.title,
-                    model=CourseOccasion)
+                                        model=CourseOccasion)
         else:
             # To avoid trailing number
             course_slug = self.course.slug.split('-')
-            courseocc_slug = self.course.slug.split('-')
+            courseocc_slug = self.slug.split('-')
 
             # Remove trailing number if applicable
             if len(course_slug) != len(courseocc_slug):

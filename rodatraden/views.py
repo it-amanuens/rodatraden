@@ -76,10 +76,12 @@ def tools(request):
                         ):
                     # Only create a new for the new year if it does not already
                     # exist
-                    if not CourseOccasion.objects.filter(academic_year=to_acyear,
+                    if not CourseOccasion.objects.filter(
+                            academic_year=to_acyear,
                             course=courseocc.course):
                         courseocc.pk = None
-                        courseocc.academic_year= to_acyear
+                        courseocc.academic_year = to_acyear
+                        courseocc.slug = ''
                         courseocc.save()
 
     # Get all academic years

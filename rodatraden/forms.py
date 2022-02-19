@@ -1,19 +1,18 @@
 import datetime
-from decimal import Decimal
 
 from django import forms
 
 from .models import (
-    Course, Block, CourseOccasion, Category, Track, CategoryCourse, Profile,
+    Course, Block, CourseOccasion, Category, CategoryCourse, Profile,
     AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
     PrivateCourseCategory, User
 )
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, SaveAndImportBlockMixin
 )
-from .rodatraden_modules.forms import CategoryEctsField
 
 from bootstrap_modal_forms.forms import BSModalForm
+
 
 class CourseForm(CategoryFormMixin, BSModalForm):
     """Form for Courses."""

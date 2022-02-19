@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
     'bootstrap_modal_forms',
     'widget_tweaks',
+    'captcha',
 
     # Standard with django
     'django.contrib.admin',
@@ -97,7 +98,7 @@ WSGI_APPLICATION = 'tf.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql-psycopg2',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'db',
         'USER': 'user',
         'PASSWORD': 'pass',
@@ -158,17 +159,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_ROOT=os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
 # Media upload
-MEDIA_ROOT=os.path.join(BASE_DIR, 'media')
-MEDIA_URL='/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Authentication
-LOGIN_REDIRECT_URL = 'index' # Where to send after login
-LOGOUT_REDIRECT_URL = 'index' # Where to send after logout
-LOGIN_URL = '/anvandare/login/' # Url for login
+LOGIN_REDIRECT_URL = 'index'  # Where to send after login
+LOGOUT_REDIRECT_URL = 'index'  # Where to send after logout
+LOGIN_URL = '/anvandare/login/'  # Url for login
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# Recaptcha
+RECAPTCHA_PUBLIC_KEY = ''
+RECAPTCHA_PRIVATE_KEY = ''
