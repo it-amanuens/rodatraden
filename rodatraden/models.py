@@ -4,9 +4,11 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
+import os
 
 # Get the user model
 User = get_user_model()
+
 
 def get_unique_slug(to_slug, model):
     """Generate unique slug for insert in model.
@@ -27,6 +29,22 @@ def get_unique_slug(to_slug, model):
         num += 1
 
     return unique_slug
+
+
+class ISPTemplate(models.Model):
+    """For admins to upload ISP-templates."""
+
+    title = models.CharField(max_length=50, verbose_name='Titel')
+    template = models.FileField(upload_to='isp_templates/',
+                                verbose_name='ISP-mall')
+
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+            null=False, blank=False, verbose_name='Skapad')
+    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
+            blank=False, verbose_name='Uppdaterad')
+
+    def __str__(self):
+        return os.path.basename(self.template.name)
 
 
 class Report(models.Model):

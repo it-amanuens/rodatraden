@@ -14,7 +14,8 @@ from django.http import JsonResponse, HttpResponseRedirect
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
-        CategoryExam, CategoryCourse, AcademicYear, Exam, Report, PrivateCourse
+        CategoryExam, CategoryCourse, AcademicYear, Exam, Report, PrivateCourse,
+        ISPTemplate
 )
 from .tables import (
         CourseTable, CourseOccasionTable, ExamTable, ReportTable,
@@ -651,7 +652,13 @@ def block_detail(request, username, slug):
 
         # If no supplied file, fall to default
         if not "excel_file" in request.FILES:
-            excel_file = os.path.join(settings.MEDIA_ROOT, 'ISP_mall_v1.1.xlsm')
+            template = ISPTemplate.objects.order_by('updated_at').first()
+            if template is None:
+                excel_file = os.path.join(settings.MEDIA_ROOT, 'isp_templates',
+                                          'ISP_mall_default.xlsm')
+            else:
+                excel_file = os.path.join(settings.MEDIA_ROOT,
+                                          template.template.name)
             wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
         else:
             excel_file = request.FILES["excel_file"]
@@ -741,9 +748,7 @@ def block_detail(request, username, slug):
         wb.save(path_to_file)
 
         return serve(request, os.path.basename(path_to_file),
-        os.path.dirname(path_to_file))
-
-
+                     os.path.dirname(path_to_file))
     else:
         # Get all categories for the block exam and build dict with those as
         # keys
