@@ -1,7 +1,6 @@
 {% load widget_tweaks %}
-{% load static %}
 
-<form method="post" action="">
+<form method="post" action="" novalidate>
   {% csrf_token %}
 
   <div class="modal-header">
@@ -50,8 +49,8 @@
     <hr>
 
     {% for category_field in form.get_category_fields %}
-    <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
-      row px-3">
+      <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
+        row px-3">
         {{ category_field }}
         <div class="input-group-append">
           <span class="input-group-text">hp</span>
@@ -59,12 +58,12 @@
         <button type="button" class="btn btn-gone remove-category">
           <span class="fa fa-trash"></span>
         </button>
-    </div>
-    <div class="{% if category_field.errors %} invalid{% endif %}">
-      {% for error in category_field.errors %}
-        <p class="alert alert-danger">{{ error }}</p>
-      {% endfor %}
-    </div>
+        <div class="{% if category_field.errors %} invalid{% endif %}">
+          {% for error in category_field.errors %}
+            <p class="alert alert-danger">{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
     {% endfor %}
 
     <button type="button" class="btn btn-gone add-category"
@@ -75,17 +74,65 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-rt">Uppdatera</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    <button type="submit" class="btn btn-rt">Uppdatera</button>
   </div>
 
 </form>
 
-<script src='{% static 'rodatraden/category_form.js' %}'></script>
-
-<script type="text/javascript">
+<script defer type="text/javascript">
   $(document).ready(function() {
-    $(function () {
-       $(".select2-mult-choice").select2({ width: '100%' });
+      $(function () {
+          $(".select2-mult-choice").select2({ width: '100%' });
+          $('.add-category').on('click', function() {
+              let $this = $('.category-list-new')
+              /* Get the div and clone */
+              let $clone = $this.clone(true, true)
+              /* get name from hidden div */
+              let name = $clone.find('select').attr('name')
+              /* Get num */
+              n = parseInt(name.split('_')[1]) + 1
+
+              /* Update select name and id */
+              name = 'category_' + n + '_0'
+              $clone.find('select').val('')
+              $clone.find('select').attr('name', name)
+              name = 'category_' + (n+1) + '_0'
+              $this.find('select').attr('name', name)
+              id = 'id_category_' + n + '_0'
+              $clone.find('select').attr('id', id)
+              id = 'id_category_' + (n+1) + '_0'
+              $this.find('select').attr('id', id)
+
+              /* Update input name and id */
+              name = 'category_' + n + '_1'
+              $clone.find('input').val("0.0")
+              $clone.find('input').attr('name', name)
+              name = 'category_' + (n + 1) + '_1'
+              $this.find('input').attr('name', name)
+              id = 'id_category_' + n + '_1'
+              $clone.find('input').attr('id', id)
+              id = 'id_category_' + (n+1) + '_1'
+              $this.find('input').attr('id', id)
+
+              /* Remove classes from new div and insert */
+              $clone.removeClass('d-none')
+              $clone.removeClass('category-list-new')
+              $clone.insertBefore($this)
+            });
+
+          $(".remove-category").on('click', function(event) {
+              let $this = $(this)
+
+              if ($this.parent().hasClass("category-list-new"))
+              {
+                  $this.parent().prev().addClass("category-list-new")
+                }
+
+              $(this).parent().remove();
+            });
+
+          $('[data-toggle="tooltip"]').tooltip()
+        });
     });
-  });
 </script>

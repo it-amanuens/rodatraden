@@ -1,13 +1,7 @@
 {% extends 'rodatraden/index.html' %}
-{% load django_bootstrap_breadcrumbs %}
 {% load crispy_forms_tags %}
 
 {% block title %}Logga in{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb course.title "course-detail" course.title %}
-{% endblock %}
 
 {% block page_title %}Logga in{% endblock %}
 

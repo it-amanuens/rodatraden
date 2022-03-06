@@ -30,3 +30,6 @@ env/
 !excel/.gitkeep
 !media/excel
 !media/ISP_mall_v1.1.xlsm
+
+# virtualenv
+activate

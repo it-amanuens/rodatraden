@@ -1,6 +1,6 @@
 {% load widget_tweaks %}
 
-<form method="post" action="">
+<form method="post" action="" novalidate>
   {% csrf_token %}
 
   <div class="modal-header">
@@ -33,26 +33,25 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-primary">Skapa</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    <button type="submit" class="btn btn-rt">Skapa</button>
   </div>
 
 </form>
 
 <script type="text/javascript">
-
-    $(function() {
-      /* Disable track choice if private is selected */
-      if ($('input[type="checkbox"]').prop("checked")==true){
+  $(function() {
+    /* Disable track choice if private is selected */
+    if ($('input[type="checkbox"]').prop("checked")==true){
+      $('.block-track').prop('disabled', true)
+    }
+    $('input[type="checkbox"]').click(function(){
+      if($(this).prop("checked") == true){
         $('.block-track').prop('disabled', true)
       }
-      $('input[type="checkbox"]').click(function(){
-        if($(this).prop("checked") == true){
-          $('.block-track').prop('disabled', true)
-        }
-        else if($(this).prop("checked") == false){
-          $('.block-track').prop('disabled', false)
-        }
-      });
+      else if($(this).prop("checked") == false){
+        $('.block-track').prop('disabled', false)
+      }
     });
-
+  });
 </script>

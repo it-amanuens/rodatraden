@@ -1,12 +1,6 @@
 {% extends 'rodatraden/privatecourse/privatecourse_list.html' %}
-{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ privatecourse.title }}{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb privatecourse.title "privatecourse-detail" privatecourse.user.username privatecourse.slug %}
-{% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 

@@ -105,10 +105,10 @@ Potential future improvements,
 
 - [X] All staff can change any block
 - [X] Copy all courseoccasions from one year to another year
+- [ ] Make the blocks nicer
 - [ ] Make it so users can see their pending reports
 - [ ] Associate Profiles with Exams
 - [X] Automatic generation of 'examensbilagan'
 - [ ] Search function for whole site
-- [ ] Less hardcoding for the forms with categories
-- [ ] Redirect to created object after creation
+- [x] Redirect to created object after creation
 - [ ] Re-implement the prerequisite hint on blocks

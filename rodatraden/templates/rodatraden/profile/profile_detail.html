@@ -1,12 +1,6 @@
 {% extends 'rodatraden/profile/profile_list.html' %}
-{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ profile.title }}{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb profile "profile-detail" profile.title %}
-{% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 

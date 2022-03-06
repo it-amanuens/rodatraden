@@ -1,5 +1,4 @@
 {% extends 'rodatraden/block/block_list.html' %}
-{% load django_bootstrap_breadcrumbs %}
 
 <!-- For localization -->
 {% load l10n %}
@@ -28,11 +27,6 @@
 {% endblock %}
 
 {% block page_title %}{{ this_block.title }}{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb this_block.title "block-list" %}
-{% endblock %}
 
 {% block content %}
 

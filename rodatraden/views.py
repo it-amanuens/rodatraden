@@ -27,6 +27,7 @@ from .forms import (
         CategoryForm, ReportForm, PrivateCourseForm
 )
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
+from .rodatraden_modules.functions import is_ajax
 
 import openpyxl
 import os
@@ -125,9 +126,9 @@ class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalUpdateView):
     """Update view for reports."""
 
-    permission_required = 'rodatraden.change_report'
     model = Report
     form_class = ReportForm
+    permission_required = 'rodatraden.change_report'
     template_name = 'rodatraden/report/report_update.html'
     success_message = 'Rapport uppdaterades utan problem'
 
@@ -137,14 +138,17 @@ class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin,
 
 
 class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin,
-        BSModalDeleteView):
+                   BSModalDeleteView):
     """Delete view for reports."""
 
-    permission_required = 'rodatraden.delete_report'
     model = Report
+    permission_required = 'rodatraden.delete_report'
     template_name = 'rodatraden/report/report_confirm_delete.html'
     success_message = 'Rapport raderad'
-    success_url = reverse_lazy('report-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return reverse_lazy('report-list')
 
 ###########
 ## EXAMS ##
@@ -250,9 +254,9 @@ class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalUpdateView):
     """Update view for courses."""
 
-    permission_required = 'rodatraden.change_course'
     model = Course
     form_class = CourseForm
+    permission_required = 'rodatraden.change_course'
     template_name = 'rodatraden/course/course_update.html'
     success_message = 'Kursen uppdaterades utan problem'
 
@@ -344,9 +348,9 @@ class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalUpdateView):
     """Update view for courseoccasions."""
 
-    permission_required = 'rodatraden.change_courseoccasion'
     model = CourseOccasion
     form_class = CourseOccasionForm
+    permission_required = 'rodatraden.change_courseoccasion'
     template_name = 'rodatraden/courseoccasion/courseoccasion_update.html'
     success_message = 'Kurstillfälle uppdaterat'
 
@@ -359,12 +363,13 @@ class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalDeleteView):
     """Delete view for courseoccasions."""
 
-    permission_required = 'rodatraden.delete_courseoccasion'
     model = CourseOccasion
+    permission_required = 'rodatraden.delete_courseoccasion'
     template_name = 'rodatraden/courseoccasion/courseoccasion_confirm_delete.html'
-
     success_message = 'Kurstillfället togs bort utan problem'
-    success_url = reverse_lazy('courseoccasion-list')
+
+    def get_success_url(self):
+        return reverse_lazy('courseoccasion-list')
 
 ############
 # PROFILES #
@@ -639,7 +644,7 @@ def block_detail(request, username, slug):
             return redirect(reverse('index'))
 
     # Ajax request for jquery when rendering block with javascript
-    if request.is_ajax():
+    if is_ajax(request):
         # Get courses and private courses
         courses = [ob.as_json() for ob in block.courseoccasions.all()]
         privcourses = [ob.as_json() for ob in block.privatecourses.all()]

@@ -1,6 +1,5 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load django_bootstrap_breadcrumbs %}
 {% load render_table from django_tables2 %}
 {% load widget_tweaks %}
 {% load bootstrap4 %}
@@ -17,11 +16,6 @@
   <span class="fa fa-plus"></span>
 </a> 
 {% endif %}
-{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb "Kurser" "course-list" %}
 {% endblock %}
 
 {% block page_title %}Kurser{% endblock %}

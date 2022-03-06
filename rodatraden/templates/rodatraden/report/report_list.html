@@ -1,17 +1,11 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load django_bootstrap_breadcrumbs %}
 {% load render_table from django_tables2 %}
 {% load widget_tweaks %}
 {% load bootstrap4 %}
 
 {% block title %}
 Rapporter
-{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb "Rapporter" "report-list" %}
 {% endblock %}
 
 {% block page_title %}Rapporter{% endblock %}

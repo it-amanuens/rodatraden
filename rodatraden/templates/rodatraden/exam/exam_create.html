@@ -1,7 +1,7 @@
 {% load widget_tweaks %}
 {% load static %}
 
-<form method="post" action="">
+<form method="post" action="" novalidate>
   {% csrf_token %}
 
   <div class="modal-header">
@@ -60,7 +60,8 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-rt">Skapa</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    <button type="submit" class="btn btn-rt">Skapa</button>
   </div>
 
 </form>

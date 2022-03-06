@@ -1,6 +1,5 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load django_bootstrap_breadcrumbs %}
 {% load render_table from django_tables2 %}
 {% load widget_tweaks %}
 {% load bootstrap4 %}
@@ -15,11 +14,6 @@ Egna kurser
   data-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
-{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb "Egna kurser" "privatecourse-list" %}
 {% endblock %}
 
 {% block page_title %}Egna kurser{% endblock %}

@@ -1,6 +1,6 @@
 {% load widget_tweaks %}
 
-<form method="post" action="" enctype="multipart/form-data">
+<form method="post" action="" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
 
   <div class="modal-header">
@@ -36,7 +36,8 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="submit-btn btn btn-rt">Skicka rapport</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    <button type="submit" class="btn btn-rt">Skicka rapport</button>
   </div>
 
 </form>

@@ -1,12 +1,6 @@
 {% extends 'rodatraden/exam/exam_list.html' %}
-{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ exam.title }}{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb exam.title "exam-detail" exam.slug %}
-{% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 

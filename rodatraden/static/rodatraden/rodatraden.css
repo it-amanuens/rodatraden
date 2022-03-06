@@ -102,6 +102,7 @@ a:not(.default):hover{
 
 .block-row{
   margin: 15px 0;
+  color: white;
 }
 
 .block {
@@ -159,9 +160,12 @@ a:not(.default):hover{
 .block-item {
   position: absolute;
   border: 2px var(--main-color) solid;
-  color: white;
   background-color: var(--main-color-dark);
   font-size: .9vw;
+}
+
+.block-item a {
+  color: white;
 }
 
 .block-remove-button {

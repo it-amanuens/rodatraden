@@ -1,12 +1,6 @@
 {% extends 'rodatraden/course/course_list.html' %}
-{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ course.title }}{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb course.title "course-detail" course.title %}
-{% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 

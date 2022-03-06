@@ -5,16 +5,14 @@
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
 
-{% load static %}
-{% load django_bootstrap_breadcrumbs %}
-
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
 
-<!doctype html>
+{% load static %}
+
+<!DOCTYPE html>
 <html lang="en">
   <head>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" type="image/png" href="{% static 'rodatraden/RTlogo.svg' %}"/>
@@ -32,18 +30,11 @@
     {% include "rodatraden/navigation.html" %}
 
     <main role="main" class="container">
-      <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">
-        <a class="send-report" data-id="{% url 'report-create' %}">
-        Rapportera problem
-        </a>
-      </button>
-
-      <!-- Breadcrumbs (the nice path at top) -->
-      {% render_breadcrumbs "rodatraden/breadcrumbs.html" %}
-      {% block breadcrumbs %}
-          {% clear_breadcrumbs %}
-          {% breadcrumb "Hem" "/" %}
-      {% endblock %}
+      <a type="button" class="send-report" data-id="{% url 'report-create' %}">
+        <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">
+          Rapportera problem
+        </button>
+      </a>
 
       <div class="starter-template">
 
@@ -80,10 +71,9 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="{% static 'rodatraden/rodatraden.js' %}"></script>
-    <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+    <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
     <!-- Select 2 -->
     <script src="{% static 'assets/js/select2.min.js' %}"></script>
-    <script src="{% static 'assets/js/popper.min.js' %}"></script>
     <script src="{% static 'assets/js/d3.v5.min.js' %}"></script>
     <!-- Fancy icons -->
     <script src="https://kit.fontawesome.com/c6e9b99eeb.js"></script>
@@ -109,7 +99,8 @@
           /* Open modal for delete form */
           $(".delete-item").each(function () {
             $(this).modalForm({
-              formURL: $(this).data('id')
+              formURL: $(this).data('id'),
+              isDeleteForm: true
             });
           })
           {% endif %}

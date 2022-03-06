@@ -11,10 +11,10 @@ from .rodatraden_modules.mixins import (
     CategoryFormMixin, SaveAndImportBlockMixin
 )
 
-from bootstrap_modal_forms.forms import BSModalForm
+from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
 
 
-class CourseForm(CategoryFormMixin, BSModalForm):
+class CourseForm(CategoryFormMixin, BSModalModelForm):
     """Form for Courses."""
 
     def __init__(self, *args, **kwargs):
@@ -39,12 +39,10 @@ class CourseForm(CategoryFormMixin, BSModalForm):
 
     class Meta:
         model = Course
-        fields = ['title', 'description', 'code', 'ects', 'approved',
-        'department', 'level', 'homepage_url', 'evaluation_url', 'closed',
-        'prerequisites', 'tracks', 'recommended']
+        exclude = ['note', 'categories', 'slug', 'created_at', 'updated_at']
 
 
-class ExamForm(CategoryFormMixin, BSModalForm):
+class ExamForm(CategoryFormMixin, BSModalModelForm):
     """Form for Exams."""
 
     def __init__(self, *args, **kwargs):
@@ -65,7 +63,7 @@ class ExamForm(CategoryFormMixin, BSModalForm):
         exclude = ['note']
         
 
-class PrivateCourseForm(CategoryFormMixin, BSModalForm):
+class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
     """Form for private courses."""
 
     def __init__(self, *args, **kwargs):
@@ -96,7 +94,7 @@ class PrivateCourseForm(CategoryFormMixin, BSModalForm):
         widgets = {'user': forms.HiddenInput()}
 
 
-class ProfileForm(BSModalForm):
+class ProfileForm(BSModalModelForm):
     """Form for profiles."""
     
     class Meta:
@@ -104,7 +102,7 @@ class ProfileForm(BSModalForm):
         exclude = ['title_eng', 'description_eng']
 
 
-class CourseOccasionForm(BSModalForm):
+class CourseOccasionForm(BSModalModelForm):
     """Form for course occasions."""
 
     class Meta:
@@ -113,7 +111,7 @@ class CourseOccasionForm(BSModalForm):
         'note', 'contact_name', 'contact_email', 'official']
 
 
-class BlockForm(SaveAndImportBlockMixin, BSModalForm):
+class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
     """Form for blocks."""
 
     import_from = forms.ModelChoiceField(queryset=None, required=False,
@@ -150,7 +148,7 @@ class BlockForm(SaveAndImportBlockMixin, BSModalForm):
         exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
 
 
-class CategoryForm(BSModalForm):
+class CategoryForm(BSModalModelForm):
     """Form for categories."""
 
     class Meta:
@@ -158,7 +156,7 @@ class CategoryForm(BSModalForm):
         exclude = ['title_eng', 'description_eng']
 
 
-class ReportForm(BSModalForm):
+class ReportForm(BSModalModelForm):
     """Form for reports."""
 
     def __init__(self, *args, **kwargs):

@@ -1,12 +1,6 @@
 {% extends 'rodatraden/courseoccasion/courseoccasion_list.html' %}
-{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ courseoccasion.title }}{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb courseoccasion "courseoccasion-detail" courseoccasion.title %}
-{% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 

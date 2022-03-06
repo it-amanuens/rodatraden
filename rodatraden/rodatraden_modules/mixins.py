@@ -1,4 +1,5 @@
 from rodatraden.models import Category, CourseOccasion
+from .functions import is_ajax
 from .forms import CategoryEctsField
 from decimal import Decimal
 
@@ -45,7 +46,7 @@ class CategoryFormMixin(object):
         # This if-case is due to BSModalForms. See issue #14 of the official
         # respository. 
         # https://github.com/trco/django-bootstrap-modal-forms/issues/14
-        if not self.request.is_ajax():
+        if not is_ajax(self.request):
             instance = super().save(commit=commit)
 
             # Captures all fields that start with category_
@@ -108,7 +109,7 @@ class SaveAndImportBlockMixin(object):
         # This if-case is due to BSModalForms. See issue #14 of the official
         # respository. 
         # https://github.com/trco/django-bootstrap-modal-forms/issues/14
-        if not self.request.is_ajax():
+        if not is_ajax(self.request):
             instance = super().save(commit=commit)
 
             # Skip if field not set

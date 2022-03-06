@@ -1,6 +1,5 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load django_bootstrap_breadcrumbs %}
 {% load render_table from django_tables2 %}
 {% load bootstrap4 %}
 
@@ -14,11 +13,6 @@ Blockscheman - {{ user }}
   data-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
-{% endblock %}
-
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% breadcrumb "Blockscheman" "block-list" user.username %}
 {% endblock %}
 
 {% block page_title %}

@@ -1,14 +1,10 @@
 {% extends 'rodatraden/base.html' %}
 {% load static %}
-{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Verktyg{% endblock %}
 
 {% block page_title %}
 Verktyg
-{% endblock %}
-
-{% block breadcrumbs %}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +17,7 @@ till ett annat. Denna funktion skriver inte över existerande kurstillfällen.</
   etc.</b>
 
 <div class='my-3'>
-  <form action={% url 'tools' %} method='post'>
+  <form action={% url 'tools' %} method='post' novalidate>
     {% csrf_token %}
     <span class='px-3'>Ta från år</span>
     <select name='from' id='from'>

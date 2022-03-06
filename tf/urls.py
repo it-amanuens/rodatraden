@@ -17,12 +17,20 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns, static
 from django.conf import settings
 from django.urls import path, include
+from django_registration.backends.activation.views import RegistrationView
+from .forms import RodatradenRegistrationForm
 
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
     path('admin/', admin.site.urls), # Admin page
 
     # Authentication
+    path('anvandare/register/',
+        RegistrationView.as_view(
+            form_class=RodatradenRegistrationForm
+        ),
+        name='django_registration_register',
+    ),
     path('anvandare/', include('django_registration.backends.one_step.urls')),
     path('anvandare/', include('django.contrib.auth.urls')),
 ]
