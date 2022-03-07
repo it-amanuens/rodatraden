@@ -57,6 +57,11 @@ def index(request):
 
     return render(request, 'rodatraden/index.html', context)
 
+def changelog(request):
+    """A site with changelogs."""
+
+    return render(request, 'rodatraden/changelog.html')
+
 def tools(request):
     """Various tools for usage"""
 

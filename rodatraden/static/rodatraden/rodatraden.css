@@ -20,10 +20,6 @@
 
  }
 
-body {
-  padding-top: 5rem;
-}
-
 .badge-rt {
   color: white !important;
   background-color: var(--main-color) !important;
@@ -53,8 +49,7 @@ body {
   max-width: 1200px;
 }
 
-/* TODO: CHANGE NAME */
-.starter-template {
+.main-template {
   padding: 3rem 1.5rem;
   text-align: left;
 }
@@ -161,7 +156,7 @@ a:not(.default):hover{
   position: absolute;
   border: 2px var(--main-color) solid;
   background-color: var(--main-color-dark);
-  font-size: .9vw;
+  font-size: .6vw;
 }
 
 .block-item a {

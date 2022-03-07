@@ -25,10 +25,8 @@
     <link href="{% static 'assets/css/select2.min.css' %}" rel="stylesheet" />
   </head>
 
-  <body>
+  <body class="pt-3">
     <!-- HTML with navbar at top -->
-    {% include "rodatraden/navigation.html" %}
-
     <main role="main" class="container">
       <a type="button" class="send-report" data-id="{% url 'report-create' %}">
         <button class="btn btn-rt fixed-bottom m-1" style="font-size:small;">
@@ -36,7 +34,9 @@
         </button>
       </a>
 
-      <div class="starter-template">
+      {% include "rodatraden/navigation.html" %}
+
+      <div class="main-template min-vh-100">
 
         <!-- Modal -->
         <div class="modal fade" tabindex="-1" role="dialog" id="modal">
@@ -65,6 +65,8 @@
 
       </div>
 
+        <!-- Footer -->
+        {% include "rodatraden/footer.html" %}
     </main>
 
     <!-- Bootstrap core JavaScript
@@ -110,9 +112,6 @@
     <!-- Extra javascript -->
     {% block extra_scripts %}
     {% endblock %}
-
-    <!-- Footer -->
-    {% include "rodatraden/footer.html" %}
 
   </body>
 </html>
