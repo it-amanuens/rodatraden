@@ -423,7 +423,8 @@
           });
 
         /* Link to each course */
-        var courseLinks = courses.append("p").attr("class", "text-center")
+        var courseLinks = courses.append("p")
+          .attr("class", "pr-4 pl-1 text-left")
           .style("font-weight", "bold").style("cursor", "pointer")
           .style("cursor", "hand").style("margin-top", "10px")
           .append("a").text(function(d) {
