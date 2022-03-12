@@ -46,6 +46,10 @@ class ISPTemplate(models.Model):
     def __str__(self):
         return os.path.basename(self.template.name)
 
+    class Meta:
+        verbose_name = 'ISP-mall'
+        verbose_name_plural = 'ISP-mallar'
+
 
 class Report(models.Model):
     """User can send reports about the site."""
