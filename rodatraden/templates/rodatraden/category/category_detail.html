@@ -47,7 +47,7 @@
               <a href="{% url 'course-detail' course.course.slug %}"
               style="font-weight:bold;">{{ course.course.title }}</a>
               </td>
-              <td>{{ course.ects }}</td>
+              <td class="d-none d-lg-block">{{ course.ects }}</td>
             </tr>
           {% endfor %}
           </table>

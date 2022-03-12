@@ -101,6 +101,12 @@ urlpatterns = [
     path('examina/<slug:slug>/radera/', views.ExamDelete.as_view(),
             name='exam-delete'),
 
+    # User management
+    path('anvandare/<slug:slug>/andra', views.UserUpdate.as_view(), 
+            name='user-update'),
+    path('anvandare/<slug:slug>/radera', views.user_delete,
+            name='user-delete'),
+
     # Staff tools
     path('verktyg/', views.tools, name='tools'),
 ]

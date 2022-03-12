@@ -371,6 +371,11 @@ class Course(models.Model):
         self.__original_title = self.title
 
     def __str__(self):
+        # If two or more courses has the same name, tack on the ects
+        qs = Course.objects.filter(title=self.title)
+        if len(qs) > 1:
+            return self.title + ' ' + str(self.ects) + 'hp'
+
         return self.title
 
     def get_absolute_url(self):

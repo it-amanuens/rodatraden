@@ -1,0 +1,20 @@
+{% extends 'rodatraden/index.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Radera användare{% endblock %}
+
+{% block page_title %}Radera användare{% endblock %}
+
+{% block content %}
+
+  <p>Om du vill radera din användare, fyll i din emailadress nedan.</p>
+  <p><strong>Detta kommer radera din användare och allt associerat till denna
+    användare (blockscheman, privata kurser). Använd denna funktion varsamt.
+  </strong></p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="submit-btn btn btn-danger" type="submit">Delete user</button>
+  </form>
+
+{% endblock %}

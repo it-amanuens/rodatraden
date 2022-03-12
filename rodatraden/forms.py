@@ -14,6 +14,20 @@ from .rodatraden_modules.mixins import (
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
 
 
+class UpdateUserForm(forms.ModelForm):
+    """Form for updating user"""
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+
+
+class DeleteUserForm(forms.Form):
+    """Form for deleting user"""
+
+    email = forms.EmailField()
+
+
 class CourseForm(CategoryFormMixin, BSModalModelForm):
     """Form for Courses."""
 
@@ -105,6 +119,25 @@ class ProfileForm(BSModalModelForm):
 class CourseOccasionForm(BSModalModelForm):
     """Form for course occasions."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # If a courseoccasion is copied
+        if 'courseocc' in self.request.GET:
+            courseocc_cpy = CourseOccasion.objects.get(slug=self.request.GET['courseocc'])
+            # This hard-coding might be avoidable. Not sure...
+            self.fields['course'].initial = courseocc_cpy.course
+            self.fields['academic_year'].initial = courseocc_cpy.academic_year
+            self.fields['time_period'].initial = courseocc_cpy.time_period
+            self.fields['weeks'].initial = courseocc_cpy.weeks
+            self.fields['note'].initial = courseocc_cpy.note
+            self.fields['contact_name'].initial = courseocc_cpy.contact_name
+            self.fields['contact_email'].initial = courseocc_cpy.contact_email
+            self.fields['official'].initial = courseocc_cpy.official
+        
+        self.fields['course'].widget.attrs['class'] = \
+            'course-list-filter-courseocc-create'
+
     class Meta:
         model = CourseOccasion
         fields = ['course', 'academic_year', 'time_period', 'weeks',
@@ -139,9 +172,12 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
         if not self.request.user.is_staff:
             del self.fields['track']
 
-        # Ignore if the block already exists
+        # If the block already exists, ignore import
         if self.instance.pk:
             del self.fields['import_from']
+        else:  # Set the default exam as latest (probably only TF)
+            self.fields['exam'].initial = Exam.objects.first()
+            
 
     class Meta:
         model = Block

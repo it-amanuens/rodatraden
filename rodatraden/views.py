@@ -7,10 +7,13 @@ from bootstrap_modal_forms.generic import (
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.http import JsonResponse, HttpResponseRedirect
+from django.views.generic.edit import UpdateView
+from django_registration.forms import RegistrationForm
 
 from .models import (
         Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
@@ -24,7 +27,8 @@ from .tables import (
 from .filters import CourseFilter, CourseOccasionFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
-        CategoryForm, ReportForm, PrivateCourseForm
+        CategoryForm, ReportForm, PrivateCourseForm, UpdateUserForm,
+        DeleteUserForm
 )
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 from .rodatraden_modules.functions import is_ajax
@@ -100,6 +104,40 @@ def tools(request):
 
     return render(request, 'rodatraden/tools.html', context)
 
+###########
+## USERS ##
+###########
+
+class UserUpdate(CorrectUserPermissionMixin, UpdateView):
+    """Creation view for reports."""
+
+    model = User
+    form_class = UpdateUserForm
+    # Check against username since users don't have slugs
+    slug_field = 'username'
+    template_name = 'rodatraden/user/update_user_form.html'
+    success_url = reverse_lazy('index')
+
+
+@login_required
+def user_delete(request, slug):
+
+    if request.user.username != slug:
+        return redirect(reverse('index'))
+
+    if request.method == 'POST':
+        form = DeleteUserForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            if data['email'] == request.user.email:
+                user = User.objects.get(pk=request.user.id)
+                logout(request)
+                user.delete()
+                return redirect(reverse('index'))
+    else:
+        form = DeleteUserForm()
+
+    return render(request, 'rodatraden/user/delete_user_form.html', {'form': form})
 
 #############
 ## REPORTS ##
@@ -346,7 +384,11 @@ class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion/courseoccasion_create.html'
     success_message = 'Kurstillfället skapades utan problem'
-    success_url = reverse_lazy('courseoccasion-list')
+    #success_url = reverse_lazy('courseoccasion-list')
+
+    def get_success_url(self):
+        # Return to last page
+        return self.request.META['HTTP_REFERER']
 
 
 class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin,
@@ -584,7 +626,8 @@ class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
     def get_queryset(self, *args, **kwargs):
         self.qs = super().get_queryset()
         # Filter the blocks for the given user
-        return self.qs.filter(user__username=self.kwargs['username'])
+        qs = self.qs.filter(user__username=self.kwargs['username']).order_by('title')
+        return qs
 
 
 class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,

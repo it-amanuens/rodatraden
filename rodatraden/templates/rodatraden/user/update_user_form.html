@@ -1,0 +1,16 @@
+{% extends 'rodatraden/index.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Uppdatera användare{% endblock %}
+
+{% block page_title %}Uppdatera användare{% endblock %}
+
+{% block content %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="submit-btn btn btn-light" type="submit">Uppdatera</button>
+  </form>
+
+{% endblock %}

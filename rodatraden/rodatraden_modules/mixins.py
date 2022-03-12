@@ -2,6 +2,8 @@ from rodatraden.models import Category, CourseOccasion
 from .functions import is_ajax
 from .forms import CategoryEctsField
 from decimal import Decimal
+from django.shortcuts import redirect
+from django.urls import reverse
 
 class CategoryFormMixin(object):
     """Form mixin for creation and saving of CategoryEctsFields.
@@ -166,7 +168,11 @@ class CorrectUserPermissionMixin:
             return super().dispatch(request, *args, **kwargs)
         # Allow only the current user access or staff users
         else:
-            if (kwargs['username'] == request.user.username or
+            key = 'username'
+            if not key in kwargs:
+                key = 'slug'
+
+            if (kwargs[key] == request.user.username or
                 request.user.is_staff):
                 return super().dispatch(request, *args, **kwargs)
             else:

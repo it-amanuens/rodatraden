@@ -18,7 +18,19 @@
    background-color: white;
    z-index: 99; /* Higher than anything else in the document */
 
- }
+}
+
+.card-columns {
+  @include media-breakpoint-only(lg) {
+    column-count: 3;
+  }
+}
+
+.rt-page-title {
+  @include media-breakpoint-only(lg) {
+    font-size: small;
+  }
+}
 
 .badge-rt {
   color: white !important;

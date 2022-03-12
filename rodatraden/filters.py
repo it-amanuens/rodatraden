@@ -7,19 +7,21 @@ from .models import (
 class CourseFilter(django_filters.FilterSet):
     """Filter settings for the list of courses."""
 
-    title = django_filters.ModelChoiceFilter(queryset=Course.objects.all(),
-        empty_label='Kursnamn'
+    title = django_filters.ModelChoiceFilter(
+        queryset=Course.objects.all().order_by('title'), empty_label='Kursnamn'
     )
     categories = django_filters.ModelChoiceFilter(
-        queryset=Category.objects.all(), empty_label='Kategori'
+        queryset=Category.objects.all().order_by('title')
     )
-    level = django_filters.ModelChoiceFilter(queryset=Level.objects.all(),
-        empty_label='Nivå'
+    level = django_filters.ModelChoiceFilter(
+        queryset=Level.objects.all(), empty_label='Nivå'
     )
     department = django_filters.ModelChoiceFilter(
-        queryset=Department.objects.all(), empty_label='Institution'
+        queryset=Department.objects.all().order_by('title'), 
+        empty_label='Institution'
     )
-    profile = django_filters.ModelChoiceFilter(queryset=Track.objects.all(),
+    profile = django_filters.ModelChoiceFilter(
+        queryset=Track.objects.all().order_by('title'),
         empty_label='Profil', field_name='tracks'
     )
 
@@ -33,7 +35,8 @@ class CourseOccasionFilter(django_filters.FilterSet):
     
     # A lot of the filters refer to the course that the courseoccasion is
     # connected to, hence the 'field_name' argument
-    title = django_filters.ModelChoiceFilter(queryset=Course.objects.all(),
+    title = django_filters.ModelChoiceFilter(
+            queryset=Course.objects.all().order_by('title'),
             empty_label='Kursnamn', to_field_name='id', field_name='course'
     )
     year = django_filters.ModelChoiceFilter(
@@ -45,11 +48,13 @@ class CourseOccasionFilter(django_filters.FilterSet):
             empty_label='Läsperiod', field_name='time_period'
     )
     categories = django_filters.ModelChoiceFilter(
-            queryset=Category.objects.all(), field_name='course__categories',
+            queryset=Category.objects.all().order_by('title'), 
+            field_name='course__categories',
             empty_label='Kategori'
     )
     department = django_filters.ModelChoiceFilter(
-            queryset=Department.objects.all(), field_name='course__department',
+            queryset=Department.objects.all().order_by('title'), 
+            field_name='course__department',
             empty_label='Institution'
     )
     official = django_filters.ChoiceFilter(
