@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'bootstrap4',
     'crispy_forms',
     'django_bootstrap_breadcrumbs',
-    'view_breadcrumbs',
     'django_tables2',
     'django_filters',
     'bootstrap_modal_forms',
@@ -87,7 +86,6 @@ TEMPLATES = [
 # For CAS authentication
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'django_cas_ng.backends.CASBackend',
 )
 
 WSGI_APPLICATION = 'tf.wsgi.application'
@@ -106,6 +104,8 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Email
 DEFAULT_FROM_EMAIL = 'lucash@fastmail.com'
@@ -150,8 +150,6 @@ LANGUAGE_CODE = 'sv-se'
 TIME_ZONE = 'Europe/Stockholm'
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
