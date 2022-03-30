@@ -71,7 +71,7 @@ urlpatterns = [
     path('blockscheman/<str:username>/<slug:slug>/',
         views.block_detail, name='block-detail'),
     path('blockscheman/<str:username>/<slug:slug>/radera',
-        views.BlockRemove.as_view(), name='block-delete'),
+        views.BlockDelete.as_view(), name='block-delete'),
     path('blockscheman/<str:username>/<slug:slug>/andra/',
         views.BlockUpdate.as_view(), name='block-update'),
     path('blockscheman/<str:username>/<slug:slug>/kurslista/',
@@ -102,9 +102,12 @@ urlpatterns = [
             name='exam-delete'),
 
     # User management
-    path('anvandare/<slug:slug>/andra', views.UserUpdate.as_view(), 
+    # TODO: The <int:pk> is only to avoid complaints by the generic view. This
+    # should be removed, but I can't be arsed right now. Double security
+    # perhaps?
+    path('anvandare/<str:username>/<int:pk>/andra', views.UserUpdate.as_view(), 
             name='user-update'),
-    path('anvandare/<slug:slug>/radera', views.user_delete,
+    path('anvandare/<str:username>/<int:pk>/radera', views.user_delete,
             name='user-delete'),
 
     # Staff tools

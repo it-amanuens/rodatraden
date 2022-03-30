@@ -114,15 +114,14 @@ class UserUpdate(CorrectUserPermissionMixin, UpdateView):
     model = User
     form_class = UpdateUserForm
     # Check against username since users don't have slugs
-    slug_field = 'username'
     template_name = 'rodatraden/user/update_user_form.html'
     success_url = reverse_lazy('index')
 
 
 @login_required
-def user_delete(request, slug):
+def user_delete(request, username, pk):
 
-    if request.user.username != slug:
+    if request.user.username != username and request.user.id != pk:
         return redirect(reverse('index'))
 
     if request.method == 'POST':
@@ -631,7 +630,7 @@ class BlockList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
 
 
 class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
-        BSModalUpdateView):
+                  BSModalUpdateView):
     """Update view for blocks."""
 
     model = Block
@@ -663,12 +662,12 @@ class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
 
     def get_success_url(self, **kwargs):
         return reverse_lazy('block-list',
-                kwargs={'username':self.kwargs['username']})
+                            kwargs={'username':self.kwargs['username']})
 
 
-class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
+class BlockDelete(CorrectUserPermissionMixin, LoginRequiredMixin,
         BSModalDeleteView):
-    """Remove view for blocks."""
+    """Delete view for blocks."""
 
     model = Block
     template_name = 'rodatraden/block/block_confirm_delete.html'
@@ -676,7 +675,7 @@ class BlockRemove(CorrectUserPermissionMixin, LoginRequiredMixin,
 
     def get_success_url(self, **kwargs):
         return reverse_lazy('block-list',
-                kwargs={'username':self.kwargs['username']})
+                            kwargs={'username':self.kwargs['username']})
 
 
 def block_detail(request, username, slug):

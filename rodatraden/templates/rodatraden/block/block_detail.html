@@ -196,7 +196,10 @@
     });
 
     $(".delete-block").each(function () {
-      $(this).modalForm({formURL: $(this).data('id')});
+      $(this).modalForm({
+        formURL: $(this).data('id'),
+        isDeleteForm: true
+      });
     });
 
     $(function() {

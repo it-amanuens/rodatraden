@@ -168,11 +168,7 @@ class CorrectUserPermissionMixin:
             return super().dispatch(request, *args, **kwargs)
         # Allow only the current user access or staff users
         else:
-            key = 'username'
-            if not key in kwargs:
-                key = 'slug'
-
-            if (kwargs[key] == request.user.username or
+            if (kwargs['username'] == request.user.username or
                 request.user.is_staff):
                 return super().dispatch(request, *args, **kwargs)
             else:

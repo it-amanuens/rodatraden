@@ -29,3 +29,6 @@ env/
 
 # virtualenv
 activate
+
+# Testing stuff
+testing
