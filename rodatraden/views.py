@@ -1,29 +1,29 @@
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
 from bootstrap_modal_forms.generic import (
-        BSModalDeleteView, BSModalCreateView, BSModalUpdateView,
-        BSModalReadView
+    BSModalDeleteView, BSModalCreateView, BSModalUpdateView
 )
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin, PermissionRequiredMixin
+)
 from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.views.generic.edit import UpdateView
-from django_registration.forms import RegistrationForm
 
 from .models import (
-        Category, Course, CourseOccasion, Block, User, Prerequisite, Profile,
-        CategoryExam, CategoryCourse, AcademicYear, Exam, Report, PrivateCourse,
-        ISPTemplate
+    Category, Course, CourseOccasion, Block, User, Profile,
+    CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
+    PrivateCourse, ISPTemplate
 )
 from .tables import (
-        CourseTable, CourseOccasionTable, ExamTable, ReportTable,
-        PrivateCourseTable
-        )
+    CourseTable, CourseOccasionTable, ExamTable, ReportTable,
+    PrivateCourseTable
+)
 from .filters import CourseFilter, CourseOccasionFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
@@ -35,7 +35,6 @@ from .rodatraden_modules.functions import is_ajax
 
 import openpyxl
 import os
-import string
 import math
 import re
 from django.views.static import serve
@@ -46,25 +45,25 @@ from openpyxl.styles import Alignment, Font
 from django.conf import settings
 
 
-import pdb
-
 def index(request):
     """Homepage of site."""
 
     context = {
             'latest_courses': Course.objects.all().order_by('-updated_at')[:7],
             'latest_blocks':
-                Block.objects.filter(private=0).order_by('-updated_at')[:7],
+            Block.objects.filter(private=0).order_by('-updated_at')[:7],
             'categories': Category.objects.all().order_by('title'),
             'profiles': Profile.objects.all(),
             }
 
     return render(request, 'rodatraden/index.html', context)
 
+
 def changelog(request):
     """A site with changelogs."""
 
     return render(request, 'rodatraden/changelog.html')
+
 
 def tools(request):
     """Various tools for usage"""
@@ -78,7 +77,7 @@ def tools(request):
         # Copying courseoccasions tool
         if 'courseocc_copy' in request.POST:
             from_acyear = AcademicYear.objects.get(id=request.POST['from'])
-            to_acyear   = AcademicYear.objects.get(id=request.POST['to'])
+            to_acyear = AcademicYear.objects.get(id=request.POST['to'])
             # Make sure that the years exist
             if from_acyear and to_acyear:
                 # From all the current courseoccasions
@@ -104,9 +103,29 @@ def tools(request):
 
     return render(request, 'rodatraden/tools.html', context)
 
-###########
-## USERS ##
-###########
+##########
+# ERRORS #
+##########
+
+
+def rt400(request, exception=None):
+    return render(request, 'rodatraden/400.html')
+
+
+def rt403(request, exception=None):
+    return render(request, 'rodatraden/403.html')
+
+
+def rt404(request, exception=None):
+    return render(request, 'rodatraden/404.html')
+
+
+def rt500(request, exception=None):
+    return render(request, 'rodatraden/500.html')
+
+#########
+# USERS #
+#########
 
 class UserUpdate(CorrectUserPermissionMixin, UpdateView):
     """Creation view for reports."""

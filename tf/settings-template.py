@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     # third-party
     'bootstrap4',
     'crispy_forms',
-    'django_bootstrap_breadcrumbs',
     'django_tables2',
     'django_filters',
     'bootstrap_modal_forms',

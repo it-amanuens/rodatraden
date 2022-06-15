@@ -35,6 +35,12 @@ urlpatterns = [
     path('anvandare/', include('django.contrib.auth.urls')),
 ]
 
+# Error handlers
+handler400 = 'rodatraden.views.rt400'
+handler403 = 'rodatraden.views.rt403'
+handler404 = 'rodatraden.views.rt404'
+handler500 = 'rodatraden.views.rt500'
+
 # This is added for correct handling of static files
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
