@@ -513,6 +513,19 @@ class ProfileDetail(DetailView):
         return context
 
 
+class ProfileDetailKristerEdit(DetailView):
+    """Test of a new layout for the detail view for profiles as requested by Krister."""
+
+    model = Profile
+    template_name = 'rodatraden/profile/profile_detail_krister_edit.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tracks'] = self.object.track_set.all()
+
+        return context
+
+
 class ProfileCreate(LoginRequiredMixin, PermissionRequiredMixin,
         BSModalCreateView):
     """Creation view for profiles."""

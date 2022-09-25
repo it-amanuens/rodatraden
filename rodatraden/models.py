@@ -209,6 +209,7 @@ class TimePeriod(models.Model):
         verbose_name_plural = 'Tidsperioder'
 
 
+# Modified on requiest by  Krister
 class Profile(models.Model):
     """Different profiles for the program"""
 
@@ -225,6 +226,14 @@ class Profile(models.Model):
             null=False, blank=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
+
+    # Krister modifications here
+    schedule = models.ImageField(upload_to='profiles/krister_edit/', blank=True, null=True,
+            verbose_name='Blockschema')
+    schedule_description = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Förtydligande')
+    additional_courses = models.TextField(max_length=5000, blank=True, null=True,
+            verbose_name='Ytterligare kurser')
 
     __original_title = None
 

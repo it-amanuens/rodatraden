@@ -1,0 +1,141 @@
+{% extends 'rodatraden/profile/profile_list.html' %}
+
+{% block title %}{{ profile.title }}{% endblock %}
+
+{% block menu %}
+<a class="btn btn-gone" 
+  href="{% url 'profile-list' %}"
+  data-toggle="tooltip" title="Profiler">
+  <span class="fa fa-list"></span>
+</a>
+{% if user.is_staff %}
+<a class="btn btn-gone update-item" 
+  data-id="{% url 'profile-update' profile.slug %}"
+  data-toggle="tooltip" title="Ändra">
+  <span class="fa fa-edit"></span>
+</a>
+<a class="btn btn-gone delete-item"
+  data-id="{% url 'profile-delete' profile.slug %}"
+  data-toggle="tooltip" title="Radera">
+  <span class="fa fa-trash"></span>
+</a> 
+{% endif %}
+{% endblock %}
+
+{% block page_title %}{{ profile.title }}{% endblock %}
+
+{% block content %}
+
+<div class="row px-3">
+  <div class="col-lg-8 p-3 course-main">
+    {% if profile.description %}
+    {{ profile.description | safe }}
+    {% else %}
+    Denna profil saknar beskrivning.
+    {% endif %}
+  </div>
+  <div class="col-lg-4 text-center">
+    <img 
+    {% if profile.image %}
+       src="{{ profile.image.url }}" 
+    {% else %} 
+       src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
+    {% endif %}
+       alt="{{ profile.title }}" class="img-thumbnail mt-5">
+    </img>
+    </div>
+  </div>
+</div>
+<div class="row px-3">
+  
+  <div class="col-lg-6 p-3 text-center">
+    <div class="row">
+      <div>
+        <img 
+        {% if profile.schedule %}
+          src="{{ profile.schedule.url }}" 
+        {% else %} 
+          src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
+        {% endif %}
+          alt="{{ profile.title }}" class="img-thumbnail">
+        </img>
+      </div>
+      <div class="text-left">
+        {% if profile.schedule_description %}
+        {{ profile.schedule_description | safe }}
+        {% else %}
+        Detta schema saknar förtydligande.
+        {% endif %}
+      </div>
+    </div>
+
+    
+  </div>
+  <div class="col-lg-6">
+    {% if profile.additional_courses %}
+    {{ profile.additional_courses | safe }}
+    {% else %}
+    Denna profil saknar ytterligare kurser.
+    {% endif %}
+  </div>
+</div>
+{% for track in tracks %}
+<hr>
+<h2 class="mb-3">{{ track.title }}</h2>
+{% if track.description %}
+<div class="course-etc p-2 m-2">
+{{ track.description | safe}}
+</div>
+{% endif %}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card">
+      <h5 class="card-header">Profilkurser</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush m-0">
+        {% for course in track.course_set.all %}
+        <li class="list-group-item">
+          <a href="{% url 'course-detail' course.slug %}"
+          style="font-weight:bold;">{{ course.title }}</a>
+        </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <h5 class="card-header">Rekommenderade kurser</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush m-0">
+        {% for course in track.recommended_track.all %}
+        <li class="list-group-item">
+          <a href="{% url 'course-detail' course.slug %}"
+          style="font-weight:bold;">{{ course.title }}</a>
+        </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card">
+      <h5 class="card-header">Blockschema</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush m-0">
+        {% for this_block in track.block_set.all %}
+        {% if not this_block.private %}
+        <li class="list-group-item">
+          <a href="{% url 'block-detail' this_block.user.username this_block.slug %}"
+          style="font-weight:bold;">{{ this_block.title }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -95,6 +95,10 @@ urlpatterns = [
          views.ProfileUpdate.as_view(), name='profile-update'),
     path('profiler/<slug:slug>/', views.ProfileDetail.as_view(),
          name='profile-detail'),
+    
+    # Testing a new layout as requiested by Krister.
+    path('profiler/<slug:slug>/krister_edit/', views.ProfileDetailKristerEdit.as_view(),
+         name='profile-detail-krister-edit'),
 
     # Exams
     path('examina/', views.ExamList.as_view(), name='exam-list'),
