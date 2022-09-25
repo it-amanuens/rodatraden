@@ -658,8 +658,16 @@ class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
     success_message = 'Ändringarna i blockschemat sparades'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        old_slug = self.kwargs['slug']
+        new_slug = self.object.slug
+
+        if new_slug == old_slug:
+            # Return to last page
+            return self.request.META['HTTP_REFERER']
+        else:
+            # Return to the updated url since the user renamed the block
+            return reverse_lazy('block-detail',
+                                kwargs={'username': self.kwargs['username'], 'slug': new_slug})
 
 
 class BlockCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
