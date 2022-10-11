@@ -19,13 +19,13 @@
           <!-- TODO: Fix this shitty solution -->
           <div class="dropdown-divider"></div>
           {% for profile in profile_list %}
-            {% if profile.title == "Basblock " %}
+            {% if profile.title == "Basblock" %}
               <a class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
             {% endif %}
           {% endfor %}
           <div class="dropdown-divider"></div>
           {% for profile in profile_list %}
-            {% if not profile.title == "Basblock " %}
+            {% if not profile.title == "Basblock" %}
               <a class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
             {% endif %}
           {% endfor %}
