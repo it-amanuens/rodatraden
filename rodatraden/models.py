@@ -61,7 +61,7 @@ class Report(models.Model):
     fixed = models.BooleanField(default=False, verbose_name='Hanterat')
     note = models.TextField(max_length=5000, verbose_name='Kommentarer',
             blank=True, null=True)
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False, verbose_name='Skapad')
@@ -192,7 +192,7 @@ class Profile(models.Model):
             verbose_name='Förkortning')
     image = models.ImageField(upload_to='profiles/', blank=True, null=True,
             verbose_name='Bild')
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -297,7 +297,7 @@ class Track(models.Model):
     # If the track is valid
     valid = models.BooleanField(default=True, blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -579,7 +579,7 @@ class Exam(models.Model):
     note = models.CharField(max_length=250, blank=True, null=True)
     categories = models.ManyToManyField(Category, through='CategoryExam',
             blank=True)
-    slug = models.SlugField(unique=True, editable=False)
+    slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False, verbose_name='Skapad')
@@ -637,7 +637,7 @@ class PrivateCourse(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     categories = models.ManyToManyField(Category,
             through='PrivateCourseCategory')
-    slug = models.SlugField(unique=False, editable=False)
+    slug = models.SlugField(max_length=100, unique=False, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -735,7 +735,7 @@ class Block(models.Model):
             blank=True, verbose_name='Spår')
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, 
             verbose_name='Examen')
-    slug = models.SlugField(unique=False, editable=False)
+    slug = models.SlugField(max_length=100, unique=False, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
