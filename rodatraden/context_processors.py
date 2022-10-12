@@ -4,8 +4,8 @@ def nav_processor(request):
     """Return information that should be accessible to all templates."""
 
     context = {
-        'category_list': Category.objects.all(),
-        'profile_list': Profile.objects.all(),
+        'category_list': Category.objects.all().order_by('title'),
+        'profile_list': Profile.objects.all().order_by('title'),
         'new_reports': Report.objects.filter(fixed=False).count(),
     }
 

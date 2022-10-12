@@ -10,22 +10,22 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
+      {% for profile in profile_list %}
+        {% if profile.title == "Basblock" %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="http://example.com"
           id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
           aria-expanded="false">Profiler</a>
         <div class="dropdown-menu" aria-labelledby="dropdown01">
           <a class="dropdown-item" href="{% url 'profile-list' %}">Alla</a>
-          <!-- TODO: Fix this shitty solution -->
           <div class="dropdown-divider"></div>
           {% for profile in profile_list %}
-            {% if profile.title == "Basblock " %}
-              <a class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
-            {% endif %}
-          {% endfor %}
-          <div class="dropdown-divider"></div>
-          {% for profile in profile_list %}
-            {% if not profile.title == "Basblock " %}
+            {% if not profile.title == "Basblock" %}
               <a class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
             {% endif %}
           {% endfor %}
@@ -139,22 +139,22 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
+      {% for profile in profile_list %}
+        {% if profile.title == "Basblock" %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="http://example.com"
           id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
           aria-expanded="false">Profiler</a>
         <div class="dropdown-menu" aria-labelledby="dropdown01">
           <a style="font-size: small;" class="dropdown-item" href="{% url 'profile-list' %}">Alla</a>
-          <!-- TODO: Fix this shitty solution -->
           <div class="dropdown-divider"></div>
           {% for profile in profile_list %}
-            {% if profile.title == "Basblock " %}
-              <a style="font-size: small;" class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
-            {% endif %}
-          {% endfor %}
-          <div class="dropdown-divider"></div>
-          {% for profile in profile_list %}
-            {% if not profile.title == "Basblock " %}
+            {% if not profile.title == "Basblock" %}
               <a style="font-size: small;" class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
             {% endif %}
           {% endfor %}
