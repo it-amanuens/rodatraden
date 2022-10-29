@@ -1,14 +1,14 @@
 {% load static %}
 
-<div class="d-none d-lg-block">
-<nav class="navbar navbar-expand-md navbar-light bg-light rounded-pill">
+<nav class="navbar navbar-expand-lg navbar-light bg-light primary-nav">
   <a class="navbar-brand" href="{% url 'index' %}">
     <img src="{% static 'rodatraden/RTlogo.svg' %}" width="35"></img>
   </a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#primary-navbar" aria-controls="primary-navbar" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+
+  <div class="collapse navbar-collapse" id="primary-navbar">
     <ul class="navbar-nav mr-auto">
       {% for profile in profiles_sorted %}
         {% if profile.title == "Basblock" %}
@@ -17,25 +17,23 @@
           </li>
         {% endif %}
       {% endfor %}
+
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">Profiler</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
+        <a class="nav-link dropdown-toggle" href="#" id="profile-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Profiler</a>
+          <div class="dropdown-menu" aria-labelledby="profile-dropdown">
           <a class="dropdown-item" href="{% url 'profile-list' %}">Alla</a>
           <div class="dropdown-divider"></div>
           {% for profile in profiles_sorted %}
-            {% if not profile.title == "Basblock" %}
+            {% if profile.title != "Basblock" %}
               <a class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
             {% endif %}
           {% endfor %}
         </div>
       </li>
+
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">Kategorier</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
+        <a class="nav-link dropdown-toggle" href="#" id="category-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Kategorier</a>
+        <div class="dropdown-menu" aria-labelledby="category-dropdown">
           <a class="dropdown-item" href="{% url 'category-list' %}">Alla</a>
           <div class="dropdown-divider"></div>
           {% for category in categories_sorted %}
@@ -43,199 +41,86 @@
           {% endfor %}
         </div>
       </li>
+
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">Kurser</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
+        <a class="nav-link dropdown-toggle" href="#" id="course-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Kurser</a>
+        <div class="dropdown-menu" aria-labelledby="course-dropdown">
           <a class="dropdown-item" href="{% url 'course-list' %}">Kurser</a>
           <a class="dropdown-item" href="{% url 'courseoccasion-list' %}">Kurstillfällen</a>
         </div>
       </li>
     </ul>
-  </div>
-  <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+
+    <div class="dropdown-divider"></div>
+    
     <ul class="navbar-nav ml-auto">
       {% if user.is_authenticated %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-           aria-expanded="false">{{ logged_user }}</a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-          <a class="dropdown-item" href="{% url 'block-list' logged_user %}">Blockscheman</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Privata
-            kurser</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{% url 'user-update' user.username user.id %}">Uppdatera användare</a>
-          <a class="dropdown-item" href="{% url 'user-delete' user.username user.id %}">Radera användare</a>
-          <a class="dropdown-item" href="{% url 'logout' %}">Logga ut</a>
-        </div>
-      </li>
-      {% if user_blocks %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-           aria-expanded="false">Skapade blockscheman</a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-          {% for block in user_blocks %}
-          <a style="font-size:small;" class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
-          {% endfor %}
-        </div>
-      </li>
-      {% endif %}
-      {% else %}
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'login' %}">Logga in</a>
-      </li>
-      {% endif %}
-      {% if user.is_staff %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">
-          <span class="fa fa-cogs default"></span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-          <a class="dropdown-item" href="{% url 'exam-list' %}">Examina</a>
-          <a class="dropdown-item" href="{% url 'report-list' %}">Rapporter</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{% url 'tools' %}">Verktyg</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link mt-1" href="{% url 'report-list' %}">
-          {% if new_reports %}
-          <span class="badge badge-warning">
-          {{ new_reports }} 
-          {% if new_reports == 1 %}
-            ny rapport
-          {% else %}
-            nya rapporter
-          {% endif %}
-          </span>
-          {% else %}
-          <span class="badge badge-secondary">
-          Inga nya rapporter
-          </span>
-          {% endif %}
-        </a>
-      </li>
-      {% endif %}
-    </ul>
-  </div>
-</nav>
-</div>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ logged_user }}</a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
+            <a class="dropdown-item" href="{% url 'block-list' logged_user %}">Blockscheman</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Privata kurser</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{% url 'user-update' user.username user.id %}">Uppdatera användare</a>
+            <a class="dropdown-item" href="{% url 'user-delete' user.username user.id %}">Radera användare</a>
+            <a class="dropdown-item" href="{% url 'logout' %}">Logga ut</a>
+          </div>
+        </li>
 
-<div class="d-md-none">
-<nav class="navbar navbar-expand-md navbar-light bg-light rounded">
-  <a class="navbar-brand" href="{% url 'index' %}">
-    <img src="{% static 'rodatraden/RTlogo.svg' %}" width="35"></img>
-  </a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-    <ul class="navbar-nav mr-auto">
-      {% for profile in profiles_sorted %}
-        {% if profile.title == "Basblock" %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
+        {% if user_blocks %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="blocks-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Skapade blockscheman</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="blocks-dropdown">
+              {% for block in user_blocks %}
+                <a class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
+              {% endfor %}
+            </div>
           </li>
         {% endif %}
-      {% endfor %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">Profiler</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'profile-list' %}">Alla</a>
-          <div class="dropdown-divider"></div>
-          {% for profile in profiles_sorted %}
-            {% if not profile.title == "Basblock" %}
-              <a style="font-size: small;" class="dropdown-item" href="{% url 'profile-detail' profile.slug %}">{{ profile.title }}</a>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">Kategorier</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'category-list' %}">Alla</a>
-          <div class="dropdown-divider"></div>
-          {% for category in categories_sorted %}
-            <a style="font-size: small;" class="dropdown-item" href="{% url 'category-detail' category.slug %}">{{ category.title }}</a>
-          {% endfor %}
-        </div>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">Kurser</a>
-        <div class="dropdown-menu" aria-labelledby="dropdown01">
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'course-list' %}">Kurser</a>
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'courseoccasion-list' %}">Kurstillfällen</a>
-        </div>
-      </li>
-      {% if user.is_authenticated %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-           aria-expanded="false">{{ logged_user }}</a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'block-list' logged_user %}">Blockscheman</a>
-          <div class="dropdown-divider"></div>
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Privata
-            kurser</a>
-          <div class="dropdown-divider"></div>
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'logout' %}">Logga ut</a>
-        </div>
-      </li>
+
       {% else %}
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'login' %}">Logga in</a>
-      </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'login' %}">Logga in</a>
+        </li>
       {% endif %}
+
       {% if user.is_staff %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="http://example.com"
-          id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-          aria-expanded="false">
-          <span class="fa fa-cogs default"></span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown01">
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'exam-list' %}">Examina</a>
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'report-list' %}">Rapporter</a>
-          <div class="dropdown-divider"></div>
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'tools' %}">Verktyg</a>
-          <div class="dropdown-divider"></div>
-          <a style="font-size: small;" class="dropdown-item" href="{% url 'admin:index' %}">Admin</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link mt-1" href="{% url 'report-list' %}">
-          {% if new_reports %}
-          <span class="badge badge-warning">
-          {{ new_reports }} 
-          {% if new_reports == 1 %}
-            ny rapport
-          {% else %}
-            nya rapporter
-          {% endif %}
-          </span>
-          {% else %}
-          <span class="badge badge-secondary">
-          Inga nya rapporter
-          </span>
-          {% endif %}
-        </a>
-      </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="http://example.com"
+            id="staff-dropdown" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">
+            <span class="fa fa-cogs default"></span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="staff-dropdown">
+            <a class="dropdown-item" href="{% url 'exam-list' %}">Examina</a>
+            <a class="dropdown-item" href="{% url 'report-list' %}">Rapporter</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{% url 'tools' %}">Verktyg</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a>
+          </div>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link mt-1" href="{% url 'report-list' %}">
+            {% if new_reports %}
+              <span class="badge badge-warning">
+                {{ new_reports }} 
+                {% if new_reports == 1 %}
+                  ny rapport
+                {% else %}
+                  nya rapporter
+                {% endif %}
+              </span>
+            {% else %}
+              <span class="badge badge-secondary">
+                Inga nya rapporter
+              </span>
+            {% endif %}
+          </a>
+        </li>
       {% endif %}
     </ul>
   </div>
 </nav>
-</div>

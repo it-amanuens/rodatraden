@@ -46,6 +46,21 @@
   height: 150px;
 }
 
+/* Header navbar */
+.primary-nav .dropdown-item {
+  font-size: small;
+}
+
+@media (min-width: 992px) {
+  .primary-nav {
+    border-radius: 50rem!important;
+  }
+
+  .primary-nav .dropdown-item {
+    font-size: 1rem;
+  }
+}
+
 /* Info bar at detail views */
 .course-etc {
   background-color: #ececec;
