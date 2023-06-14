@@ -1,4 +1,4 @@
-# Röda Tråden 4
+![Röda Tråden](./rodatraden/static/rodatraden/RTheader.svg)
 
 The fourth version of Röda Tråden written in Django!
 
