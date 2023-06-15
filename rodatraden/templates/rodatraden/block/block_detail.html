@@ -110,6 +110,10 @@
   <!-- Helper scripts for rendering blocks -->
   <script src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
 
+  {{ categories_title|json_script:"categories-title-data" }}
+  {{ categories_ects|json_script:"categories-ects-data" }}
+  {{ categories_sum|json_script:"categories-sum-data" }}
+
   <script defer 
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
@@ -143,6 +147,16 @@
         colors: ['var(--gray)', 'var(--main-color)']
     });
 
+    const categoriesTitle = JSON.parse(
+      document.getElementById('categories-title-data').textContent
+    );
+    const categoriesEcts = JSON.parse(
+      document.getElementById('categories-ects-data').textContent
+    );
+    const categoriesSum = JSON.parse(
+      document.getElementById('categories-sum-data').textContent
+    );
+
     Highcharts.chart('chart', {
 
         chart: {
@@ -152,10 +166,7 @@
             text: ''
         },
         xAxis: {
-            categories: [
-              {% for category in categories %}'{{ category.category.title }}'
-              {% if not forloop.last %}, {% endif %}{% endfor %}
-            ]
+            categories: categoriesTitle
         },
         yAxis: {
             min: 0,
@@ -183,17 +194,10 @@
         },
         series: [{
             name: 'Krav',
-            data: [
-              {% for category in categories %}{{ category.ects|unlocalize }}
-              {% if not forloop.last %}, {% endif %}{% endfor %}
-            ]
+            data: categoriesEcts
         }, {
             name: 'Summa',
-            data: [
-              {% for key, value in categories_sum.items %}{{ value|unlocalize }}
-              {% if not forloop.last %}, {% endif %}{% endfor %}
-            ]
-
+            data: categoriesSum
         }]
     });
 

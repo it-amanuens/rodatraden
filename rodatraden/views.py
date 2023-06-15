@@ -832,16 +832,26 @@ def block_detail(request, username, slug):
         # Get all categories for the block exam and build dict with those as
         # keys
         categories = CategoryExam.objects.filter(exam=block.exam)
+
+        categories_title = [category.category.title for category in
+            categories]
+
+        categories_ects = [float(category.ects) for category in categories]
+
         category_sum = dict.fromkeys([category.category.title for category in
             categories], 0)
         # Get sum from block
         block.total_category_ects(category_sum)
 
+        # XXX: The variables name will be confusingly similar until I figure out how category_sum works.
+        categories_sum = [float(sum) for sum in category_sum.values()]
+
         context = {
                 'this_block': block,
                 'current_path': request.get_full_path,
-                'categories': categories,
-                'categories_sum': category_sum,
+                'categories_title': categories_title,
+                'categories_ects': categories_ects,
+                'categories_sum': categories_sum,
                 'total_ects': block.total_course_ects(),
                 'logged_in': (request.user.is_authenticated and
                 request.user.username == block.user.username) or
