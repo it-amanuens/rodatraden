@@ -118,8 +118,11 @@
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
+          data-is-logged-in="{{ logged_in }}"
+          data-current-path="{{ current_path }}"
   >
     const scriptDataset = document.currentScript.dataset;
+    const isLoggedIn = scriptDataset.isLoggedIn === 'True';
 
     /* Show and hide block and chart */
     $("#chart").hide("fast");
@@ -220,7 +223,7 @@
       /* starting year */
       var start_year;
       /* Url for json request to get block data */
-      var url = '{{ current_path }}';
+      var url = scriptDataset.currentPath;
 
 
       /* Get block data */
@@ -459,7 +462,7 @@
 
 
         /* This stuff is not required if not logged in */
-        {% if logged_in %}
+        if (isLoggedIn) {
 
           /* Buttons to add a course */
           footerLp
@@ -502,7 +505,7 @@
             .duration(animLength)
             .style("opacity", 1)
 
-        {% endif %}
+        }
 
         /* Click functionality for adding courses */
         $(".add-course").each(function () {
