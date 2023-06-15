@@ -110,7 +110,13 @@
   <!-- Helper scripts for rendering blocks -->
   <script src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
 
-  <script>
+  <script defer 
+          data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
+          data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
+          data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
+  >
+    const scriptDataset = document.currentScript.dataset;
+
     /* Show and hide block and chart */
     $("#chart").hide("fast");
     $("#ISP").hide("fast");
@@ -437,7 +443,7 @@
         courseLinks
           .attr('class', 'courseoccasion-info')
           .attr('data-id', function(d) {
-            return "{% url 'courseoccasion-info' %}" + "?year=" + d.year +
+            return scriptDataset.courseoccasionInfoUrl + "?year=" + d.year +
               "&slug=" + d.slug;
           });
 
@@ -459,8 +465,7 @@
             .attr("data-placement", "left")
             .attr('data-id', function(d) {
               var start = (d.lp - 1)*10;
-              return "{% url 'block-course-list' this_block.user this_block.slug %}"
-                + "?year=" + d.year + "&start=" + start;
+              return scriptDataset.blockCourseListUrl + "?year=" + d.year + "&start=" + start;
           });
 
           /* Buttons to remove a course */
@@ -468,8 +473,7 @@
             .append("p").attr("class", "btn btn-link delete-course block-remove-button")
             .append("a").attr("class", "fa fa-times")
             .attr('href', function(d) {
-              return "{% url 'block-remove-course' this_block.user this_block.slug %}"
-                + "?slug=" + d.slug + "&private=" + d.is_priv;
+              return scriptDataset.blockRemoveCourseUrl + "?slug=" + d.slug + "&private=" + d.is_priv;
           });
 
           /* Add year button at end */
