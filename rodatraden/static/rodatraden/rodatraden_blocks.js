@@ -21,17 +21,19 @@ function createMatrix(elements) {
 }
 
 /**
- * Sort array on start attribute in ascending oreder
- *
- * @type {Array.<{start: number, length: number, speed: number, id: number}>}
+ * Sorts the courses by start week in ascending order. Courses that start
+ * simultaneously are sorted by length in decending order.
+ * @param {{start: number, length: number}[]} courses
  */
-function sort(courses) {
-
-  courses = courses.sort(function (a, b) {
-    return b.length - a.length
+function sortCoursesByLength(courses) {
+  courses.sort((a, b) => {
+    const areSimultaneous = a.start == b.start;
+    if (areSimultaneous) {
+      return b.length - a.length;
+    } else {
+      return a.start - b.start;
+    }
   });
-
-  return courses;
 }
 
 /**
@@ -139,7 +141,7 @@ function render(allCourses, start_year){
     data[start_year+i] = [];
   }
 
-  allCourses = sort(allCourses);
+  sortCoursesByLength(allCourses);
 
   for (var i in allCourses) {
     course = allCourses[i];
