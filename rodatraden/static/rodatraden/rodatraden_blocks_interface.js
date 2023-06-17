@@ -174,10 +174,10 @@ function renderBlock(coursesByYear) {
   const scriptDataset = document.currentScript.dataset;
   const isLoggedIn = scriptDataset.isLoggedIn === 'True';
 
-  var xMax = 40;
-  var margin = 1;
-  var scale = 3;
-  var animLength = 500;
+  const xMax = 40;
+  const margin = 1;
+  const scale = 3;
+  const animLength = 500;
 
   //Creating a scale that maps the order of coursesData
   //to topOffsets, I.e. the blockRow that corresponds to
@@ -192,7 +192,7 @@ function renderBlock(coursesByYear) {
         + blockRowMargin()*2) + "px");
 
   //Data join - update selection
-  var blockRow = studyBlock.selectAll(".block-row")
+  var blockRow = studyBlock.selectAll(".academic-year")
     .data(coursesByYear, function(d) {return d.year;})
 
   //Update position
@@ -206,7 +206,7 @@ function renderBlock(coursesByYear) {
   //Adding block row "group div"
   var blockRowNew = blockRow.enter()
     .append("div")
-    .attr("class", "block-row text-center")
+    .attr("class", "academic-year text-center")
     .style("left", 0 + "px")
     .style("right", 0 + "px")
     .style("position", "absolute") //Forcing the div to follow top style
@@ -222,9 +222,9 @@ function renderBlock(coursesByYear) {
   /* Add title container */
   var header = blockRowNew
     .append("div")
-    .attr("class", "block-header");
+    .attr("class", "academic-year-header");
 
-  var headerLp = header.selectAll(".block-header-lp")
+  var headerLp = header.selectAll(".academic-year-header-lp")
     .data(function(d) {
       return [
         {year: parseInt(d.year), term: "HT"},
@@ -233,7 +233,7 @@ function renderBlock(coursesByYear) {
     })
     .enter()
     .append("div")
-    .attr("class", "block-header-lp bg-dark");
+    .attr("class", "academic-year-header-lp bg-dark");
 
   headerLp
     .text(function(d) {
@@ -244,7 +244,7 @@ function renderBlock(coursesByYear) {
   /* Add subtitle container */
   var subheader = blockRowNew
     .append("div")
-    .attr("class", "block-header");
+    .attr("class", "academic-year-header");
 
   var subheaderLp = subheader.selectAll(".block-subheader-lp")
     .data(function(d){
@@ -277,7 +277,7 @@ function renderBlock(coursesByYear) {
   //Block which holds the courses
   var years = blockRowNew
     .append("div")
-    .attr("class", "block")
+    .attr("class", "courses")
     .style("height", function(d){
       var height = courseBlockHeight(d.courses, scale, margin);
       return height + "px";
@@ -302,18 +302,18 @@ function renderBlock(coursesByYear) {
 
   /* Append courses to block */
   courses = years
-    .selectAll(".block-item")
+    .selectAll(".course")
     .data(function(d){
       return d.courses;
     })
     .enter()
     .append("div")
     .attr('class', function(d){
-      return "block-item";
+      return "course";
       /* TODO: Implement this */
-      //if (d.type) return "block-item course-" + d.type;
+      //if (d.type) return "course course-" + d.type;
       //var sometimesItIsHardToThinkOfAFittingVariableName = doIHavePrerequisites(coursesData, d.course.prerequisites, d.year, d.start);
-      //return "block-item prereq-" + sometimesItIsHardToThinkOfAFittingVariableName;
+      //return "course prereq-" + sometimesItIsHardToThinkOfAFittingVariableName;
     });
 
   /* Position of course on the block */
@@ -395,7 +395,7 @@ function renderBlock(coursesByYear) {
       .style("opacity", 1e-6)
       .style("left", 0)
       .style("right", 0)
-      .attr("class", "block-row block-header bg-dark block-addyear text-center")
+      .attr("class", "academic-year academic-year-header bg-dark block-addyear text-center")
       .style("top", (topOffset(coursesByYear.length)) + "px")
       .text("Add Year")
       .transition()

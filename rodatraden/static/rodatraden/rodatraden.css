@@ -130,12 +130,12 @@ a:not(.default):hover{
 
 /* Block stuff */
 
-.block-row{
+.academic-year {
   margin: 15px 0;
   color: white;
 }
 
-.block {
+.courses {
   width: 100%;
   position: relative;
   text-align: center;
@@ -143,8 +143,8 @@ a:not(.default):hover{
   z-index: 0;
 }
 
-.block-header {width: 100%; overflow: hidden;}
-.block-header-lp {
+.academic-year-header {width: 100%; overflow: hidden;}
+.academic-year-header-lp {
   width: 50%;
   float: left;
   color: white;
@@ -187,14 +187,14 @@ a:not(.default):hover{
 .course-approved{border: 3px solid green;}
 
 
-.block-item {
+.course {
   position: absolute;
   border: 2px var(--main-color) solid;
   background-color: var(--main-color-dark);
   font-size: .6vw;
 }
 
-.block-item a {
+.course a {
   color: white;
 }
 
