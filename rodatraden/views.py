@@ -717,17 +717,8 @@ def block_detail(request, username, slug):
         elif request.user.username != block.user.username:
             return redirect(reverse('index'))
 
-    # Ajax request for jquery when rendering block with javascript
-    if is_ajax(request):
-        # Get courses and private courses
-        courses = [ob.as_json() for ob in block.courseoccasions.all()]
-        privcourses = [ob.as_json() for ob in block.privatecourses.all()]
-
-        return JsonResponse({'course_occasions': courses, 'private_courses':
-            privcourses})
-
     # POST request to upload and download ISP
-    elif request.method == 'POST':
+    if request.method == 'POST':
 
         # If no supplied file, fall to default
         if not "excel_file" in request.FILES:
@@ -848,7 +839,8 @@ def block_detail(request, username, slug):
 
         context = {
                 'this_block': block,
-                'current_path': request.get_full_path,
+                'course_occasions': [course.as_json() for course in block.courseoccasions.all()],
+                'private_courses': [course.as_json() for course in block.privatecourses.all()],
                 'categories_title': categories_title,
                 'categories_ects': categories_ects,
                 'categories_sum': categories_sum,

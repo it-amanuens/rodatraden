@@ -113,6 +113,8 @@
   {{ categories_title|json_script:"categories-title-data" }}
   {{ categories_ects|json_script:"categories-ects-data" }}
   {{ categories_sum|json_script:"categories-sum-data" }}
+  {{ course_occasions|json_script:"course-occasions-data" }}
+  {{ private_courses|json_script:"private-courses-data" }}
 
   <script src="{% static 'rodatraden/rodatraden_blocks_interface.js' %}"
           defer
@@ -120,7 +122,6 @@
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
           data-is-logged-in="{{ logged_in }}"
-          data-current-path="{{ current_path }}"
   ></script>
 
 {% endblock %}
