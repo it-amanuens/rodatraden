@@ -724,7 +724,7 @@ def block_detail(request, username, slug):
         privcourses = [ob.as_json() for ob in block.privatecourses.all()]
 
         return JsonResponse({'course_occasions': courses, 'private_courses':
-            privcourses, 'start_year': block.start_year})
+            privcourses})
 
     # POST request to upload and download ISP
     elif request.method == 'POST':

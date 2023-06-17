@@ -129,10 +129,6 @@ function generateCoursePositions(courses) {
   let grid = [];
   for (let course of courses) {
     course.firstRowIndex = getFirstRowOfCourse(course, grid);
-    // TEMP: The parameter named 'row' is used in code elsewhere. I'll keep
-    // that name as well until I've changed the name everywhere.
-    course.row = course.firstRowIndex;
-
     writeCourseToGrid(course, grid);
   }
 }
@@ -166,9 +162,7 @@ function groupCoursesByYear(courses) {
  * @param {{year: number}[]} allCourses
  * @returns {{year: number, course: any}[]} Courses with their positions set, grouped by year.
  */
-function render(allCourses) {
-  // TEMP: Can't rename function to assignPositionsAndGroupByYear without
-  // changing the calling code. 
+function assignPositionsAndGroupByYear(allCourses) {
   let coursesByYear = groupCoursesByYear(allCourses);
 
   for (let courses of coursesByYear.values()) {

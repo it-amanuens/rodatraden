@@ -107,7 +107,6 @@ $(function() {
   $.getJSON(url , function( data ) {
     /* Courses consist of course occasions */
     courses = data.course_occasions;
-    start_year = data.start_year;
 
     /* Define course speed */
     $.each(courses, function(i, occasion) {
@@ -126,7 +125,7 @@ $(function() {
       courses.push(occasion);
     }
 
-    coursesData = render(courses, parseInt(start_year));
+    coursesData = assignPositionsAndGroupByYear(courses);
     renderBlock(coursesData);
 
     $(".block-addyear").click(function() {
@@ -311,7 +310,7 @@ $(function() {
         return left + "%";
       })
       .style("margin-top", function(d) {
-        var top = (d.row * scale) + margin*3;
+        var top = (d.firstRowIndex * scale) + margin*3;
         return top + "px";
       });
 
