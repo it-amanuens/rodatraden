@@ -135,53 +135,51 @@ function generateCoursePositions(courses) {
 }
 
 /**
- * Render occasion from a set of occasions such that each course get a
- * placement and year in the block.
- * @param allCourses
- * @returns {Array}
+ * Group courses by their academic year using a Map.
+ * 
+ * @param {{year: number}[]} courses - Array of courses.
+ * @returns {Map<number, {year: number}>} Map of courses grouped by academic year.
  */
-function render(allCourses, start_year){
-  var data = [];
-  var course;
+function groupCoursesByYear(courses) {
+  let coursesByYear = new Map();
 
-  //Need to figure out the differance between
-  //start year and the last year
-  var endYear = start_year+5;
+  for (const course of courses) {
+    const year = course.year;
 
-  for(var i=0; i<allCourses.length; i++) {
-
-    if(parseInt(allCourses[i].year)>endYear) {
-      endYear = parseInt(allCourses[i].year);
-    }
-
-  }
-
-  for(var i = 0; i<(endYear-start_year); i++){
-    data[start_year+i] = [];
-  }
-
-  sortCoursesByLength(allCourses);
-
-  for (var i in allCourses) {
-    course = allCourses[i];
-
-    if (data[course.year] == undefined) {
-      data[course.year] = [course];
+    if (coursesByYear.has(year)) {
+      coursesByYear.get(year).push(course);
     } else {
-      data[course.year].push(course);
+      coursesByYear.set(year, [course]);
     }
   }
 
-  var output = [];
+  return coursesByYear;
+}
 
-  for (var year in data) {
-    var courses = data[year];
+/**
+ * Gives the courses a placement in the schedule and group the courses based on
+ * their academic year. Their position defined as the index of the first
+ * row that the course occupies in a virtual grid.
+ * @param {{year: number}[]} allCourses
+ * @returns {{year: number, course: any}[]} Courses with their positions set, grouped by year.
+ */
+function render(allCourses) {
+  // TEMP: Can't rename function to assignPositionsAndGroupByYear without
+  // changing the calling code. 
+  let coursesByYear = groupCoursesByYear(allCourses);
 
+  for (let courses of coursesByYear.values()) {
+    sortCoursesByLength(courses);
     generateCoursePositions(courses);
-    output.push({year: year, courses: courses});
   }
 
-  return output;
+  // TEMP: Has to convert to the old data structure because returning.
+  //return coursesByYear;
+  let oldStructure = [];
+  for (const entry of coursesByYear) {
+    oldStructure.push({year: entry[0], courses: entry[1]});
+  }
+  return oldStructure;
 }
 
   /**
