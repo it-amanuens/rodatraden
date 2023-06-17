@@ -5,24 +5,9 @@
    */
 
 /**
- * creates a matrix of elements rows and assign each row with an empty array
- *
- * @param elements
- * @returns {Array}
- */
-function createMatrix(elements) {
-  var matrix = [];
-
-  for (var i = 0; i < elements; i++) {
-    matrix.push([]);
-  }
-
-  return matrix;
-}
-
-/**
  * Sorts the courses by start week in ascending order. Courses that start
  * simultaneously are sorted by length in decending order.
+ * 
  * @param {{start: number, length: number}[]} courses
  */
 function sortCoursesByLength(courses) {
@@ -37,82 +22,116 @@ function sortCoursesByLength(courses) {
 }
 
 /**
- * Find first possible row where a submatrix defined by the course fits.
- *
- * @param course
- * @param matrix
+ * Adds a row the grid. The width will be the number of weeks in an academic
+ * year and the row elements will be initialized with false to indicate empty
+ * spots.
+ * 
+ * @param {boolean[][]} grid
  */
-function getFreeRow(course, matrix) {
-  var emptyRows = 0;
-
-  for (var row = 0; row < 1000 && emptyRows < course.speed; row++) {
-
-    if (isEmptyRow(course, row, matrix)) {
-      emptyRows++;
-    }
-    else {
-      emptyRows = 0;
-    }
-
-  }
-
-  course.row = row - course.speed;
+function addRow(grid) {
+  const weekCount = 40;
+  const row = new Array(weekCount).fill(false);
+  grid.push(row);
 }
 
 /**
- * Determine if a row for a course is empty
+ * Returns the index of the first row in the grid where the course fits.
+ * 
+ * @param {{start: number, length: number}} course
+ * @param {boolean[][]} grid
+ * @returns {number} Index of the first row where the course fits.
+ */
+function getFirstRowOfCourse(course, grid) {
+  const maxRowCount = 1000;
+  const courseHeight = course.speed;
+
+  let rowIndex = 0;
+  let suitableRowsFound = 0;
+
+  while (suitableRowsFound < courseHeight) {
+    // Something is wrong if it tries too many times to find suitable rows.
+    if (rowIndex >= maxRowCount) {
+      console.error("Couldn't find a spot in the grid for the following course:", course);
+      return 0;
+    }
+
+    if (doesCourseFitInRow(course, grid, rowIndex)) {
+      ++suitableRowsFound;
+    } else {
+      suitableRowsFound = 0;
+    }
+
+    ++rowIndex;
+  }
+
+  const firstRowIndex = rowIndex - courseHeight;
+  return firstRowIndex;
+}
+
+/**
+ * Determines if a row has enough empty space for a course.
  *
- * @param course
- * @param row
+ * @param {{start: number, length: number}} course
+ * @param {boolean[][]} grid
+ * @param {number} rowIndex
  * @returns {boolean}
  */
-function isEmptyRow(course, row, matrix) {
-  var sum = 0;
-
-  for (var col = course.start; 
-    col < course.start + course.length && col < matrix.length; col++) {
-
-    if (matrix[col][row] == undefined) {
-      matrix[col].push(0);
-    }
-
-    sum += matrix[col][row];
+function doesCourseFitInRow(course, grid, rowIndex) {
+  // Make sure the row of interest exists in the grid.
+  while (grid.length <= rowIndex) {
+    addRow(grid);
   }
 
-  return sum == 0;
+  // The course shouldn't exceed the end of the row.
+  const courseEnd = course.start + course.length - 1;
+  if (courseEnd >= grid[0].length) {
+    console.error("Can't fit a course that extends beyond the width of the grid.");
+    return false;
+  }
+
+  // The course doesn't fit if a spot is already occupied.
+  for (let columnIndex = course.start; columnIndex <= courseEnd; ++columnIndex) {
+    const isOccupied = grid[rowIndex][columnIndex];
+    if (isOccupied) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
- * Allocates space in matrix for a course
- *
- * @param course
- * @param matrix
+ * Applies the position of the course by writing to each element in the grid
+ * that the course occupies.
+ * 
+ * @param {{start: number, length: number, firstRowIndex: number}} course
+ * @param {boolean[][]} grid
  */
-function allocateRows(course, matrix) {
+function writeCourseToGrid(course, grid) {
+  const courseHeight = course.speed;
+  const courseLastRowIndex = course.firstRowIndex + courseHeight - 1;
 
-  for (var week = course.start; 
-    week < course.start + course.length && week < matrix.length; week++) {
-
-    for (var i = course.row; i < course.row + course.speed; i++) {
-      matrix[week][i] = course.id;
-    }
-
+  for (let rowIndex = course.firstRowIndex; rowIndex <= courseLastRowIndex; ++rowIndex) {
+    grid[rowIndex].fill(true, course.start, course.start + course.length);
   }
 }
 
 /**
- * Generate position for all courses in the matrix
+ * Generates a position for each course. The position is the index of the first
+ * row that the course occupies in a virtual grid.
  *
- * @param courses
- * @param matrix
+ * @param {{start: number, length: number, firstRowIndex: number}[]} courses
  */
-function prepareBlock(courses, matrix) {
+function generateCoursePositions(courses) {
+  let grid = [];
+  for (let course of courses) {
+    course.firstRowIndex = getFirstRowOfCourse(course, grid);
+    // TEMP: The parameter named 'row' is used in code elsewhere. I'll keep
+    // that name as well until I've changed the name everywhere.
+    course.row = course.firstRowIndex;
 
-  for (var i = 0; i < courses.length; i++) {
-    getFreeRow(courses[i], matrix);
-    allocateRows(courses[i], matrix);
+    writeCourseToGrid(course, grid);
   }
-
 }
 
 /**
@@ -157,9 +176,8 @@ function render(allCourses, start_year){
 
   for (var year in data) {
     var courses = data[year];
-    var matrix = createMatrix(40);
 
-    prepareBlock(courses, matrix);
+    generateCoursePositions(courses);
     output.push({year: year, courses: courses});
   }
 
@@ -178,7 +196,7 @@ function courseBlockHeight(dataset, scale, margin){
   var maxHeight = 1;
   for(var i = 0; i < dataset.length; i++){
     var block = dataset[i];
-    var height = block.row + block.speed;
+    var height = block.firstRowIndex + block.speed;
     if(height > maxHeight)
       maxHeight = height;
   }
