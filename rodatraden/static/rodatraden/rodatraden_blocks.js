@@ -10,7 +10,7 @@
  * 
  * @param {{start: number, length: number}[]} courses
  */
-function sortCoursesByLength(courses) {
+function sortCoursesByStartAndLength(courses) {
   courses.sort((a, b) => {
     const areSimultaneous = a.start == b.start;
     if (areSimultaneous) {
@@ -118,11 +118,14 @@ function writeCourseToGrid(course, grid) {
 
 /**
  * Generates a position for each course. The position is the index of the first
- * row that the course occupies in a virtual grid.
+ * row that the course occupies in a virtual grid. The courses are as a side
+ * effect sorted in a way that is needed for generating the positions.
  *
  * @param {{start: number, length: number, firstRowIndex: number}[]} courses
  */
 function generateCoursePositions(courses) {
+  sortCoursesByStartAndLength(courses);
+
   let grid = [];
   for (let course of courses) {
     course.firstRowIndex = getFirstRowOfCourse(course, grid);
@@ -169,7 +172,6 @@ function render(allCourses) {
   let coursesByYear = groupCoursesByYear(allCourses);
 
   for (let courses of coursesByYear.values()) {
-    sortCoursesByLength(courses);
     generateCoursePositions(courses);
   }
 
