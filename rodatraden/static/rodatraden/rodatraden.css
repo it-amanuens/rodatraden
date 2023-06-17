@@ -131,7 +131,7 @@ a:not(.default):hover{
 /* Block stuff */
 
 .academic-year {
-  margin: 15px 0;
+  margin: 0.25rem 0;
   color: white;
 }
 
@@ -143,28 +143,29 @@ a:not(.default):hover{
   z-index: 0;
 }
 
-.academic-year-header {width: 100%; overflow: hidden;}
-.academic-year-header-lp {
-  width: 50%;
-  float: left;
-  color: white;
-  font-size: large;
-  border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
-  border-style: solid;
-  border-color: #D3D3D3;
-  border-width: 1px 1px 0px 1px;
+.academic-year-header {
+  display: grid;
+  gap: 2px;
+
+  border: 0;
 }
 
-.block-subheader-lp {
-  width: 25%;
-  float: left;
-  color: white;
+.academic-year-header__term {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.academic-year-header__period {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.academic-year-term {
+  font-size: large;
+  border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
+}
+
+.academic-year-period {
   height: 1.5rem;
   font-size: small;
-  padding: 0;
-  border-style: solid;
-  border-color: #D3D3D3;
-  border-width: 0px 1px 0px 1px;
 }
 
 .block-footer{width: 100%; overflow: hidden;}
@@ -222,7 +223,6 @@ a:not(.default):hover{
   color: white;
   border-radius: var(--block-border-radius);
   cursor: pointer;
-  position: absolute;
 }
 .block-addyear:hover {
   background-color: var(--main-color) !important;

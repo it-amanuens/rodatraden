@@ -1,3 +1,9 @@
+// Global data whose lifetime persists. This is needed since these variables
+// are used in callbacks.
+const scriptDataset = document.currentScript.dataset;
+let courses = getAllCourses();
+const coursesByYear = assignPositionsAndGroupByYear(courses);
+
 /**
  * Setups event listeners for the buttons to update and delete the block
  * schedule.
@@ -47,7 +53,7 @@ function setupSections() {
  * Setup the button that adds a year to the block schedule.
  * @param {{year: number, courses: any}[]} coursesByYear 
  */
-function setupAddYearButton(coursesByYear) {
+function setupAddYearButton() {
   $(".block-addyear").click(function() {
     addCourseYear(coursesByYear);
     renderBlock(coursesByYear);
@@ -171,7 +177,6 @@ function getAllCourses() {
   * array must be sorted by years before beeing passed in
   */
 function renderBlock(coursesByYear) {
-  const scriptDataset = document.currentScript.dataset;
   const isLoggedIn = scriptDataset.isLoggedIn === 'True';
 
   const xMax = 40;
@@ -185,20 +190,16 @@ function renderBlock(coursesByYear) {
   var topOffset = getTopOffsets(coursesByYear, scale, margin);
 
   //Contains the blockrows absolute coordinates
-  var studyBlock = d3.select("#study-block")
-    .style("position", "relative")
-    .style("height",
-      (topOffset(coursesByYear.length) + yearButtonHeight()
-        + blockRowMargin()*2) + "px");
+  var studyBlock = d3.select("#study-block");
+  let blockYears = d3.select('#block-years');
 
   //Data join - update selection
-  var blockRow = studyBlock.selectAll(".academic-year")
+  var blockRow = blockYears.selectAll(".academic-year")
     .data(coursesByYear, function(d) {return d.year;})
 
   //Update position
   blockRow.transition()
     .duration(animLength)
-    .style("top", function(d, i) {return topOffset(i)+"px";});
 
   //ENTER
   //Only added object logic here
@@ -207,11 +208,7 @@ function renderBlock(coursesByYear) {
   var blockRowNew = blockRow.enter()
     .append("div")
     .attr("class", "academic-year text-center")
-    .style("left", 0 + "px")
-    .style("right", 0 + "px")
-    .style("position", "absolute") //Forcing the div to follow top style
     .attr("id", function(d) {return d.year;})
-    .style("top", function(d, i) { return topOffset(i)+"px";})
     .style("opacity", 1e-6);
 
   //Animate transition for new blockRows
@@ -222,9 +219,9 @@ function renderBlock(coursesByYear) {
   /* Add title container */
   var header = blockRowNew
     .append("div")
-    .attr("class", "academic-year-header");
+    .attr("class", "academic-year-header academic-year-header__term");
 
-  var headerLp = header.selectAll(".academic-year-header-lp")
+  var headerLp = header.selectAll(".academic-year-term")
     .data(function(d) {
       return [
         {year: parseInt(d.year), term: "HT"},
@@ -233,7 +230,7 @@ function renderBlock(coursesByYear) {
     })
     .enter()
     .append("div")
-    .attr("class", "academic-year-header-lp bg-dark");
+    .attr("class", "academic-year-term bg-dark");
 
   headerLp
     .text(function(d) {
@@ -244,9 +241,9 @@ function renderBlock(coursesByYear) {
   /* Add subtitle container */
   var subheader = blockRowNew
     .append("div")
-    .attr("class", "academic-year-header");
+    .attr("class", "academic-year-header academic-year-header__period");
 
-  var subheaderLp = subheader.selectAll(".block-subheader-lp")
+  var subheaderLp = subheader.selectAll(".academic-year-period")
     .data(function(d){
       return [
         {lp:1, year:d.year},
@@ -257,7 +254,7 @@ function renderBlock(coursesByYear) {
     })
     .enter()
     .append("div")
-    .attr("class", "block-subheader-lp bg-dark");
+    .attr("class", "academic-year-period bg-dark");
 
   subheaderLp
     .append("p")
@@ -381,27 +378,23 @@ function renderBlock(coursesByYear) {
     });
 
     /* Add year button at end */
+
     var addYearButton = studyBlock.selectAll(".block-addyear")
       .data(['foo']);
 
     /* Update position if required */
     addYearButton.transition()
-      .duration(animLength)
-      .style("top", topOffset(coursesByYear.length)+"px");
+      .duration(animLength);
 
     /* Create the button */
     addYearButton.enter()
       .append("div")
       .style("opacity", 1e-6)
-      .style("left", 0)
-      .style("right", 0)
-      .attr("class", "academic-year academic-year-header bg-dark block-addyear text-center")
-      .style("top", (topOffset(coursesByYear.length)) + "px")
+      .attr("class", "academic-year bg-dark block-addyear text-center")
       .text("Add Year")
       .transition()
       .duration(animLength)
       .style("opacity", 1)
-
   }
 
   /* Click functionality for adding courses */
@@ -418,16 +411,14 @@ function renderBlock(coursesByYear) {
  * Main function for this file.
  */
 function block_interface_main() {
-  let courses = getAllCourses();
-  const coursesByYear = assignPositionsAndGroupByYear(courses);
-
   setupUpdateAndDeleteButtons();
   setupSections();
-  setupAddYearButton(coursesByYear);
 
   createCategorySumChart();
 
   renderBlock(coursesByYear);
+    
+  setupAddYearButton();
 
   // Show the name of the file to be uploaded when a new file has been selected.
   document.querySelector('.custom-file-input').addEventListener(
