@@ -1,141 +1,167 @@
-const scriptDataset = document.currentScript.dataset;
-const isLoggedIn = scriptDataset.isLoggedIn === 'True';
+/**
+ * Setups event listeners for the buttons to update and delete the block
+ * schedule.
+ */
+function setupUpdateAndDeleteButtons() {
+  $(".update-block").each(function () {
+    $(this).modalForm({formURL: $(this).data('id')});
+  });
 
-/* Show and hide block and chart */
-$("#chart").hide("fast");
-$("#ISP").hide("fast");
-$(".show-block").click(function() {
-  $("#study-block").show("slow");
+  $(".delete-block").each(function () {
+    $(this).modalForm({
+      formURL: $(this).data('id'),
+      isDeleteForm: true
+    });
+  });
+}
+
+/**
+ * Setups the three different sections on the page (Block, chart and ISP) by
+ * hiding all but one and seting up onclick event listeners for the related
+ * buttons.
+ */
+function setupSections() {
+  // Hide Chart and ISP sections.
   $("#chart").hide("fast");
   $("#ISP").hide("fast");
-});
+  
+  // Setup onclick event listeners to show and hide the three different sections.
+  $(".show-block").click(function() {
+    $("#study-block").show("slow");
+    $("#chart").hide("fast");
+    $("#ISP").hide("fast");
+  });
+  $(".show-chart").click(function() {
+    $("#study-block").hide("fast");
+    $("#chart").show("slow");
+    $("#ISP").hide("fast");
+  });
+  $(".show-ISP").click(function() {
+    $("#study-block").hide("fast");
+    $("#chart").hide("fast");
+    $("#ISP").show("slow");
+  });
+}
 
-$(".show-chart").click(function() {
-  $("#chart").show("slow");
-  $("#study-block").hide("fast");
-  $("#ISP").hide("fast");
-});
+/**
+ * Setup the button that adds a year to the block schedule.
+ * @param {{year: number, courses: any}[]} coursesByYear 
+ */
+function setupAddYearButton(coursesByYear) {
+  $(".block-addyear").click(function() {
+    addCourseYear(coursesByYear);
+    renderBlock(coursesByYear);
+  });
+}
 
-$(".show-ISP").click(function() {
-  $("#ISP").show("slow");
-  $("#study-block").hide("fast");
-  $("#chart").hide("fast");
-});
+/**
+ * Creates a horizontal bar-chart that shows point sums for each category.
+ * There are two bars for each category: one bar with the sum of all courses
+ * in the schedule within that category, and one bar with the required points
+ * within that category.
+ */
+function createCategorySumChart() {
+  // Get data from data attributes.
+  const categoriesTitle = JSON.parse(
+    document.getElementById('categories-title-data').textContent
+  );
+  const categoriesEcts = JSON.parse(
+    document.getElementById('categories-ects-data').textContent
+  );
+  const categoriesSum = JSON.parse(
+    document.getElementById('categories-sum-data').textContent
+  );
 
-/* Category sum chart options */
-Highcharts.setOptions({
+  // Set global chart options.
+  Highcharts.setOptions({
     colors: ['var(--gray)', 'var(--main-color)']
-});
+  });  
 
-const categoriesTitle = JSON.parse(
-  document.getElementById('categories-title-data').textContent
-);
-const categoriesEcts = JSON.parse(
-  document.getElementById('categories-ects-data').textContent
-);
-const categoriesSum = JSON.parse(
-  document.getElementById('categories-sum-data').textContent
-);
-
-Highcharts.chart('chart', {
-
+  // Create the actual chart.
+  Highcharts.chart('chart', {
     chart: {
-        type: 'bar'
+      type: 'bar'
     },
     title: {
-        text: ''
+      text: ''
     },
     xAxis: {
-        categories: categoriesTitle
+      categories: categoriesTitle
     },
     yAxis: {
-        min: 0,
-        tickInterval: 7.5,
-        title: {
-          text: 'Poäng per kategori'
-        }
+      min: 0,
+      tickInterval: 7.5,
+      title: {
+        text: 'Poäng per kategori'
+      }
     },
     tooltip: {
-        headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-        pointFormat: '<tr><td style="font-size:12px;color:{series.color};padding:0">{series.name}:</td>'
-      + '<td style="font-size:12px;padding:0"><b>{point.y:.1f} hp</b></td></tr>',
-        footerFormat: '</table>',
-        shared: true,
-        useHTML: true
+      headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+      pointFormat: '<tr><td style="font-size:12px;color:{series.color};padding:0">{series.name}:</td>'
+        + '<td style="font-size:12px;padding:0"><b>{point.y:.1f} hp</b></td></tr>',
+      footerFormat: '</table>',
+      shared: true,
+      useHTML: true
     },
     plotOptions: {
-        column: {
-            pointPadding: 0.2,
-            borderWidth: 0
+      column: {
+        pointPadding: 0.2,
+        borderWidth: 0
       }
     },
     credits: {
-    enabled: false
+      enabled: false
     },
-    series: [{
+    series: [
+      {
         name: 'Krav',
         data: categoriesEcts
-    }, {
+      },
+      {
         name: 'Summa',
         data: categoriesSum
-    }]
-});
-
-$(".update-block").each(function () {
-  $(this).modalForm({formURL: $(this).data('id')});
-});
-
-$(".delete-block").each(function () {
-  $(this).modalForm({
-    formURL: $(this).data('id'),
-    isDeleteForm: true
+      }
+    ]
   });
-});
-
-let courses = JSON.parse(
-  document.getElementById('course-occasions-data').textContent
-);
-
-const privateCourses = JSON.parse(
-  document.getElementById('private-courses-data').textContent
-);
-
-for (let course of courses) {
-  course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
-  // TODO: Replace all mentions of "length" with "weeks".
-  course.length = course.weeks;
 }
 
-for (let course of privateCourses) {
-  // XXX: Course speed feels arbitrary. Why multiply by 50?
-  course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
-  // TODO: Replace all mentions of "length" with "weeks".
-  course.length = course.weeks;
-  // XXX: Is this needed? Doesn't the course have an "is_priv" attribute?
-  course.type = 'private';
-  courses.push(course);
+/**
+ * Get all private and non-private courses in the block schedule from external
+ * script tags and return them as a single collection.
+ * 
+ * @returns {Array} Private and non-private courses.
+ */
+function getAllCourses() {
+  let courses = JSON.parse(
+    document.getElementById('course-occasions-data').textContent
+  );
+  
+  const privateCourses = JSON.parse(
+    document.getElementById('private-courses-data').textContent
+  );
+  
+  // Add speed to the non-private courses.
+  for (let course of courses) {
+    course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
+    // TODO: Replace all mentions of "length" with "weeks".
+    course.length = course.weeks;
+  }
+
+  // Add speed to the private courses and add them to the other courses.
+  for (let course of privateCourses) {
+    // XXX: Course speed feels arbitrary. Why multiply by 50?
+    course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
+    // TODO: Replace all mentions of "length" with "weeks".
+    course.length = course.weeks;
+    // XXX: Is this needed? Doesn't the course have an "is_priv" attribute?
+    course.type = 'private';
+    courses.push(course);
+  }
+
+  return courses;
 }
 
-/* Variables that hold the current blocks courses and data format */
-const coursesData = assignPositionsAndGroupByYear(courses);
-
-renderBlock(coursesData);
-
-$(".block-addyear").click(function() {
-  addCourseYear(coursesData);
-  renderBlock(coursesData); //INCEPTION! :D
-});
-
-/* Filename in upload */
-document.querySelector('.custom-file-input').addEventListener('change',
-      function(e) {
-  var fileName = document.getElementById("inputExcelFile").files[0].name;
-  var nextSibling = e.target.nextElementSibling;
-  nextSibling.innerText = fileName;
-});
-
-
-/*
+/**
   * Renders study-block from the array of objects courseData.
   * If courseData changes you can just call this function again
   * and the study-block will be updated accordingly with fancy
@@ -144,7 +170,10 @@ document.querySelector('.custom-file-input').addEventListener('change',
   * In order for the rendering to function properly the coursesData
   * array must be sorted by years before beeing passed in
   */
-function renderBlock(coursesData) {
+function renderBlock(coursesByYear) {
+  const scriptDataset = document.currentScript.dataset;
+  const isLoggedIn = scriptDataset.isLoggedIn === 'True';
+
   var xMax = 40;
   var margin = 1;
   var scale = 3;
@@ -153,18 +182,18 @@ function renderBlock(coursesData) {
   //Creating a scale that maps the order of coursesData
   //to topOffsets, I.e. the blockRow that corresponds to
   //coursesData[i] will have the top position of topOffset(i)
-  var topOffset = getTopOffsets(coursesData, scale, margin);
+  var topOffset = getTopOffsets(coursesByYear, scale, margin);
 
   //Contains the blockrows absolute coordinates
   var studyBlock = d3.select("#study-block")
     .style("position", "relative")
     .style("height",
-      (topOffset(coursesData.length) + yearButtonHeight()
+      (topOffset(coursesByYear.length) + yearButtonHeight()
         + blockRowMargin()*2) + "px");
 
   //Data join - update selection
   var blockRow = studyBlock.selectAll(".block-row")
-    .data(coursesData, function(d) {return d.year;})
+    .data(coursesByYear, function(d) {return d.year;})
 
   //Update position
   blockRow.transition()
@@ -233,7 +262,7 @@ function renderBlock(coursesData) {
   subheaderLp
     .append("p")
     .text(function(d){
-      var hp = Math.round(hpSumInPeriod(coursesData, d.year, d.lp)*10)/10;
+      var hp = Math.round(hpSumInPeriod(coursesByYear, d.year, d.lp)*10)/10;
       var pace = hp/10, percent = 0;
 
       if (pace >= 0.375) {
@@ -358,7 +387,7 @@ function renderBlock(coursesData) {
     /* Update position if required */
     addYearButton.transition()
       .duration(animLength)
-      .style("top", topOffset(coursesData.length)+"px");
+      .style("top", topOffset(coursesByYear.length)+"px");
 
     /* Create the button */
     addYearButton.enter()
@@ -367,7 +396,7 @@ function renderBlock(coursesData) {
       .style("left", 0)
       .style("right", 0)
       .attr("class", "block-row block-header bg-dark block-addyear text-center")
-      .style("top", (topOffset(coursesData.length)) + "px")
+      .style("top", (topOffset(coursesByYear.length)) + "px")
       .text("Add Year")
       .transition()
       .duration(animLength)
@@ -384,3 +413,31 @@ function renderBlock(coursesData) {
     $(this).modalForm({formURL: $(this).data('id')});
   });
 }
+
+/**
+ * Main function for this file.
+ */
+function block_interface_main() {
+  let courses = getAllCourses();
+  const coursesByYear = assignPositionsAndGroupByYear(courses);
+
+  setupUpdateAndDeleteButtons();
+  setupSections();
+  setupAddYearButton(coursesByYear);
+
+  createCategorySumChart();
+
+  renderBlock(coursesByYear);
+
+  // Show the name of the file to be uploaded when a new file has been selected.
+  document.querySelector('.custom-file-input').addEventListener(
+    'change',
+    function(e) {
+      const fileName = document.getElementById("inputExcelFile").files[0].name;
+      let label = e.target.nextElementSibling;
+      label.innerText = fileName;
+    }
+  );
+}
+
+block_interface_main();
