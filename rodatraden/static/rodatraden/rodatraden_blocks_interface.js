@@ -59,7 +59,7 @@ function setupAddYearButton() {
   const button = document.getElementById('block-addyear');
   button.addEventListener('click', () => {
     addCourseYear(coursesByYear);
-    renderBlock(coursesByYear);
+    renderBlock();
   });
 }
 
@@ -171,111 +171,102 @@ function getAllCourses() {
 }
 
 /**
-  * Renders study-block from the array of objects courseData.
-  * If courseData changes you can just call this function again
+  * Renders study-block from the global course data.
+  * If the data changes you can just call this function again
   * and the study-block will be updated accordingly with fancy
   * animation representing the action taken.
-  *
-  * In order for the rendering to function properly the coursesData
-  * array must be sorted by years before beeing passed in
   */
-function renderBlock(coursesByYear) {
+function renderBlock() {
   const isLoggedIn = scriptDataset.isLoggedIn === 'True';
 
   const xMax = 40;
   const margin = 1;
   const scale = 3;
-  const animLength = 500;
+  const transitionDuration = 500;
 
-  //Creating a scale that maps the order of coursesData
-  //to topOffsets, I.e. the blockRow that corresponds to
-  //coursesData[i] will have the top position of topOffset(i)
-  var topOffset = getTopOffsets(coursesByYear, scale, margin);
+  // Make sure to sort the course groups by year in ascending order.
+  coursesByYear.sort((a, b) => a.year - b.year);
 
-  //Contains the blockrows absolute coordinates
-  var studyBlock = d3.select("#study-block");
-  let blockYears = d3.select('#block-years');
+  // Contains the rows of academic years. Each year has titles, courses and
+  // buttons.
+  const blockYears = d3.select('#block-years');
+
+  /* Start academic year */
 
   //Data join - update selection
-  var blockRow = blockYears.selectAll(".academic-year")
-    .data(coursesByYear, function(d) {return d.year;})
-
-  //Update position
-  blockRow.transition()
-    .duration(animLength)
+  let academicYears = blockYears.selectAll(".academic-year")
+    .data(coursesByYear, courseGroup => courseGroup.year);
 
   //ENTER
   //Only added object logic here
 
-  //Adding block row "group div"
-  var blockRowNew = blockRow.enter()
+  // Add new academic year.
+  let academicYear = academicYears.enter()
     .append("div")
     .attr("class", "academic-year text-center")
-    .attr("id", function(d) {return d.year;})
+    .attr("id", courseGroup => courseGroup.year)
     .style("opacity", 1e-6);
 
-  //Animate transition for new blockRows
-  blockRowNew.transition()
-    .duration(animLength)
+  // Animate transition for new academic year.
+  academicYear.transition()
+    .duration(transitionDuration)
     .style("opacity", 1);
 
-  /* Add title container */
-  var header = blockRowNew
-    .append("div")
-    .attr("class", "academic-year-header academic-year-header__term");
+  /* End academic year */
 
-  var headerLp = header.selectAll(".academic-year-term")
-    .data(function(d) {
-      return [
-        {year: parseInt(d.year), term: "HT"},
-        {year: parseInt(d.year) + 1, term: "VT"}
-      ];
-    })
+  /* End term header */
+
+  // Add a header to the academic year that shows the two terms.
+  let termsHeader = academicYear
+    .append("div")
+    .attr("class", "academic-year-header academic-year-header__terms");
+
+  termsHeader.selectAll(".academic-year-header__term")
+    .data(courseGroup => [
+      { termPrefix: "HT", year: courseGroup.year },
+      { termPrefix: "VT", year: courseGroup.year + 1 }
+    ])
     .enter()
     .append("div")
-    .attr("class", "academic-year-term bg-dark");
+    .attr("class", "academic-year-header__term bg-dark")
+    .text(term => term.termPrefix + term.year.toString().substr(-2));
 
-  headerLp
-    .text(function(d) {
-      return d.term + d.year.toString().substr(-2);
-    });
+  /* End term header */
+  
+  /* Start period header */
 
-
-  /* Add subtitle container */
-  var subheader = blockRowNew
+  // Add a header to the academic year that shows the four periods.
+  let periodsHeader = academicYear
     .append("div")
-    .attr("class", "academic-year-header academic-year-header__period");
+    .attr("class", "academic-year-header academic-year-header__periods");
 
-  var subheaderLp = subheader.selectAll(".academic-year-period")
-    .data(function(d){
-      return [
-        {lp:1, year:d.year},
-        {lp:2, year:d.year},
-        {lp:3, year:d.year},
-        {lp:4, year:d.year}
-      ];
-    })
+  periodsHeader.selectAll(".academic-year-header__period")
+    .data(courseGroup => [
+      { periodNumber: 1, year: courseGroup.year },
+      { periodNumber: 2, year: courseGroup.year },
+      { periodNumber: 3, year: courseGroup.year },
+      { periodNumber: 4, year: courseGroup.year }
+    ])
     .enter()
     .append("div")
-    .attr("class", "academic-year-period bg-dark");
+    .attr("class", "academic-year-header__period bg-dark")
+    .text(period => {
+      const roundToOneDecimal = number => Math.round(number * 10) / 10;
 
-  subheaderLp
-    .append("p")
-    .text(function(d){
-      var hp = Math.round(hpSumInPeriod(coursesByYear, d.year, d.lp)*10)/10;
-      var pace = hp/10, percent = 0;
+      // Studying 15 ECTS during one period means studying at full pace (100%).
+      // The ratio of studied ECTS to full pace ECTS give the study pace for
+      // that period.
+      const ectsFullPace = 15;
+      const ects = hpSumInPeriod(coursesByYear, period.year, period.periodNumber);
+      const studyPace = ects / ectsFullPace;
 
-      if (pace >= 0.375) {
-        for (pace; pace >= 0.375; pace -= 0.375) {
-          percent += 25;
-        }
-      }
-
-      return percent + " % / " + hp + " hp";
+      return Math.round(studyPace * 100) + " % / " + roundToOneDecimal(ects) + " hp";
     });
+
+    /* End period header */
 
   //Block which holds the courses
-  var years = blockRowNew
+  var years = academicYear
     .append("div")
     .attr("class", "courses")
     .style("height", function(d){
@@ -284,7 +275,7 @@ function renderBlock(coursesByYear) {
     });
 
   /* Footer that holds the smaller divs for adding new courses */
-  var footer = blockRowNew.append("div").attr("class", "block-footer");
+  var footer = academicYear.append("div").attr("class", "block-footer");
 
   /* Add divs for footer buttons "add course" */
   var footerLp = footer.selectAll(".block-footer-lp")
@@ -351,9 +342,9 @@ function renderBlock(coursesByYear) {
         "&slug=" + d.slug;
     });
 
-  blockRow.exit()
+  academicYears.exit()
     .transition()
-    .duration(animLength/4)
+    .duration(transitionDuration/4)
     .style("opacity", 1e-6)
     .remove();
 
@@ -400,7 +391,7 @@ function block_interface_main() {
 
   createCategorySumChart();
 
-  renderBlock(coursesByYear);
+  renderBlock();
     
   setupAddYearButton();
 

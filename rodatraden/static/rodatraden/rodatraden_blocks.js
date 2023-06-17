@@ -227,27 +227,6 @@ function blockRowBaseHeight() {
   return baseHeight
 }
 
-function getTopOffsets(coursesData, scale, margin) {
-
-  var baseHeight = blockRowBaseHeight();
-  var topOffsetValues = [0];
-
-  //Logic is slightly forced here, but just recall that
-  //we start with pixel value of zero and when we push
-  //we always push to topOffsetValues[i+1]
-  for(var i=0; i<coursesData.length; i++) {
-    topOffsetValues.push(courseBlockHeight(coursesData[i].courses, scale, margin)+baseHeight);
-    topOffsetValues[i+1] += topOffsetValues[i] + 30;
-  }
-
-  var topOffset = d3.scaleOrdinal()
-    .domain(d3.range(coursesData.length))
-    .range(topOffsetValues);
-
-
-  return topOffset;
-}
-
 function yearButtonHeight() {
   var yearButton = $("<div class='block-row block-header add-year text-center' style='opacity: 1; left: 0px; right: 0px; position: absolute;'>Add Year</div>").hide().appendTo("body");
   var yearButtonHeightValue = parseInt($(".add-year").css("height"));

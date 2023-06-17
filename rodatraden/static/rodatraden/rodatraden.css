@@ -150,20 +150,20 @@ a:not(.default):hover{
   border: 0;
 }
 
-.academic-year-header__term {
+.academic-year-header__terms {
   grid-template-columns: repeat(2, 1fr);
 }
 
-.academic-year-header__period {
+.academic-year-header__periods {
   grid-template-columns: repeat(4, 1fr);
 }
 
-.academic-year-term {
+.academic-year-header__term {
   font-size: large;
   border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
 }
 
-.academic-year-period {
+.academic-year-header__period {
   height: 1.5rem;
   font-size: small;
 }
