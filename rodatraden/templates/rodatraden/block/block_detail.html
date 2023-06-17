@@ -114,7 +114,7 @@
   {{ categories_ects|json_script:"categories-ects-data" }}
   {{ categories_sum|json_script:"categories-sum-data" }}
 
-  <script src="{% static 'rodatraden/rodatraden_blocks2.js' %}"
+  <script src="{% static 'rodatraden/rodatraden_blocks_interface.js' %}"
           defer
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
