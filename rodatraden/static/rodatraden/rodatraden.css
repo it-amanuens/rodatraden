@@ -219,12 +219,13 @@ a:not(.default):hover{
   background-color: var(--gray-light);
 }
 
-.block-addyear {
+#block-addyear {
   color: white;
   border-radius: var(--block-border-radius);
   cursor: pointer;
 }
-.block-addyear:hover {
+
+#block-addyear:hover {
   background-color: var(--main-color) !important;
 }
 

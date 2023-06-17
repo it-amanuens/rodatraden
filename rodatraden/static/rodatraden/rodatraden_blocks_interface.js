@@ -50,11 +50,14 @@ function setupSections() {
 }
 
 /**
- * Setup the button that adds a year to the block schedule.
+ * Setups the button that adds a year to the block schedule by adding an
+ * onclick eventlistener. Clicking on it adds an additional year to the
+ * schedule.
  * @param {{year: number, courses: any}[]} coursesByYear 
  */
 function setupAddYearButton() {
-  $(".block-addyear").click(function() {
+  const button = document.getElementById('block-addyear');
+  button.addEventListener('click', () => {
     addCourseYear(coursesByYear);
     renderBlock(coursesByYear);
   });
@@ -376,25 +379,6 @@ function renderBlock(coursesByYear) {
       .attr('href', function(d) {
         return scriptDataset.blockRemoveCourseUrl + "?slug=" + d.slug + "&private=" + d.is_priv;
     });
-
-    /* Add year button at end */
-
-    var addYearButton = studyBlock.selectAll(".block-addyear")
-      .data(['foo']);
-
-    /* Update position if required */
-    addYearButton.transition()
-      .duration(animLength);
-
-    /* Create the button */
-    addYearButton.enter()
-      .append("div")
-      .style("opacity", 1e-6)
-      .attr("class", "academic-year bg-dark block-addyear text-center")
-      .text("Add Year")
-      .transition()
-      .duration(animLength)
-      .style("opacity", 1)
   }
 
   /* Click functionality for adding courses */
