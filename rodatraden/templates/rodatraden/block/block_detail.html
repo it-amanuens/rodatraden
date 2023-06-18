@@ -112,21 +112,24 @@
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <script src="https://code.highcharts.com/modules/data.js"></script>
   <script src="https://code.highcharts.com/modules/exporting.js"></script>
-  <!-- Helper scripts for rendering blocks -->
-  <script src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
 
+  <!-- Data that can be used in scripts -->
   {{ categories_title|json_script:"categories-title-data" }}
   {{ categories_ects|json_script:"categories-ects-data" }}
   {{ categories_sum|json_script:"categories-sum-data" }}
   {{ course_occasions|json_script:"course-occasions-data" }}
   {{ private_courses|json_script:"private-courses-data" }}
 
-  <script src="{% static 'rodatraden/rodatraden_blocks_interface.js' %}"
-          defer
+  <!-- Helper scripts for rendering blocks -->
+  <script src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
+  <script src="{% static 'rodatraden/update_block_schedule.js' %}"
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
           data-is-logged-in="{{ logged_in }}"
+  ></script>
+  <script src="{% static 'rodatraden/rodatraden_blocks_interface.js' %}"
+          defer
   ></script>
 
 {% endblock %}
