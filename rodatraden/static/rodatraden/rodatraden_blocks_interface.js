@@ -5,7 +5,7 @@
 const startYear = parseInt(document.currentScript.dataset.startYear);
 
 // Data that needs to be global so that their lifetime persist.
-const coursesByYear = assignPositionsAndGroupByYear(getAllCourses());
+const coursesByYear = assignPositionsAndGroupByYear(getAllCourses(), startYear);
 
 /**
  * Setups event listeners for the buttons to update and delete the block

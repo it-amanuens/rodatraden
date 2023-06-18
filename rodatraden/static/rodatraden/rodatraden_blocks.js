@@ -156,15 +156,55 @@ function groupCoursesByYear(courses) {
 }
 
 /**
+ * Adds empty years if needed to make sure that the first five years exists.
+ * 
+ * @param {Map<number, {year: number}>} coursesByYear
+ * @param {number} startYear - Start year specified by the user when creating the block schedule.
+ */
+function addFirstFiveYearsIfMissing(coursesByYear, startYear) {
+  for (let year = startYear; year < startYear + 5; ++year) {
+    if (!coursesByYear.has(year)) {
+      coursesByYear.set(year, []);
+    }
+  }
+}
+
+/**
+ * Adds empty years if needed to make sure that there are no missing years
+ * between existing years.
+ * 
+ * @param {Map<number, {year: number}>} coursesByYear 
+ */
+function addMissingGapYears(coursesByYear) {
+  const firstYear = Math.min(...coursesByYear.keys());
+  const lastYear = Math.max(...coursesByYear.keys());
+
+  for (let year = firstYear; year <= lastYear; ++year) {
+    if (!coursesByYear.has(year)) {
+      coursesByYear.set(year, []);
+    }
+  }
+}
+
+/**
  * Gives the courses a placement in the schedule and group the courses based on
  * their academic year. Their position defined as the index of the first
  * row that the course occupies in a virtual grid.
+ * 
+ * Also adds empty years to make sure that the first five years exists, as well
+ * as adding missing years between exsiting years.
+ * 
  * @param {{year: number}[]} allCourses
+ * @param {number} startYear - Start year specified by the user when creating the block schedule.
  * @returns {{year: number, course: any}[]} Courses with their positions set, grouped by year.
  */
-function assignPositionsAndGroupByYear(allCourses) {
+function assignPositionsAndGroupByYear(allCourses, startYear) {
   let coursesByYear = groupCoursesByYear(allCourses);
 
+  // XXX: This function now does a bit more that the function name suggests.
+  addFirstFiveYearsIfMissing(coursesByYear, startYear);
+  addMissingGapYears(coursesByYear);
+  
   for (let courses of coursesByYear.values()) {
     generateCoursePositions(courses);
   }
