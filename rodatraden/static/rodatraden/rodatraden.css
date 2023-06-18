@@ -135,7 +135,7 @@ a:not(.default):hover{
   color: white;
 }
 
-.courses {
+.course-container {
   width: 100%;
   position: relative;
   text-align: center;
@@ -168,8 +168,12 @@ a:not(.default):hover{
   font-size: small;
 }
 
-.block-footer{width: 100%; overflow: hidden;}
-.block-footer-lp{
+.academic-year-footer{
+  width: 100%;
+  overflow: hidden;
+}
+
+.academic-year-footer-period {
   width: 25%;
   float:left;
   color: white;
@@ -181,8 +185,20 @@ a:not(.default):hover{
   border-width: 1px;
 }
 
-.block-footer-lp:hover{
+.academic-year-footer-period:hover{
   background-color: var(--main-color) !important;
+}
+
+.academic-year-footer-year {
+  width: 100%;
+  float:left;
+  color: white;
+  padding: 3px;
+  text-decoration: none;
+  border-radius: 0 0 var(--block-border-radius) var(--block-border-radius);
+  border-style: solid;
+  border-color: #D3D3D3;
+  border-width: 1px;
 }
 
 .course-approved{border: 3px solid green;}
