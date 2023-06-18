@@ -245,14 +245,28 @@ function blockRowMargin() {
   return blockRowMarginValue;
 }
 
-/*
- * Append a course year to courseData
- * Assumes sorted coursesData
+/**
+ * Append a year to {@link coursesByYear}. Uses {@link startYear} as fallback
+ * if no years exists yet.
+ * 
+ * @param {{year: number, courses: any}[]} coursesByYear
+ * @param {number} startYear - Used as a fallback if no years exists yet.
  */
-function addCourseYear(coursesData) {
-  var curLastCourseYear = parseInt(coursesData[(coursesData.length)-1].year);
-  var extraCourseYear = {courses: [], year: (curLastCourseYear+1)};
-  coursesData.push(extraCourseYear);
+function addAcademicYear(coursesByYear, startYear) {
+  let newCourseGroup = {
+    courses: [],
+    year: startYear
+  };
+
+  if (coursesByYear.length !== 0) {
+    const lastYear = coursesByYear.reduce(
+      (lastYear, courseGroup) => Math.max(lastYear, courseGroup.year),
+      -Infinity
+    );
+    newCourseGroup.year = lastYear + 1;
+  }
+  
+  coursesByYear.push(newCourseGroup);
 }
 
 /*

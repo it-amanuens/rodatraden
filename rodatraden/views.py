@@ -839,6 +839,7 @@ def block_detail(request, username, slug):
 
         context = {
                 'this_block': block,
+                'start_year': block.start_year,
                 'course_occasions': [course.as_json() for course in block.courseoccasions.all()],
                 'private_courses': [course.as_json() for course in block.privatecourses.all()],
                 'categories_title': categories_title,

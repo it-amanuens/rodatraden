@@ -1,7 +1,11 @@
-// Global data whose lifetime persists. They need to be global since these they
-// are used in callbacks.
-const scriptDataset = document.currentScript.dataset;
-const isLoggedIn = scriptDataset.isLoggedIn === 'True';
+// Variables from the data parameters in the script tag. Because of
+// "document.currentScript" these need to be global. If used in a function that
+// is called from another script then the dataset will refer to the callers
+// script tag instead.
+const isLoggedIn = document.currentScript.dataset.isLoggedIn === 'True';
+const courseoccasionInfoUrl = document.currentScript.dataset.courseoccasionInfoUrl;
+const blockRemoveCourseUrl = document.currentScript.dataset.blockRemoveCourseUrl;
+const blockCourseListUrl = document.currentScript.dataset.blockCourseListUrl;
 
 /**
  * Adds, if needed, academic years divs using D3. These years holds headers,
@@ -182,7 +186,7 @@ function updateCourseBlocks(academicYear, xMax, scale, margin) {
     })
     .attr('class', 'courseoccasion-info')
     .attr('data-id', course => {
-      const url = scriptDataset.courseoccasionInfoUrl + "?year=" + course.year
+      const url = courseoccasionInfoUrl + "?year=" + course.year
         + "&slug=" + course.slug;
       return url;
     });
@@ -199,7 +203,7 @@ function updateCourseBlocks(academicYear, xMax, scale, margin) {
     removeButton.append("a")
       .attr("class", "fa fa-times")
       .attr('href', course => {
-        const url = scriptDataset.blockRemoveCourseUrl + "?slug=" + course.slug
+        const url = blockRemoveCourseUrl + "?slug=" + course.slug
           + "&private=" + course.is_priv;
         return url;
     });
@@ -258,7 +262,7 @@ function updateFooter(academicYear) {
         // would do? The code would be clearer if the server did the week
         // converersion instead.
         const start = (period.periodNumber - 1) * 10;
-        const url = scriptDataset.blockCourseListUrl + "?year=" + period.year
+        const url = blockCourseListUrl + "?year=" + period.year
           + "&start=" + start;
         return url;
     });
@@ -280,11 +284,11 @@ function updateFooter(academicYear) {
 }
 
 /**
-  * Update block schedule DOM elements based on the global course data. This
-  * function should be called every time data is changed, for example when
-  * adding/removing an academic year or course. The DOM elements are then
-  * updated accordingly.
-  */
+ * Update block schedule DOM elements based on the global course data. This
+ * function should be called every time data is changed, for example when
+ * adding/removing an academic year or course. The DOM elements are then
+ * updated accordingly.
+ */
 function updateBlockSchedule() {
   const transitionDuration = 500;
 

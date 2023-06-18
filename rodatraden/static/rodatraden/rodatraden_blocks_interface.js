@@ -1,5 +1,10 @@
-// Global data whose lifetime persists. They need to be global since these they
-// are used in callbacks.
+// Variables from the data parameters in the script tag. Because of
+// "document.currentScript" these need to be global. If used in a function that
+// is called from another script then the dataset will refer to the callers
+// script tag instead.
+const startYear = parseInt(document.currentScript.dataset.startYear);
+
+// Data that needs to be global so that their lifetime persist.
 const coursesByYear = assignPositionsAndGroupByYear(getAllCourses());
 
 /**
@@ -56,8 +61,8 @@ function setupSections() {
 function setupAddYearButton() {
   const button = document.getElementById('block-addyear');
   button.addEventListener('click', () => {
-    addCourseYear(coursesByYear);
-    renderBlockSchedule();
+    addAcademicYear(coursesByYear, startYear);
+    updateBlockSchedule();
   });
 }
 
