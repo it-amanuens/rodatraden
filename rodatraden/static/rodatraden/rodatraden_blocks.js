@@ -156,6 +156,30 @@ function groupCoursesByYear(courses) {
 }
 
 /**
+ * Splits courses that overlap both terms into two shorter course blocks.
+ * 
+ * @param {{start: number, length: number}[]} courses 
+ */
+function splitCoursesOverTermBoundary(courses) {
+  const springWeekStart = 20;
+
+  for (let course of courses) {
+    const courseEnd = course.start + course.length - 1;
+    if (course.start < springWeekStart && courseEnd >= springWeekStart) {
+      let courseRemainder = { ...course };
+
+      courseRemainder.start = springWeekStart;
+
+      const weekOverlap = courseEnd - springWeekStart + 1;
+      course.length -= weekOverlap;
+      courseRemainder.length = weekOverlap;
+
+      courses.push(courseRemainder);
+    }
+  }
+}
+
+/**
  * Adds empty years if needed to make sure that the first five years exists.
  * 
  * @param {Map<number, {year: number}>} coursesByYear
@@ -196,7 +220,7 @@ function addMissingGapYears(coursesByYear) {
  * 
  * @param {{year: number}[]} allCourses
  * @param {number} startYear - Start year specified by the user when creating the block schedule.
- * @returns {{year: number, course: any}[]} Courses with their positions set, grouped by year.
+ * @returns {{year: number, courses: any}[]} Courses with their positions set, grouped by year.
  */
 function assignPositionsAndGroupByYear(allCourses, startYear) {
   let coursesByYear = groupCoursesByYear(allCourses);
@@ -209,13 +233,51 @@ function assignPositionsAndGroupByYear(allCourses, startYear) {
     generateCoursePositions(courses);
   }
 
-  // TEMP: Has to convert to the old data structure because returning.
-  //return coursesByYear;
-  let oldStructure = [];
+  let expectedStructure = [];
   for (const entry of coursesByYear) {
-    oldStructure.push({year: entry[0], courses: entry[1]});
+    expectedStructure.push({
+      year: entry[0],
+      courses: entry[1]
+    });
   }
-  return oldStructure;
+  return expectedStructure;
+}
+
+function divideCoursesIntoTerms(courses) {
+  const springWeekStart = 20;
+
+  let fallCourses = [];
+  let springCourses = [];
+
+  for (const course of courses) {
+    if (course.start >= springWeekStart) {
+      springCourses.push(course);
+    } else {
+      fallCourses.push(course);
+    }
+  }
+
+  return {
+    fall: fallCourses,
+    spring: springCourses
+  }
+}
+
+function assignPositionsAndGroupByTerm(allCourses, startYear) {
+  splitCoursesOverTermBoundary(allCourses);
+
+  let coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
+
+  let expectedStructure = [];
+  for (const courseGroup of coursesByYear) {
+    const courses = divideCoursesIntoTerms(courseGroup.courses);
+    expectedStructure.push({
+      year: courseGroup.year,
+      fallCourses: courses.fall,
+      springCourses: courses.spring
+    });
+  }
+  return expectedStructure;
 }
 
   /**

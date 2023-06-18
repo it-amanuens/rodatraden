@@ -152,7 +152,24 @@ function updateCourseBlocks(academicYear, xMax, scale, margin) {
   // Add, if needed, courses to the container.
   // XXX: Many magic numbers are used to style the block.
   let course = courseSelection.enter().append("div")
-    .attr('class', "course")
+    .attr('class', course => {
+      let classList = ['course'];
+
+      // Mark courses that have been split and which term they belong to.
+      if (course.length !== course.weeks) {
+        const springWeekStart = 20;
+
+        classList.push('course-split');
+
+        if (course.start >= springWeekStart) {
+          classList.push('course-split__spring');
+        } else {
+          classList.push('course-split__fall');
+        }
+      }
+
+      return classList.join(' ');
+    })
     .style("height", course => {
       const height = course.speed * scale - margin * 5;
       return height + "px";
