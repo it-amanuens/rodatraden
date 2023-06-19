@@ -8,79 +8,82 @@ const blockRemoveCourseUrl = document.currentScript.dataset.blockRemoveCourseUrl
 const blockCourseListUrl = document.currentScript.dataset.blockCourseListUrl;
 
 /**
- * Adds, if needed, academic years divs using D3. These years holds headers,
- * courses and buttons. Returns any newly created academic years.
+ * Adds new and removes old academic years using D3. These years holds headers,
+ * courses and buttons. Returns a D3 selection of new academic years.
  * 
- * @param {*} blockYears - D3 object of any newly created academic years.
+ * @param {*} academicYearContainer - D3 selection of a container for academic years.
  * @param {number} transitionDuration - Transition duration in milliseconds.
- * @returns D3 object containing any newly created academic years.
+ * @returns D3 selection of new academic years.
  */
-function updateAcademicYear(blockYears, transitionDuration) {
-  // Create a selection of academic years, including those that need to be
-  // created, based on the data attached.
-  let academicYearSelection = blockYears.selectAll(".academic-year")
+function updateAcademicYear(academicYearContainer, transitionDuration) {
+  // Create a D3 update selection by binding each array in "coursesByYear" to
+  // an academic year, previously existing or not. The parameter "year" is used
+  // as the key so that existing years gets put in the "update" selection.
+  let academicYearUpdateSelection = academicYearContainer.selectAll(".academic-year")
     .data(coursesByYear, courseGroup => courseGroup.year);
 
   // Add, if needed, new academic years.
-  let academicYear = academicYearSelection.enter().append("div")
+  let newAcademicYear = academicYearUpdateSelection.enter().append("div")
     .attr("class", "academic-year text-center")
     .attr("id", courseGroup => courseGroup.year)
     .style("opacity", 1e-6);
   
   // Remove, if needed, old academic years.
-  academicYearSelection.exit()
+  academicYearUpdateSelection.exit()
     .transition()
-    .duration(transitionDuration/4)
+    .duration(transitionDuration / 4)
     .style("opacity", 1e-6)
     .remove();
 
   // Animate transition for new academic year.
-  academicYear
+  newAcademicYear
     .transition()
     .duration(transitionDuration)
     .style("opacity", 1);
 
-  return academicYear;
+  return newAcademicYear;
 }
 
 /**
- * Adds, if needed, headers for each term of the academic years.
+ * Adds headers for each term to new academic years.
  * 
- * @param {*} academicYear - D3 data structure.
+ * @param {*} newAcademicYear - D3 selection of new academic years.
  */
-function updateTermsHeader(academicYear) {
-  // Add a container for the term headers to any newly created academic years.
-  let termHeaderContainer = academicYear.append("div")
+function addTermsHeader(newAcademicYear) {
+  // Add a container for the term headers to the academic years.
+  let termHeaderContainer = newAcademicYear.append("div")
     .attr("class", "academic-year-header academic-year-header__terms");
-  
-  // Create a selection of term headers, including those that need to be
-  // created, based on the data attached.
-  let termHeaderSelection = termHeaderContainer.selectAll(".academic-year-header__term")
+
+  // Create a D3 update selection by binding data for two terms based on the
+  // data previously bound to the academic year. We don't need to use a key
+  // here since the newly created empty container has no previously bound data.
+  let termHeaderUpdateSelection = termHeaderContainer.selectAll(".academic-year-header__term")
     .data(courseGroup => [
       { termPrefix: "HT", year: courseGroup.year },
       { termPrefix: "VT", year: courseGroup.year + 1 }
     ]);
-    
-  // Add, if needed, headers to the academic years that shows the two terms.
-  termHeaderSelection.enter().append("div")
+
+  // Add term headers to the container.
+  termHeaderUpdateSelection.enter().append("div")
     .attr("class", "academic-year-header__term bg-dark")
+    // Combine the term prefix with the two last digits of the year.
     .text(term => term.termPrefix + term.year.toString().substr(-2));
 }
 
 /**
- * Adds, if needed, headers for each period of the academic years.
+ * Adds headers for each period to new academic years.
  * 
- * @param {*} academicYear - D3 data structure.
+ * @param {*} newAcademicYear - D3 selection of new academic years.
  */
-function updatePeriodsHeader(academicYear) {
-  // Add a header that shows the four periods to any newly created academic
-  // years.
-  let periodHeaderContainer = academicYear.append("div")
+function addPeriodsHeader(newAcademicYear) {
+  // Add a container for the period headers to the academic years.
+  let periodHeaderContainer = newAcademicYear.append("div")
     .attr("class", "academic-year-header academic-year-header__periods");
 
-  // Create a selection of period headers, including those that need to be
-  // created, based on the data attached.
-  let periodHeaderSelection = periodHeaderContainer.selectAll(".academic-year-header__period")
+  // Create a D3 update selection by binding data for four periods based on the
+  // data previously bound to the academic year. We don't need to use a key
+  // here since the newly created empty container has no previously bound data.
+  let periodHeaderUpdateSelection = periodHeaderContainer.selectAll(".academic-year-header__period")
     .data(courseGroup => [
       { periodNumber: 1, year: courseGroup.year },
       { periodNumber: 2, year: courseGroup.year },
@@ -88,14 +91,14 @@ function updatePeriodsHeader(academicYear) {
       { periodNumber: 4, year: courseGroup.year }
     ]);
   
-  // Add, if needed, headers to the academic years that shows the four periods.
-  periodHeaderSelection.enter().append("div")
+  // Add period headers to the container.
+  periodHeaderUpdateSelection.enter().append("div")
     .attr("class", "academic-year-header__period bg-dark")
     .text(period => {
       const roundToOneDecimal = number => Math.round(number * 10) / 10;
 
       // Studying 15 ECTS during one period means studying at full pace (100%).
-      // The ratio of studied ECTS to full pace ECTS give the study pace for
+      // The ratio of studied ECTS to full pace ECTS gives the study pace for
       // that period.
       const ectsFullPace = 15;
       const ects = hpSumInPeriod(coursesByYear, period.year, period.periodNumber);
@@ -106,56 +109,37 @@ function updatePeriodsHeader(academicYear) {
 }
 
 /**
- * Adds, if needed, a container for all course blocks to the academic years.
- * Returns any newly created course containers.
+ * Adds courses to new academic years. The courses include a title and a button
+ * to remove the course.
  * 
- * @param {*} academicYear - D3 data structure.
- * @param {number} scale - Scale used when calculating the container height.
- * @param {number} margin - Margin used when calculating the container height.
- * @returns D3 object containing any newly created course containers.
- */
-function updateCourseContainer(academicYear, scale, margin) {
-  // Add a container for all course blocks to any newly created academic years.
-  let courseContainer = academicYear.append("div")
-    .attr("class", "course-container")
-    .style("height", courseGroup => {
-      const height = courseBlockHeight(courseGroup.courses, scale, margin);
-      return height + "px";
-    });
-  
-  return courseContainer;
-}
-
-/**
- * Adds any new courses to the academic year. The courses include a title and a
- * button to remove the course.
- * 
- * @param {*} academicYear - D3 data structure.
+ * @param {*} newAcademicYear - D3 selection of new academic years.
  * @param {number} xMax - Distance used to calculating size and position.
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
  */
-function updateCourseBlocks(academicYear, xMax, scale, margin) {
-  // Add a container for all course blocks to any newly created academic years.
-  let courseContainer = academicYear.append("div")
+function addCourseBlocks(newAcademicYear, xMax, scale, margin) {
+  // Add a container for all course blocks to the academic years.
+  let courseContainer = newAcademicYear.append("div")
     .attr("class", "course-container")
     .style("height", courseGroup => {
       const height = courseBlockHeight(courseGroup.courses, scale, margin);
       return height + "px";
     });
 
-  // Create a selection of courses, including those that need to be created,
-  // based on the data attached.
-  let courseSelection = courseContainer.selectAll(".course")
+  // Create a D3 update selection by binding the courses from the data
+  // previously bound to the academic year. We don't need to use a key here
+  // since the newly created empty container has no previously bound data.
+  let courseUpdateSelection = courseContainer.selectAll(".course")
     .data(courseGroup => courseGroup.courses);
 
-  // Add, if needed, courses to the container.
-  // XXX: Many magic numbers are used to style the block.
-  let course = courseSelection.enter().append("div")
+  // Add courses to the container.
+  // XXX: Many magic numbers are used to style the course blocks.
+  let course = courseUpdateSelection.enter().append("div")
     .attr('class', course => {
       let classList = ['course'];
 
-      // Mark courses that have been split and which term they belong to.
+      // Mark a block if it is only a portion of a course, as well as which
+      // term the block belongs to.
       if (course.length !== course.weeks) {
         const springWeekStart = 20;
 
@@ -210,13 +194,13 @@ function updateCourseBlocks(academicYear, xMax, scale, margin) {
 
   // Only logged in users can remove courses.
   if (isLoggedIn) {
-    // Add, if needed, a button to remove the course.
+    // Add a button to remove the course.
     let removeButton = course.append("p")
       .attr("class", "btn btn-link delete-course block-remove-button");
     
-    // Setup data for the button.
+    // Add the icon and url to the button.
     // XXX: The page is refreshed each time a course is deleted. Could this be
-    // solved by instead sending a POST request?
+    // solved by instead sending an AJAX request?
     removeButton.append("a")
       .attr("class", "fa fa-times")
       .attr('href', course => {
@@ -235,22 +219,21 @@ function updateCourseBlocks(academicYear, xMax, scale, margin) {
 }
 
 /**
- * Adds a footer to any newly created academic years. The footer contains
- * buttons to add courses to any of the four periods, but only if the user is
- * logged in.
+ * Adds a footer to new academic years. The footer contains buttons to add
+ * courses to any of the four periods, but only if the user is logged in.
  * 
- * @param {*} academicYear - D3 data structure.
+ * @param {*} newAcademicYear - D3 selection of new academic years.
  */
-function updateFooter(academicYear) {
-  // Add a footer to any newly created academic years.
-  let footer = academicYear
+function addFooter(newAcademicYear) {
+  // Add a footer to the academic years.
+  let footer = newAcademicYear
     .append("div")
     .attr("class", "academic-year-footer");
 
-  /* Add divs for footer buttons "add course" */
-  // Create a selection of buttons for each period, including those that need
-  // to be created, based on the data attached.
-  let footerPeriodSelection = footer.selectAll(".academic-year-footer-period")
+  // Create a D3 update selection by binding data for four periods based on the
+  // data previously bound to the academic year. We don't need to use a key
+  // here since the newly created empty container has no previously bound data.
+  let footerPeriodUpdateSelection = footer.selectAll(".academic-year-footer-period")
     .data(courseGroup => [
       { periodNumber: 1, year: courseGroup.year },
       { periodNumber: 2, year: courseGroup.year },
@@ -260,8 +243,8 @@ function updateFooter(academicYear) {
 
   // Only logged in user can add courses.
   if (isLoggedIn) {
-    // Add, if needed, headers to the academic years that shows the four periods.
-    let footerPeriod = footerPeriodSelection
+    // Add buttons to footer.
+    let footerPeriod = footerPeriodUpdateSelection
       .enter()
       .append("div")
       .attr("class", "academic-year-footer-period bg-dark btn add-course")
@@ -270,7 +253,7 @@ function updateFooter(academicYear) {
     
     // Setup data for the pop-up modal.
     // XXX: The page is refreshed each time a course is added. Could this be
-    // solved by instead sending a POST request?
+    // solved by instead sending an AJAX request?
     footerPeriod
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "left")
@@ -322,9 +305,9 @@ function updateBlockSchedule() {
 
   // Update all DOM elements. Changes can be because an academic year or course
   // has been added or removed.
-  let academicYear = updateAcademicYear(academicYearContainer, transitionDuration);
-  updateTermsHeader(academicYear);
-  updatePeriodsHeader(academicYear);
-  updateCourseBlocks(academicYear, xMax, scale, margin);
-  updateFooter(academicYear);
+  let newAcademicYear = updateAcademicYear(academicYearContainer, transitionDuration);
+  addTermsHeader(newAcademicYear);
+  addPeriodsHeader(newAcademicYear);
+  addCourseBlocks(newAcademicYear, xMax, scale, margin);
+  addFooter(newAcademicYear);
 }
