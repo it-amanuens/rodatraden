@@ -220,7 +220,7 @@ function addMissingGapYears(coursesByYear) {
  * 
  * @param {{year: number}[]} allCourses
  * @param {number} startYear - Start year specified by the user when creating the block schedule.
- * @returns {{year: number, courses: any}[]} Courses with their positions set, grouped by year.
+ * @returns {Map<number, any>} Courses with their positions set, grouped by year.
  */
 function assignPositionsAndGroupByYear(allCourses, startYear) {
   let coursesByYear = groupCoursesByYear(allCourses);
@@ -233,14 +233,7 @@ function assignPositionsAndGroupByYear(allCourses, startYear) {
     generateCoursePositions(courses);
   }
 
-  let expectedStructure = [];
-  for (const entry of coursesByYear) {
-    expectedStructure.push({
-      year: entry[0],
-      courses: entry[1]
-    });
-  }
-  return expectedStructure;
+  return coursesByYear;
 }
 
 function divideCoursesIntoTerms(courses) {
@@ -251,8 +244,11 @@ function divideCoursesIntoTerms(courses) {
 
   for (const course of courses) {
     if (course.start >= springWeekStart) {
+      // XXX: This is needed for now to position the courses correctly.
+      course.termStart = course.start - springWeekStart;
       springCourses.push(course);
     } else {
+      course.termStart = course.start;
       fallCourses.push(course);
     }
   }
@@ -263,20 +259,31 @@ function divideCoursesIntoTerms(courses) {
   }
 }
 
-function assignPositionsAndGroupByTerm(allCourses, startYear) {
-  splitCoursesOverTermBoundary(allCourses);
-
-  let coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
-
+function assignPositionsAndGroupByTerm(coursesByYear) {
   let expectedStructure = [];
+
   for (const courseGroup of coursesByYear) {
-    const courses = divideCoursesIntoTerms(courseGroup.courses);
+    const year = courseGroup[0];
+    const courses = courseGroup[1];
+
+    const terms = divideCoursesIntoTerms(courses);
+    
     expectedStructure.push({
-      year: courseGroup.year,
-      fallCourses: courses.fall,
-      springCourses: courses.spring
+      year: year,
+      fall: {
+        courses: terms.fall,
+        ectsSumPeriod1: getEctsSumInPeriod(courses, 1),
+        ectsSumPeriod2: getEctsSumInPeriod(courses, 2)
+      },
+      spring: {
+        courses: terms.spring,
+        ectsSumPeriod3: getEctsSumInPeriod(courses, 3),
+        ectsSumPeriod4: getEctsSumInPeriod(courses, 4)
+      },
+      height: courseBlockHeight(courses)
     });
   }
+
   return expectedStructure;
 }
 
@@ -288,7 +295,11 @@ function assignPositionsAndGroupByTerm(allCourses, startYear) {
  * Calculates the courseBlock height from the
  * coursesData[i].courses dataset
  */
-function courseBlockHeight(dataset, scale, margin){
+function courseBlockHeight(dataset){
+  // TEMP: These have been copied here to make it work.
+  const margin = 1;
+  const scale = 3;
+
   var maxHeight = 1;
   for(var i = 0; i < dataset.length; i++){
     var block = dataset[i];
@@ -354,21 +365,31 @@ function blockRowMargin() {
  * @param {{year: number, courses: any}[]} coursesByYear
  * @param {number} startYear - Used as a fallback if no years exists yet.
  */
-function addAcademicYear(coursesByYear, startYear) {
+function addAcademicYear(coursesByTerm, startYear) {
   let newCourseGroup = {
-    courses: [],
-    year: startYear
+    year: startYear,
+    fall: {
+      courses: [],
+      ectsSumPeriod1: 0,
+      ectsSumPeriod2: 0
+    },
+    spring: {
+      courses: [],
+      ectsSumPeriod3: 0,
+      ectsSumPeriod4: 0
+    },
+    height: 0
   };
 
-  if (coursesByYear.length !== 0) {
-    const lastYear = coursesByYear.reduce(
+  if (coursesByTerm.length !== 0) {
+    const lastYear = coursesByTerm.reduce(
       (lastYear, courseGroup) => Math.max(lastYear, courseGroup.year),
       -Infinity
     );
     newCourseGroup.year = lastYear + 1;
   }
   
-  coursesByYear.push(newCourseGroup);
+  coursesByTerm.push(newCourseGroup);
 }
 
 /*
@@ -414,40 +435,32 @@ function doIHavePrerequisites(coursesData, prerequisites, year, start) {
 }
 
 /*
- * Sums over the amount of hp in a study period.
+ * Sums over the amount of ects in a study period.
  */
-function hpSumInPeriod(coursesData, year, lp) {
-  var start_year = parseInt(coursesData[0].year);
-  var correctIndex = year - start_year;
-  var correctCourses = coursesData[correctIndex].courses;
-  var sum = 0;
+function getEctsSumInPeriod(courses, periodNumber) {
+  let ectsSum = 0;
 
-  for (var i in correctCourses) {
-    var start = correctCourses[i].start;
-    var length = correctCourses[i].length;
+  const periodWeekLength = 10;
+  const periodStart = periodWeekLength * (periodNumber - 1);
+  const periodEnd = periodStart + periodWeekLength - 1;
 
+  for (let course of courses) {
+    const courseStart = course.start;
+    const courseEnd = course.start + course.weeks - 1;
 
-    // Silly logic needed because apparently private and public courses do not store
-    // their ects the same way
-    //if ( correctCourses[i].type != 'private' ) {
-      //var speed = parseFloat(correctCourses[i].course.ects)/length;
-    //} else {
-      //var speed = parseFloat(correctCourses[i].ects)/length;
-    //}
-    var speed = parseFloat(correctCourses[i].ects)/length;
-    var temp = 0;
+    // Skip the course if it doesn't overlap with the period.
+    if (courseEnd < periodStart || periodEnd < courseStart) continue;
 
-    if (start < 10 * (lp - 1)) {
-      if (length > (10 * (lp - 1) - start)) {
-        sum = sum + (length - (10 * (lp - 1) - start))*speed;
-      }
-    } else if (start < 10 * lp) {
-      if (length > (10 * lp - start)) {
-        sum = sum + (10 * lp - start)*speed;
-      } else {
-        sum = sum + length*speed;
-      }
-    }
+    // Calculate how many weeks the course overlaps with the period.
+    const overlapStart = Math.max(courseStart, periodStart);
+    const overlapEnd = Math.min(courseEnd, periodEnd);
+    const overlapInWeeks = overlapEnd - overlapStart + 1;
+
+    const ectsPerWeek = course.ects / course.weeks;
+    const ectsInPeriod = ectsPerWeek * overlapInWeeks;
+
+    ectsSum += ectsInPeriod;
   }
-  return sum;
+
+  return ectsSum;
 }

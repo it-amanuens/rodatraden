@@ -5,7 +5,10 @@
 const startYear = parseInt(document.currentScript.dataset.startYear);
 
 // Data that needs to be global so that their lifetime persist.
-let coursesByYear = assignPositionsAndGroupByYear(getAllCourses(), startYear);
+let allCourses = getAllCourses();
+//splitCoursesOverTermBoundary(allCourses);
+let coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
+let coursesByTerm = assignPositionsAndGroupByTerm(coursesByYear);
 
 /**
  * Setups event listeners for the buttons to update and delete the block
@@ -56,12 +59,11 @@ function setupSections() {
  * Setups the button that adds a year to the block schedule by adding an
  * onclick eventlistener. Clicking on it adds an additional year to the
  * schedule.
- * @param {{year: number, courses: any}[]} coursesByYear 
  */
 function setupAddYearButton() {
   const button = document.getElementById('block-addyear');
   button.addEventListener('click', () => {
-    addAcademicYear(coursesByYear, startYear);
+    addAcademicYear(coursesByTerm, startYear);
     updateBlockSchedule();
   });
 }

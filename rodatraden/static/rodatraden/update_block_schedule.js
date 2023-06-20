@@ -20,7 +20,7 @@ function updateAcademicYear(academicYearContainer, transitionDuration) {
   // an academic year, previously existing or not. The parameter "year" is used
   // as the key so that existing years gets put in the "update" selection.
   let academicYearUpdateSelection = academicYearContainer.selectAll(".academic-year")
-    .data(coursesByYear, courseGroup => courseGroup.year);
+    .data(coursesByTerm, courseGroup => courseGroup.year);
 
   // Add, if needed, new academic years.
   let newAcademicYear = academicYearUpdateSelection.enter().append("div")
@@ -45,92 +45,129 @@ function updateAcademicYear(academicYearContainer, transitionDuration) {
 }
 
 /**
- * Adds headers for each term to new academic years.
+ * Adds terms to new academic years.
  * 
  * @param {*} newAcademicYear - D3 selection of new academic years.
+ * @returns D3 selection of new terms.
  */
-function addTermsHeader(newAcademicYear) {
-  // Add a container for the term headers to the academic years.
-  let termHeaderContainer = newAcademicYear.append("div")
-    .attr("class", "academic-year-header academic-year-header__terms");
-
+function createTerm(newAcademicYear) {
   // Create a D3 update selection by binding data for two terms based on the
   // data previously bound to the academic year. We don't need to use a key
-  // here since the newly created empty container has no previously bound data.
-  let termHeaderUpdateSelection = termHeaderContainer.selectAll(".academic-year-header__term")
+  // here since the newly created academic year doesn't have any terms with
+  // previously bound data.
+  let termUpdateSelection = newAcademicYear.selectAll(".term")
     .data(courseGroup => [
-      { termPrefix: "HT", year: courseGroup.year },
-      { termPrefix: "VT", year: courseGroup.year + 1 }
+      {
+        prefix: 'HT',
+        year: courseGroup.year,
+        courses: courseGroup.fall.courses,
+        ectsSumPeriod1: courseGroup.fall.ectsSumPeriod1,
+        ectsSumPeriod2: courseGroup.fall.ectsSumPeriod2,
+        height: courseGroup.height
+      },
+      {
+        prefix: 'VT',
+        year: courseGroup.year + 1,
+        courses: courseGroup.spring.courses,
+        ectsSumPeriod3: courseGroup.spring.ectsSumPeriod3,
+        ectsSumPeriod4: courseGroup.spring.ectsSumPeriod4,
+        height: courseGroup.height
+      }
     ]);
 
-  // Add term headers to the container.
-  termHeaderUpdateSelection.enter().append("div")
-    .attr("class", "academic-year-header__term bg-dark")
-    // Combine the term prefix with the two last digits of the year.
-    .text(term => term.termPrefix + term.year.toString().substr(-2));
+  // Add terms to the academic year.
+  let term = termUpdateSelection.enter().append("div")
+    .attr("class", "term")
+    .style('z-index', term => term.prefix === 'HT' ? '2' : '1')
+
+  return term;
 }
 
 /**
- * Adds headers for each period to new academic years.
+ * Adds a header to new terms.
  * 
- * @param {*} newAcademicYear - D3 selection of new academic years.
+ * @param {*} newTerm - D3 selection of new terms.
  */
-function addPeriodsHeader(newAcademicYear) {
-  // Add a container for the period headers to the academic years.
-  let periodHeaderContainer = newAcademicYear.append("div")
-    .attr("class", "academic-year-header academic-year-header__periods");
+function addTermHeader(newTerm) {
+  // Add a header to the terms.
+  newTerm.append("div")
+    .attr("class", "term-header bg-dark")
+    // Combine the term prefix with the two last digits of the year.
+    .text(term => term.prefix + term.year.toString().substr(-2));
+}
 
-  // Create a D3 update selection by binding data for four periods based on the
-  // data previously bound to the academic year. We don't need to use a key
-  // here since the newly created empty container has no previously bound data.
-  let periodHeaderUpdateSelection = periodHeaderContainer.selectAll(".academic-year-header__period")
-    .data(courseGroup => [
-      { periodNumber: 1, year: courseGroup.year },
-      { periodNumber: 2, year: courseGroup.year },
-      { periodNumber: 3, year: courseGroup.year },
-      { periodNumber: 4, year: courseGroup.year }
-    ]);
+/**
+ * Adds headers for each period to new terms.
+ * 
+ * @param {*} newTerm - D3 selection of new terms.
+ */
+function addPeriodsHeader(newTerm) {
+  // Add a container for the period headers to the terms.
+  let periodHeaderContainer = newTerm.append("div")
+    .attr("class", "period-header-container");
+
+  // Create a D3 update selection by binding data for two periods based on the
+  // data previously bound to the term. We don't need to use a key here since
+  // the newly created empty container has no previously bound data.
+  let periodHeaderUpdateSelection = periodHeaderContainer.selectAll(".period-header-container")
+    .data(term => {
+      if (term.prefix === 'HT') {
+        return [
+          { ectsSum: term.ectsSumPeriod1 },
+          { ectsSum: term.ectsSumPeriod2 }
+        ];
+      } else {
+        return [
+          { ectsSum: term.ectsSumPeriod3 },
+          { ectsSum: term.ectsSumPeriod4 }
+        ];
+      }
+    });
   
   // Add period headers to the container.
   periodHeaderUpdateSelection.enter().append("div")
-    .attr("class", "academic-year-header__period bg-dark")
+    .attr("class", "period-header bg-dark")
     .text(period => {
       const roundToOneDecimal = number => Math.round(number * 10) / 10;
 
       // Studying 15 ECTS during one period means studying at full pace (100%).
       // The ratio of studied ECTS to full pace ECTS gives the study pace for
       // that period.
-      const ectsFullPace = 15;
-      const ects = hpSumInPeriod(coursesByYear, period.year, period.periodNumber);
-      const studyPace = ects / ectsFullPace;
+      const ectsSumFullPace = 15;
+      const ectsSum = period.ectsSum;
+      const studyPace = ectsSum / ectsSumFullPace;
 
-      return Math.round(studyPace * 100) + " % / " + roundToOneDecimal(ects) + " hp";
+      return Math.round(studyPace * 100) + " % / " + roundToOneDecimal(ectsSum) + " hp";
     });
 }
 
 /**
- * Adds courses to new academic years. The courses include a title and a button
+ * Adds courses to new terms. The courses include a title and a button
  * to remove the course.
  * 
- * @param {*} newAcademicYear - D3 selection of new academic years.
+ * @param {*} newTerm - D3 selection of new terms.
  * @param {number} xMax - Distance used to calculating size and position.
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
  */
-function addCourseBlocks(newAcademicYear, xMax, scale, margin) {
-  // Add a container for all course blocks to the academic years.
-  let courseContainer = newAcademicYear.append("div")
+function addCourseBlocks(newTerm, xMax, scale, margin) {
+  // Add a container for all course blocks to the terms.
+  let courseContainer = newTerm.append("div")
     .attr("class", "course-container")
-    .style("height", courseGroup => {
-      const height = courseBlockHeight(courseGroup.courses, scale, margin);
+    .style("height", term => {
+      // XXX: The height of this term might not match the height of the other
+      //      term.
+      // TODO: Pre-calculate the heights, at least in terms of number of rows
+      //       (including space between courses).
+      const height = term.height;
       return height + "px";
     });
 
   // Create a D3 update selection by binding the courses from the data
-  // previously bound to the academic year. We don't need to use a key here
-  // since the newly created empty container has no previously bound data.
+  // previously bound to the term. We don't need to use a key here since the
+  // newly created empty container has no previously bound data.
   let courseUpdateSelection = courseContainer.selectAll(".course")
-    .data(courseGroup => courseGroup.courses);
+    .data(term => term.courses);
 
   // Add courses to the container.
   // XXX: Many magic numbers are used to style the course blocks.
@@ -163,7 +200,7 @@ function addCourseBlocks(newAcademicYear, xMax, scale, margin) {
       return width + "%";
     })
     .style("margin-left", course => {
-      const left = course.start / xMax * 100 + 0.25;
+      const left = course.termStart / xMax * 100 + 0.25;
       return left + "%";
     })
     .style("margin-top", course => {
@@ -219,27 +256,34 @@ function addCourseBlocks(newAcademicYear, xMax, scale, margin) {
 }
 
 /**
- * Adds a footer to new academic years. The footer contains buttons to add
- * courses to any of the four periods, but only if the user is logged in.
+ * Adds a footer to new terms. The footer contains buttons to add courses to
+ * any of the two periods in that term, but only if the user is logged in.
  * 
- * @param {*} newAcademicYear - D3 selection of new academic years.
+ * @param {*} newTerm - D3 selection of new terms.
  */
-function addFooter(newAcademicYear) {
-  // Add a footer to the academic years.
-  let footer = newAcademicYear
+function addFooter(newTerm) {
+  // Add a footer to the terms.
+  let footer = newTerm
     .append("div")
-    .attr("class", "academic-year-footer");
+    .attr("class", "term-footer");
 
-  // Create a D3 update selection by binding data for four periods based on the
-  // data previously bound to the academic year. We don't need to use a key
-  // here since the newly created empty container has no previously bound data.
-  let footerPeriodUpdateSelection = footer.selectAll(".academic-year-footer-period")
-    .data(courseGroup => [
-      { periodNumber: 1, year: courseGroup.year },
-      { periodNumber: 2, year: courseGroup.year },
-      { periodNumber: 3, year: courseGroup.year },
-      { periodNumber: 4, year: courseGroup.year }
-    ]);
+  // Create a D3 update selection by binding data for two periods based on the
+  // data previously bound to the term. We don't need to use a key here since
+  // the newly created empty footer has no previously bound data.
+  let footerPeriodUpdateSelection = footer.selectAll(".term-footer")
+    .data(term => {
+      if (term.prefix === 'HT') {
+        return [
+          { periodNumber: 1, year: term.year },
+          { periodNumber: 2, year: term.year }
+        ];
+      } else {
+        return [
+          { periodNumber: 3, year: term.year },
+          { periodNumber: 4, year: term.year }
+        ];
+      }
+    });
 
   // Only logged in user can add courses.
   if (isLoggedIn) {
@@ -247,7 +291,7 @@ function addFooter(newAcademicYear) {
     let footerPeriod = footerPeriodUpdateSelection
       .enter()
       .append("div")
-      .attr("class", "academic-year-footer-period bg-dark btn add-course")
+      .attr("class", "term-footer-button bg-dark btn add-course")
       .text("Lägg till kurs")
       .style("color", "white");
     
@@ -261,7 +305,8 @@ function addFooter(newAcademicYear) {
         // XXX: Why use the start weeks 0, 10, 20 and 30 when the period number
         // would do? The code would be clearer if the server did the week
         // converersion instead.
-        const start = (period.periodNumber - 1) * 10;
+        const periodWeekLength = 10;
+        const start = (period.periodNumber - 1) * periodWeekLength;
         const url = blockCourseListUrl + "?year=" + period.year
           + "&start=" + start;
         return url;
@@ -279,7 +324,7 @@ function addFooter(newAcademicYear) {
   } else {
     footer
       .append("div")
-      .attr("class", "academic-year-footer-year bg-dark");
+      .attr("class", "term-footer-filler bg-dark");
   }
 }
 
@@ -292,12 +337,12 @@ function addFooter(newAcademicYear) {
 function updateBlockSchedule() {
   const transitionDuration = 500;
 
-  const xMax = 40;
+  const xMax = 20;
   const margin = 1;
   const scale = 3;
 
   // Make sure the groups of courses are sorted by year in ascending order.
-  coursesByYear.sort((a, b) => a.year - b.year);
+  coursesByTerm.sort((a, b) => a.year - b.year);
 
   // Container for all the academic years. Each year has headers, a set of
   // courses and a footer.
@@ -306,8 +351,10 @@ function updateBlockSchedule() {
   // Update all DOM elements. Changes can be because an academic year or course
   // has been added or removed.
   let newAcademicYear = updateAcademicYear(academicYearContainer, transitionDuration);
-  addTermsHeader(newAcademicYear);
-  addPeriodsHeader(newAcademicYear);
-  addCourseBlocks(newAcademicYear, xMax, scale, margin);
-  addFooter(newAcademicYear);
+  let newTerm = createTerm(newAcademicYear);
+  
+  addTermHeader(newTerm);
+  addPeriodsHeader(newTerm);
+  addCourseBlocks(newTerm, xMax, scale, margin);
+  addFooter(newTerm);
 }
