@@ -119,7 +119,7 @@ function addTermHeader(term) {
 
   // Add missing headers.
   termHeaderUpdateSelection.enter().append("div")
-    .attr("class", "term-header bg-dark")
+    .attr("class", "term-header")
     // Combine the term prefix with the two last digits of the year.
     .text(title => title);
 }
@@ -150,7 +150,7 @@ function addPeriodHeaders(term) {
 
   // Add period headers to the new containers.
   periodHeaderUpdateSelection.enter().append("div")
-    .attr("class", "period-header bg-dark")
+    .attr("class", "period-header")
     .text(ectsSum => {
       const roundToOneDecimal = number => Math.round(number * 10) / 10;
 
@@ -225,13 +225,8 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
   let newCourse = courseUpdateSelection.enter().append("div")
   
   // Add a title to new the courses.
-  // XXX: Why is the cursor set twice? Is it for backwards compatibility?
   let courseTitle = newCourse.append("p")
-    .attr("class", "pr-4 pl-1 text-left")
-    .style("margin-top", "10px")
-    .style("font-weight", "bold")
-    .style("cursor", "pointer")
-    .style("cursor", "hand");
+    .attr("class", "course-title");
 
   // The title includes a link that leads to information about the course.
   courseTitle.append("a")
@@ -249,7 +244,7 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
   if (isLoggedIn) {
     // Add a button to remove the course.
     let removeButton = newCourse.append("p")
-      .attr("class", "btn btn-link delete-course block-remove-button");
+      .attr("class", "btn btn-link delete-course course-remove-button");
     
     // Add the icon and url to the button.
     // XXX: The page is refreshed each time a course is deleted. Could this be
@@ -348,9 +343,8 @@ function addFooter(term) {
     
     // Add missing buttons.
     let newButton = buttonUpdateSelection.enter().append("div")
-      .attr("class", "term-footer-button bg-dark btn add-course")
-      .text("Lägg till kurs")
-      .style("color", "white");
+      .attr("class", "term-footer-button btn add-course")
+      .text("Lägg till kurs");
     
     // Setup data for the pop-up modal.
     // XXX: The page is refreshed each time a course is added. Could this be
@@ -381,7 +375,7 @@ function addFooter(term) {
   } else {
     footer
       .append("div")
-      .attr("class", "term-footer-filler bg-dark");
+      .attr("class", "term-footer-filler");
   }
 }
 

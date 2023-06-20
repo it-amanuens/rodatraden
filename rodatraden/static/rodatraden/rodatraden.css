@@ -1,12 +1,13 @@
 :root {
-  --main-color: #D6001E;
-  --main-color-dark: #B30018;
-  --block-border-radius: 0.2rem;
-  --gray-darker:            lighten(#000, 13.5%);
-  --gray-dark:              lighten(#000, 20%);
-  --gray:                   lighten(#000, 40%);
-  --gray-light:             #dddddd;
-  --gray-lighter:           lighten(#000, 95%);
+  --main-color-dark: hsl(352, 100%, 35%);
+  --main-color: hsl(352, 100%, 42%);
+  --main-color-light: hsl(352, 100%, 90%);
+  
+  --gray-darker:  hsl(0, 0%, 13.5%);
+  --gray-dark:    hsl(0, 0%, 20%);
+  --gray:         hsl(0, 0%, 40%);
+  --gray-light:   hsl(0, 0%, 87%);
+  --gray-lighter: hsl(0, 0%, 95%);
 }
 
 #hideAll {
@@ -130,142 +131,121 @@ a:not(.default):hover{
 
 /* Block stuff */
 
+.block-schedule {
+  --schedule-background-color-light: var(--gray-light);
+  --schedule-background-color-dark: #343a40;
+  --schedule-text-color: white;
+  --schedule-padding: 0.25rem;
+  --schedule-border-width: 0.125rem;
+  --schedule-border-radius: 0.25rem;
+  --schedule-gap: 0.125rem;
+
+  color: var(--schedule-text-color);
+}
+
 .academic-year {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2px;
+  gap: var(--schedule-gap);
 
   margin: 0.25rem 0;
-  color: white;
-  background-color: #DDDDDD;
-}
-
-.course-container {
-  width: 100%;
-  position: relative;
-  text-align: center;
+  background-color: var(--schedule-background-color-light);
 }
 
 .term-header {
-  font-size: large;
   border: 0;
-  border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
+  border-radius: var(--schedule-border-radius) var(--schedule-border-radius) 0 0;
+  background-color: var(--schedule-background-color-dark);
+
+  font-size: large;
+  text-align: center;
 }
 
 .period-header-container {
   display: grid;
-  gap: 2px;
   grid-template-columns: repeat(2, 1fr);
+  gap: var(--schedule-gap);
 }
 
 .period-header {
-  height: 1.5rem;
+  padding-block-end: var(--schedule-padding);
+  background-color: var(--schedule-background-color-dark);
+  
   font-size: small;
-  border: 0;
+  text-align: center;
 }
 
-.term-footer {
-  width: 100%;
-  overflow: hidden;
+.course-container {
+  position: relative;
 }
-
-.term-footer-button {
-  width: 50%;
-  float:left;
-  color: white;
-  padding: 3px;
-  text-decoration: none;
-  border-radius: 0 0 var(--block-border-radius) var(--block-border-radius);
-  border-style: solid;
-  border-color: #D3D3D3;
-  border-width: 1px;
-}
-
-.term-footer-button:hover {
-  background-color: var(--main-color) !important;
-}
-
-.term-footer-filler {
-  width: 100%;
-  float:left;
-  color: white;
-  padding: 3px;
-  text-decoration: none;
-  border-radius: 0 0 var(--block-border-radius) var(--block-border-radius);
-  border-style: solid;
-  border-color: #D3D3D3;
-  border-width: 1px;
-}
-
-.course-approved{border: 3px solid green;}
-
 
 .course {
   position: absolute;
-  border: 2px var(--main-color) solid;
+  border: var(--schedule-border-width) var(--main-color) solid;
   background-color: var(--main-color-dark);
+
+  /* XXX: This dynamic font-size is not a responsive enough solution */
   font-size: .6vw;
 }
 
-.course a {
-  color: white;
-}
-
-.block-remove-button {
-  color: white;
-  position: absolute;
-  right:    0;
-  top:   0;
-}
-
-.block-remove-button .fa {
-  color: white;
-}
-
-.course-private {
-  background-color: #c3e5c4;
-}
-
-
-.prereq-0 {
-  background-color: var(--gray-light);
-}
-
-#block-addyear {
-  color: white;
-  border-radius: var(--block-border-radius);
+.course-title {
+  margin: 0;
+  margin-top: 0.75rem;
+  padding-left: 0.25rem;
+  padding-right: 1.5rem;
   cursor: pointer;
+
+  font-weight: bold;
+  text-align: left;
 }
 
-#block-addyear:hover {
-  background-color: var(--main-color) !important;
+.course-remove-button {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
-.block-text-left {
-  width: 70%;
-  float: left;
+.course a,
+.course .fa {
+  color: var(--schedule-text-color);
 }
 
-.block-text-right {
-  width: 29%
+.course a:hover {
+  color: var(--main-color-light);
 }
 
-.block-content {
-  padding: 3px;
+.term-footer {
+  display: flex;
+  gap: var(--schedule-gap);
 }
 
-/**
-SUM TOTAL
-*/
+.term-footer > div {
+  flex-grow: 1;
 
-.block-sum {
-  width: 17%;
-  color: var(--gray-lighter);
-  font-size: small;
-  padding: 6px;
-  overflow: hidden;
+  padding: var(--schedule-padding) 0;
+  border: 0;
+  border-radius: 0 0 var(--schedule-border-radius) var(--schedule-border-radius);
+  background-color: var(--schedule-background-color-dark);
+}
+
+.term-footer-button,
+.term-footer-button:hover {
+  color: var(--schedule-text-color);
+}
+
+.term-footer-button:hover {
   background-color: var(--main-color);
-  border-radius: var(--block-border-radius) var(--block-border-radius) var(--block-border-radius) var(--block-border-radius);
+}
+
+.block-schedule-footer {
+  padding: var(--schedule-padding) 0;
+  border-radius: var(--schedule-border-radius);
+  background-color: var(--schedule-background-color-dark);
+}
+
+.block-schedule-footer:hover {
+  background-color: var(--main-color);
+  cursor: pointer;
 }
 
 /** SELECT2 */
