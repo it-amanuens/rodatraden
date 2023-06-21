@@ -135,21 +135,30 @@ a:not(.default):hover{
   --schedule-background-color-light: var(--gray-light);
   --schedule-background-color-dark: #343a40;
   --schedule-text-color: white;
+  --schedule-margin: 0.5rem;
   --schedule-padding: 0.25rem;
   --schedule-border-width: 0.125rem;
   --schedule-border-radius: 0.25rem;
   --schedule-gap: 0.125rem;
+  --schedule-block-font-size: 0.6vw;
 
   color: var(--schedule-text-color);
 }
 
 .academic-year {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: var(--schedule-gap);
-
-  margin: 0.25rem 0;
+  
+  margin: var(--schedule-margin) 0;
   background-color: var(--schedule-background-color-light);
+}
+
+.academic-year.one-column {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.academic-year.two-columns {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .term-header {
@@ -177,15 +186,24 @@ a:not(.default):hover{
 
 .course-container {
   position: relative;
+
+  /* Empty course containers should have some height to distinguish between the
+   * headers and the footer. */
+  min-height: 1rem;
 }
 
 .course {
   position: absolute;
   border: var(--schedule-border-width) var(--main-color) solid;
   background-color: var(--main-color-dark);
+}
 
-  /* XXX: This dynamic font-size is not a responsive enough solution */
-  font-size: .6vw;
+.one-column .course {
+  font-size: calc(2 * var(--schedule-block-font-size));
+}
+
+.two-columns .course {
+  font-size: var(--schedule-block-font-size);
 }
 
 .course-title {

@@ -39,7 +39,6 @@ function updateAcademicYear(academicYearContainer, transitionDuration) {
 
   // Add, if needed, new academic years.
   let newAcademicYear = academicYearUpdateSelection.enter().append("div")
-    .attr("class", "academic-year text-center")
     .attr("id", courseGroup => courseGroup.year)
     .style("opacity", 1e-6);
   
@@ -56,8 +55,22 @@ function updateAcademicYear(academicYearContainer, transitionDuration) {
     .duration(transitionDuration)
     .style("opacity", 1);
 
-  // Merge the newly created elements with the existing ones to return all.
-  return newAcademicYear.merge(academicYearUpdateSelection);
+  // Merge the newly created elements with the existing ones to get all.
+  let academicYears = newAcademicYear.merge(academicYearUpdateSelection);
+  academicYears
+    .attr('class', () => {
+      let classList = ['academic-year'];
+
+      if (shouldStackTerms) {
+        classList.push('one-column');
+      } else {
+        classList.push('two-columns');
+      }
+
+      return classList.join(' ');
+    })
+  
+    return academicYears;
 }
 
 /**

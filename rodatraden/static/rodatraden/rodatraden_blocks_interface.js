@@ -5,10 +5,25 @@
 const startYear = parseInt(document.currentScript.dataset.startYear);
 
 // Data that needs to be global so that their lifetime persist.
-let allCourses = getAllCourses();
-//splitCoursesOverTermBoundary(allCourses);
-let coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
-let coursesByTerm = assignPositionsAndGroupByTerm(coursesByYear);
+let shouldStackTerms = isNarrowScreen();
+let allCourses;
+let coursesByYear;
+let coursesByTerm;
+
+function updateCourseData() {
+  allCourses = getAllCourses();
+  if (shouldStackTerms) {
+    splitCoursesOverTermBoundary(allCourses);
+  }
+  coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
+  coursesByTerm = assignPositionsAndGroupByTerm(coursesByYear);
+}
+
+function isNarrowScreen() {
+  // TEMO: Magic number for just to make it work.
+  const windowWidthThreshold = 800;
+  return window.innerWidth < windowWidthThreshold;
+}
 
 /**
  * Setups event listeners for the buttons to update and delete the block
@@ -179,6 +194,8 @@ function getAllCourses() {
  * Main function for this file.
  */
 function block_interface_main() {
+  updateCourseData();
+
   setupUpdateAndDeleteButtons();
   setupSections();
 
@@ -197,6 +214,15 @@ function block_interface_main() {
       label.innerText = fileName;
     }
   );
+
+  window.addEventListener('resize', () => {
+    const oldTermLayout = shouldStackTerms;
+    shouldStackTerms = isNarrowScreen();
+    if (shouldStackTerms !== oldTermLayout) {
+      updateCourseData();
+      updateBlockSchedule();
+    }
+  })
 }
 
 block_interface_main();
