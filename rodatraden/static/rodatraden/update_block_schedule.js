@@ -1,11 +1,4 @@
-// Variables from the data parameters in the script tag. Because of
-// "document.currentScript" these need to be global. If used in a function that
-// is called from another script then the dataset will refer to the callers
-// script tag instead.
-const isLoggedIn = document.currentScript.dataset.isLoggedIn === 'True';
-const courseoccasionInfoUrl = document.currentScript.dataset.courseoccasionInfoUrl;
-const blockRemoveCourseUrl = document.currentScript.dataset.blockRemoveCourseUrl;
-const blockCourseListUrl = document.currentScript.dataset.blockCourseListUrl;
+
 
 /**
  * Combines the term prefix and the last two digits of the term year to create
@@ -400,7 +393,7 @@ function addFooter(term) {
  * adding/removing an academic year or course. The DOM elements are then
  * updated accordingly.
  */
-function updateBlockSchedule() {
+export default function updateBlockSchedule() {
   const transitionDuration = 500;
 
   const xMax = 20;

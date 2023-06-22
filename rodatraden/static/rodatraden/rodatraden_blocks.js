@@ -160,7 +160,7 @@ function groupCoursesByYear(courses) {
  * 
  * @param {{start: number, length: number}[]} courses 
  */
-function splitCoursesOverTermBoundary(courses) {
+export function splitCoursesOverTermBoundary(courses) {
   const springWeekStart = 20;
 
   for (let course of courses) {
@@ -222,7 +222,7 @@ function addMissingGapYears(coursesByYear) {
  * @param {number} startYear - Start year specified by the user when creating the block-schedule.
  * @returns {Map<number, any>} Map of courses grouped by academic year.
  */
-function assignPositionsAndGroupByYear(allCourses, startYear) {
+export function assignPositionsAndGroupByYear(allCourses, startYear) {
   let coursesByYear = groupCoursesByYear(allCourses);
 
   // XXX: This function now does a bit more that the function name suggests.
@@ -276,7 +276,7 @@ function divideCoursesIntoTerms(courses) {
  * @param {Map<number, any>} coursesByYear - Map from an academic year to courses that year.
  * @returns Courses grouped by term, together with some useful data.
  */
-function groupCoursesByTerm(coursesByYear) {
+export function groupCoursesByTerm(coursesByYear) {
   let expectedStructure = [];
 
   for (const courseGroup of coursesByYear) {
@@ -336,7 +336,7 @@ function getCourseContainerHeight(courses) {
  * @param {{year: number, courses: any}[]} coursesByYear
  * @param {number} startYear - Used if the first year has to be created.
  */
-function addAcademicYear(coursesByTerm, startYear) {
+export function addAcademicYear(coursesByTerm, startYear) {
   // Create a new year with the startYear to begin with.
   let newCourseGroup = {
     year: startYear,

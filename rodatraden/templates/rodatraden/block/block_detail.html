@@ -119,18 +119,22 @@
   {{ categories_sum|json_script:"categories-sum-data" }}
   {{ course_occasions|json_script:"course-occasions-data" }}
   {{ private_courses|json_script:"private-courses-data" }}
-
-  <!-- Helper scripts for rendering blocks -->
-  <script src="{% static 'rodatraden/rodatraden_blocks.js' %}"></script>
-  <script src="{% static 'rodatraden/update_block_schedule.js' %}"
+  <script id='string-data'
+          data-start-year="{{ start_year }}"
+          data-is-logged-in="{{ logged_in }}"
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
-          data-is-logged-in="{{ logged_in }}"
   ></script>
+
+  <!-- Helper scripts for rendering blocks -->
   <script src="{% static 'rodatraden/rodatraden_blocks_interface.js' %}"
-          defer
+          type='module'
           data-start-year="{{ start_year }}"
+          data-is-logged-in="{{ logged_in }}"
+          data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
+          data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
+          data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
   ></script>
 
 {% endblock %}

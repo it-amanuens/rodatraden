@@ -1,14 +1,26 @@
-// Variables from the data parameters in the script tag. Because of
-// "document.currentScript" these need to be global. If used in a function that
-// is called from another script then the dataset will refer to the callers
-// script tag instead.
-const startYear = parseInt(document.currentScript.dataset.startYear);
+import updateBlockSchedule from './update_block_schedule.js'
+import {
+  splitCoursesOverTermBoundary,
+  assignPositionsAndGroupByYear,
+  groupCoursesByTerm,
+  addAcademicYear
+} from './rodatraden_blocks.js'
 
-// Data that needs to be global so that their lifetime persist.
-let shouldStackTerms = isNarrowWindow();
-let allCourses;
-let coursesByYear;
-let coursesByTerm;
+// Variables from the data parameters in a script tag. These are global (using
+// "window.") so that they can be used in other scripts.
+window.dataElement = document.getElementById('string-data');
+window.startYear = parseInt(dataElement.dataset.startYear);
+window.isLoggedIn = dataElement.dataset.isLoggedIn === 'True';
+window.courseoccasionInfoUrl = dataElement.dataset.courseoccasionInfoUrl;
+window.blockRemoveCourseUrl = dataElement.dataset.blockRemoveCourseUrl;
+window.blockCourseListUrl = dataElement.dataset.blockCourseListUrl;
+
+// Data that needs to be global so that their lifetime persist. These are
+// global (using "window.") so that they can be used in other scripts.
+window.shouldStackTerms = isNarrowWindow();
+window.allCourses = undefined;
+window.coursesByYear = undefined;
+window.coursesByTerm = undefined;
 
 /**
  * Updates the global course data. Splits courses that overlap both the fall an
