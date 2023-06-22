@@ -19,13 +19,15 @@ function getTermTitle(prefix, academicYear) {
  * them.
  * 
  * @param {*} academicYearContainer - D3 selection of a container for academic years.
+ * @param {any[]} coursesByTerm
+ * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
  * @param {number} transitionDuration - Transition duration in milliseconds.
  * @returns D3 selection of all academic years.
  */
-function updateAcademicYear(academicYearContainer, transitionDuration) {
-  // Create a D3 update selection by binding each array in "coursesByYear" to
-  // an academic year, previously existing or not. The parameter "year" is used
-  // as the key so that existing years gets correctly put in the update
+function updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTerms, transitionDuration) {
+  // Create a D3 update selection by binding each array in the containers bound
+  // data to an academic year, previously existing or not. The parameter "year"
+  // is used as the key so that existing years gets correctly put in the update
   // selection.
   let academicYearUpdateSelection = academicYearContainer.selectAll(".academic-year")
     .data(coursesByTerm, courseGroup => courseGroup.year);
@@ -392,16 +394,16 @@ function addFooter(term) {
  * function should be called every time data is changed, for example when
  * adding/removing an academic year or course. The DOM elements are then
  * updated accordingly.
+ * 
+ * @param {any[]} coursesByTerm
+ * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
  */
-export default function updateBlockSchedule() {
+export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
   const transitionDuration = 500;
 
   const xMax = 20;
   const margin = 1;
   const scale = 3;
-
-  // Make sure the groups of courses are sorted by year in ascending order.
-  coursesByTerm.sort((a, b) => a.year - b.year);
 
   // Container for all the academic years. Each year has headers, a set of
   // courses and a footer.
@@ -409,7 +411,7 @@ export default function updateBlockSchedule() {
 
   // Start by removing old academic years, adding new and empty ones while
   // binding all with up-to-date data.
-  let academicYearSelection = updateAcademicYear(academicYearContainer, transitionDuration);
+  let academicYearSelection = updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTerms, transitionDuration);
   
   // Bind data to all terms and create new and empty terms if needed.
   let termSelection = updateTerm(academicYearSelection);

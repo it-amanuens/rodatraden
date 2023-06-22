@@ -1,39 +1,18 @@
+import CoursesData from './courses_data.js';
 import updateBlockSchedule from './update_block_schedule.js'
-import {
-  splitCoursesOverTermBoundary,
-  assignPositionsAndGroupByYear,
-  groupCoursesByTerm,
-  addAcademicYear
-} from './rodatraden_blocks.js'
 
-// Variables from the data parameters in a script tag. These are global (using
-// "window.") so that they can be used in other scripts.
-window.dataElement = document.getElementById('string-data');
-window.startYear = parseInt(dataElement.dataset.startYear);
+// Variables from data parameters in a script tag. These can be made global
+// (using "window.") so that they can be used in other scripts.
+const dataElement = document.getElementById('string-data');
+const startYear = parseInt(dataElement.dataset.startYear);
 window.isLoggedIn = dataElement.dataset.isLoggedIn === 'True';
 window.courseoccasionInfoUrl = dataElement.dataset.courseoccasionInfoUrl;
 window.blockRemoveCourseUrl = dataElement.dataset.blockRemoveCourseUrl;
 window.blockCourseListUrl = dataElement.dataset.blockCourseListUrl;
 
-// Data that needs to be global so that their lifetime persist. These are
-// global (using "window.") so that they can be used in other scripts.
-window.shouldStackTerms = isNarrowWindow();
-window.allCourses = undefined;
-window.coursesByYear = undefined;
-window.coursesByTerm = undefined;
-
-/**
- * Updates the global course data. Splits courses that overlap both the fall an
- * spring ter if the terms are to be stacked vertically.
- */
-function updateCourseData() {
-  allCourses = getAllCourses();
-  if (shouldStackTerms) {
-    splitCoursesOverTermBoundary(allCourses);
-  }
-  coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
-  coursesByTerm = groupCoursesByTerm(coursesByYear);
-}
+// Data that whose lifetime has to persist due to event listeners.
+let coursesData = new CoursesData(startYear);
+let shouldStackTerms = isNarrowWindow();
 
 /**
  * Determines if the window is narrow or not.
@@ -99,8 +78,8 @@ function setupSections() {
 function setupAddYearButton() {
   const button = document.getElementById('block-addyear');
   button.addEventListener('click', () => {
-    addAcademicYear(coursesByTerm, startYear);
-    updateBlockSchedule();
+    coursesData.addAcademicYear();
+    updateBlockSchedule(coursesData.coursesByTerm, shouldStackTerms);
   });
 }
 
@@ -176,47 +155,11 @@ function createCategorySumChart() {
 }
 
 /**
- * Gets all private and non-private courses in the block-schedule from external
- * script tags and return them as a single collection.
- * 
- * @returns {Array} Private and non-private courses.
- */
-function getAllCourses() {
-  let courses = JSON.parse(
-    document.getElementById('course-occasions-data').textContent
-  );
-  
-  const privateCourses = JSON.parse(
-    document.getElementById('private-courses-data').textContent
-  );
-  
-  // Add speed to the non-private courses.
-  for (let course of courses) {
-    course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
-    // TODO: Replace all mentions of "length" with "weeks".
-    course.length = course.weeks;
-  }
-
-  // Add speed to the private courses and add them to the other courses.
-  for (let course of privateCourses) {
-    // XXX: Course speed feels arbitrary. Why multiply by 50?
-    course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
-    // TODO: Replace all mentions of "length" with "weeks".
-    course.length = course.weeks;
-    // XXX: Is this needed? Doesn't the course have an "is_priv" attribute?
-    course.type = 'private';
-    courses.push(course);
-  }
-
-  return courses;
-}
-
-/**
  * Main function for this file.
  */
 function block_interface_main() {
   // Initialize the course data for the first time.
-  updateCourseData();
+  coursesData.update(shouldStackTerms);
 
   // Setup the three sections and most buttons.
   setupUpdateAndDeleteButtons();
@@ -227,7 +170,7 @@ function block_interface_main() {
   createCategorySumChart();
 
   // Create the block-schedule.
-  updateBlockSchedule();  
+  updateBlockSchedule(coursesData.coursesByTerm, shouldStackTerms);  
 
   // Show the name of the file to be uploaded when a new file has been selected.
   document.querySelector('.custom-file-input').addEventListener(
@@ -245,8 +188,8 @@ function block_interface_main() {
     const oldTermLayout = shouldStackTerms;
     shouldStackTerms = isNarrowWindow();
     if (shouldStackTerms !== oldTermLayout) {
-      updateCourseData();
-      updateBlockSchedule();
+      coursesData.update(shouldStackTerms);
+      updateBlockSchedule(coursesData.coursesByTerm, shouldStackTerms);
     }
   })
 }
