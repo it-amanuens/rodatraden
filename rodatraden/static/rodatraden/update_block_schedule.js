@@ -8,7 +8,7 @@ const blockRemoveCourseUrl = document.currentScript.dataset.blockRemoveCourseUrl
 const blockCourseListUrl = document.currentScript.dataset.blockCourseListUrl;
 
 /**
- * Combine the term prefix and the last two digits of the term year to create
+ * Combines the term prefix and the last two digits of the term year to create
  * the title. The term year differs from the academic year during the spring.
  * @param {str} prefix - Either "VT" or "HT".
  * @param {number} academicYear
@@ -74,7 +74,8 @@ function updateAcademicYear(academicYearContainer, transitionDuration) {
 }
 
 /**
- * Adds terms to new academic years and returns all terms.
+ * Binds data to all terms for all academic years. Adds missing terms if
+ * needed.
  * 
  * @param {*} academicYear - D3 selection of all academic years.
  * @returns D3 selection of all terms.
@@ -323,7 +324,8 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
 
 /**
  * Adds a footer to new terms. The footer contains buttons to add courses to
- * any of the two periods in that term, but only if the user is logged in.
+ * any of the two periods in that term, but only if the user is logged in and
+ * owns that schedule.
  * 
  * @param {*} term - D3 selection of all terms.
  */
@@ -393,7 +395,7 @@ function addFooter(term) {
 }
 
 /**
- * Update block schedule DOM elements based on the global course data. This
+ * Updates block-schedule DOM elements based on the global course data. This
  * function should be called every time data is changed, for example when
  * adding/removing an academic year or course. The DOM elements are then
  * updated accordingly.

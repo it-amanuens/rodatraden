@@ -134,7 +134,7 @@ function generateCoursePositions(courses) {
 }
 
 /**
- * Group courses by their academic year using a Map.
+ * Groups courses by their academic year using a Map.
  * 
  * @param {{year: number}[]} courses - Array of courses.
  * @returns {Map<number, {year: number}>} Map of courses grouped by academic year.
@@ -166,15 +166,15 @@ function splitCoursesOverTermBoundary(courses) {
   for (let course of courses) {
     const courseEnd = course.start + course.length - 1;
     if (course.start < springWeekStart && courseEnd >= springWeekStart) {
-      let courseRemainder = { ...course };
+      let courseSpringCopy = { ...course };
 
-      courseRemainder.start = springWeekStart;
+      courseSpringCopy.start = springWeekStart;
 
       const weekOverlap = courseEnd - springWeekStart + 1;
       course.length -= weekOverlap;
-      courseRemainder.length = weekOverlap;
+      courseSpringCopy.length = weekOverlap;
 
-      courses.push(courseRemainder);
+      courses.push(courseSpringCopy);
     }
   }
 }
@@ -219,8 +219,8 @@ function addMissingGapYears(coursesByYear) {
  * as adding missing years between exsiting years.
  * 
  * @param {{year: number}[]} allCourses
- * @param {number} startYear - Start year specified by the user when creating the block schedule.
- * @returns {Map<number, any>} Courses with their positions set, grouped by year.
+ * @param {number} startYear - Start year specified by the user when creating the block-schedule.
+ * @returns {Map<number, any>} Map of courses grouped by academic year.
  */
 function assignPositionsAndGroupByYear(allCourses, startYear) {
   let coursesByYear = groupCoursesByYear(allCourses);
@@ -236,6 +236,13 @@ function assignPositionsAndGroupByYear(allCourses, startYear) {
   return coursesByYear;
 }
 
+/**
+ * Splits the courses for an academic year into two groups: fall and spring
+ * courses.
+ * 
+ * @param {any[]} courses
+ * @returns The courses split into a fall and spring term.
+ */
 function divideCoursesIntoTerms(courses) {
   const springWeekStart = 20;
 
@@ -244,7 +251,9 @@ function divideCoursesIntoTerms(courses) {
 
   for (const course of courses) {
     if (course.start >= springWeekStart) {
-      // XXX: This is needed for now to position the courses correctly.
+      // The terms are positioned based on their starting offset relative to
+      // the start of the term. For spring courses we therefore need to
+      // subtract 20 weeks from the academic year start.
       course.termStart = course.start - springWeekStart;
       springCourses.push(course);
     } else {
@@ -259,7 +268,15 @@ function divideCoursesIntoTerms(courses) {
   }
 }
 
-function assignPositionsAndGroupByTerm(coursesByYear) {
+/**
+ * Takes courses grouped by year and further group them by term. Some other
+ * useful data is also calculated that will be used when rendering the block-
+ * schedule.
+ * 
+ * @param {Map<number, any>} coursesByYear - Map from an academic year to courses that year.
+ * @returns Courses grouped by term, together with some useful data.
+ */
+function groupCoursesByTerm(coursesByYear) {
   let expectedStructure = [];
 
   for (const courseGroup of coursesByYear) {
@@ -280,7 +297,7 @@ function assignPositionsAndGroupByTerm(coursesByYear) {
         ectsSumPeriod3: getEctsSumInPeriod(courses, 3),
         ectsSumPeriod4: getEctsSumInPeriod(courses, 4)
       },
-      height: courseBlockHeight(courses)
+      height: getCourseContainerHeight(courses)
     });
   }
 
@@ -291,81 +308,36 @@ function assignPositionsAndGroupByTerm(coursesByYear) {
    * RENDERING STUDYBLOCK
    */
 
-/*
- * Calculates the courseBlock height from the
- * coursesData[i].courses dataset
+/**
+ * Calculates the height required to contain all given courses.
+ * 
+ * @param {{firstRowIndex: number, speed: number}[]} courses
+ * @returns Height of the course container.
  */
-function courseBlockHeight(dataset){
+function getCourseContainerHeight(courses) {
   // TEMP: These have been copied here to make it work.
   const margin = 1;
   const scale = 3;
 
-  var maxHeight = 1;
-  for(var i = 0; i < dataset.length; i++){
-    var block = dataset[i];
-    var height = block.firstRowIndex + block.speed;
-    if(height > maxHeight)
-      maxHeight = height;
+  let containerHeight = 0;
+
+  for(const course of courses) {
+    const courseHeight = course.firstRowIndex + course.speed;
+    containerHeight = Math.max(containerHeight, courseHeight);
   }
-  return maxHeight * scale + 2 * margin;
-}
 
-/*
- * Calculates the height of a blockrow without the
- * Height of the part with courses (courseBlock), since this is a constant
- * for all rows i call in it blockRowBaseHeight! Even tough that can
- * be slightly misleading, WHAT THA HELL IS A BASE ANYWAY!?
- *
- * All heights is calculated from basic css properties so if that change
- * this function will take that into consideration
- */
-function blockRowBaseHeight() {
-  //Need to add some hidden divs with correct class to get css properties
-  var blockFooter = $("<div class='block-footer'><div class='block-footer-lp'><p style='margin: 0px;'>text</p></div></div>")
-    .hide().appendTo("body");
-  var blockHeader = $("<div class='block-header'>1234</div>")
-    .hide().appendTo("body");
-
-  //Get height values from css properties
-  var footerHeight = parseInt($(".block-footer").css("height")),
-    titleHeight = parseInt($(".block-header").css("height")),
-    //Here we need to specify Left,Right,Top or Bottom according to stupid firefox
-    titlePadding = parseInt($(".block-header").css("paddingTop")),
-    baseHeight = footerHeight+titleHeight+titlePadding;
-
-  //Remove hidden divs
-  blockFooter.remove();
-  blockHeader.remove();
-
-  return baseHeight
-}
-
-function yearButtonHeight() {
-  var yearButton = $("<div class='block-row block-header add-year text-center' style='opacity: 1; left: 0px; right: 0px; position: absolute;'>Add Year</div>").hide().appendTo("body");
-  var yearButtonHeightValue = parseInt($(".add-year").css("height"));
-
-  yearButton.remove();
-
-  return yearButtonHeightValue;
-}
-
-function blockRowMargin() {
-  var	blockHeader = $("<div class='block-row'></div>").hide().appendTo("body");
-  //Here we need to specify Left,Right,Top or Bottom according to stupid firefox
-  var blockRowMarginValue = parseInt($(".block-row").css("marginTop"))
-  blockHeader.remove();
-
-  return blockRowMarginValue;
+  return containerHeight * scale + 2 * margin;
 }
 
 /**
- * Append a year to {@link coursesByYear}. Uses {@link startYear} as fallback
- * if no years exists yet.
+ * Appends an empty year to {@link coursesByYear}. Uses {@link startYear} as
+ * fallback if no years exists yet.
  * 
  * @param {{year: number, courses: any}[]} coursesByYear
- * @param {number} startYear - Used as a fallback if no years exists yet.
+ * @param {number} startYear - Used if the first year has to be created.
  */
 function addAcademicYear(coursesByTerm, startYear) {
+  // Create a new year with the startYear to begin with.
   let newCourseGroup = {
     year: startYear,
     fall: {
@@ -381,6 +353,7 @@ function addAcademicYear(coursesByTerm, startYear) {
     height: 0
   };
 
+  // Replace the year used as a fallback if possible.
   if (coursesByTerm.length !== 0) {
     const lastYear = coursesByTerm.reduce(
       (lastYear, courseGroup) => Math.max(lastYear, courseGroup.year),
@@ -392,75 +365,40 @@ function addAcademicYear(coursesByTerm, startYear) {
   coursesByTerm.push(newCourseGroup);
 }
 
-/*
- * Goes through the block and finds if you have all
- * the prerequisites to take a course.
- * Returns 1 if yes, 0 if no
- */
-function doIHavePrerequisites(coursesData, prerequisites, year, start) {
-  var prerequisitesId = [];
-  if (!prerequisites) {
-    return 1;
-  }
-
-  for (var i in prerequisites) {
-    prerequisitesId.push(prerequisites[i].id);
-  }
-
-  var start_year = parseInt(coursesData[0].year);
-  var ids = [];
-
-  for (var i = year-start_year; i >= 0; i--) {
-    if (i == year-start_year) {
-      for (var j in coursesData[i].courses) {
-        if (coursesData[i].courses[j].start < start) {
-          ids.push(coursesData[i].courses[j].course_id);
-        }
-      }
-    } else {
-      for (var j in coursesData[i].courses) {
-        ids.push(coursesData[i].courses[j].course_id);
-      }
-    }
-  }
-
-  for (var i in prerequisitesId) {
-    if (ids.indexOf(prerequisitesId[i]) == -1) {
-      return 0;
-    }
-  }
-
-  /* If any of the plucked course ids fits with the prerequisites return 1 */
-  return 1;
-}
-
-/*
- * Sums over the amount of ects in a study period.
+/**
+ * Calculates the total ECTS of all courses in a spceific period.
+ * 
+ * @param {{start: number, weeks: number, ects: number}[]} courses - All courses during an academic year.
+ * @param {number} periodNumber - 1, 2, 3 or 4.
+ * @returns The total ECTS of all courses in the given period.
  */
 function getEctsSumInPeriod(courses, periodNumber) {
-  let ectsSum = 0;
-
   const periodWeekLength = 10;
   const periodStart = periodWeekLength * (periodNumber - 1);
   const periodEnd = periodStart + periodWeekLength - 1;
 
-  for (let course of courses) {
-    const courseStart = course.start;
-    const courseEnd = course.start + course.weeks - 1;
+  const ectsSum = courses.reduce(
+    (ectsSum, course) => {
+      const courseStart = course.start;
+      const courseEnd = course.start + course.weeks - 1;
 
-    // Skip the course if it doesn't overlap with the period.
-    if (courseEnd < periodStart || periodEnd < courseStart) continue;
+      // Skip the course if it doesn't overlap with the period.
+      if (courseEnd < periodStart || periodEnd < courseStart) {
+        return ectsSum;
+      }
 
-    // Calculate how many weeks the course overlaps with the period.
-    const overlapStart = Math.max(courseStart, periodStart);
-    const overlapEnd = Math.min(courseEnd, periodEnd);
-    const overlapInWeeks = overlapEnd - overlapStart + 1;
+      // Calculate how many weeks the course overlaps with the period.
+      const overlapStart = Math.max(courseStart, periodStart);
+      const overlapEnd = Math.min(courseEnd, periodEnd);
+      const overlapInWeeks = overlapEnd - overlapStart + 1;
 
-    const ectsPerWeek = course.ects / course.weeks;
-    const ectsInPeriod = ectsPerWeek * overlapInWeeks;
+      const ectsPerWeek = course.ects / course.weeks;
+      const ectsInPeriod = ectsPerWeek * overlapInWeeks;
 
-    ectsSum += ectsInPeriod;
-  }
+      return ectsSum + ectsInPeriod;
+    },
+    0
+  );
 
   return ectsSum;
 }

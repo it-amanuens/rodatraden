@@ -5,28 +5,37 @@
 const startYear = parseInt(document.currentScript.dataset.startYear);
 
 // Data that needs to be global so that their lifetime persist.
-let shouldStackTerms = isNarrowScreen();
+let shouldStackTerms = isNarrowWindow();
 let allCourses;
 let coursesByYear;
 let coursesByTerm;
 
+/**
+ * Updates the global course data. Splits courses that overlap both the fall an
+ * spring ter if the terms are to be stacked vertically.
+ */
 function updateCourseData() {
   allCourses = getAllCourses();
   if (shouldStackTerms) {
     splitCoursesOverTermBoundary(allCourses);
   }
   coursesByYear = assignPositionsAndGroupByYear(allCourses, startYear);
-  coursesByTerm = assignPositionsAndGroupByTerm(coursesByYear);
+  coursesByTerm = groupCoursesByTerm(coursesByYear);
 }
 
-function isNarrowScreen() {
-  // TEMO: Magic number for just to make it work.
+/**
+ * Determines if the window is narrow or not.
+ * 
+ * @returns True if the window is too narrow.
+ */
+function isNarrowWindow() {
+  // TEMP: Arbitrarily chosen pixel value.
   const windowWidthThreshold = 800;
   return window.innerWidth < windowWidthThreshold;
 }
 
 /**
- * Setups event listeners for the buttons to update and delete the block
+ * Setups event listeners for the buttons to update and delete the block-
  * schedule.
  */
 function setupUpdateAndDeleteButtons() {
@@ -155,7 +164,7 @@ function createCategorySumChart() {
 }
 
 /**
- * Get all private and non-private courses in the block schedule from external
+ * Gets all private and non-private courses in the block-schedule from external
  * script tags and return them as a single collection.
  * 
  * @returns {Array} Private and non-private courses.
@@ -194,16 +203,19 @@ function getAllCourses() {
  * Main function for this file.
  */
 function block_interface_main() {
+  // Initialize the course data for the first time.
   updateCourseData();
 
+  // Setup the three sections and most buttons.
   setupUpdateAndDeleteButtons();
   setupSections();
+  setupAddYearButton();
 
+  // Create the chart showing ECTS sums for each category.
   createCategorySumChart();
 
-  updateBlockSchedule();
-    
-  setupAddYearButton();
+  // Create the block-schedule.
+  updateBlockSchedule();  
 
   // Show the name of the file to be uploaded when a new file has been selected.
   document.querySelector('.custom-file-input').addEventListener(
@@ -215,9 +227,11 @@ function block_interface_main() {
     }
   );
 
+  // When the window resizes from narrow to wide or vice versa, update the data
+  // and redraw the block-schdule.
   window.addEventListener('resize', () => {
     const oldTermLayout = shouldStackTerms;
-    shouldStackTerms = isNarrowScreen();
+    shouldStackTerms = isNarrowWindow();
     if (shouldStackTerms !== oldTermLayout) {
       updateCourseData();
       updateBlockSchedule();
@@ -225,4 +239,5 @@ function block_interface_main() {
   })
 }
 
+// Run main function when the script is loaded.
 block_interface_main();
