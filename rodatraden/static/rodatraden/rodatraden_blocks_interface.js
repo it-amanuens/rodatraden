@@ -1,4 +1,4 @@
-import CoursesData from './courses_data.js';
+import BlockScheduleData from './block_schedule_data.js';
 import updateBlockSchedule from './update_block_schedule.js'
 
 // Variables from data parameters in a script tag. These can be made global
@@ -11,7 +11,7 @@ window.blockRemoveCourseUrl = dataElement.dataset.blockRemoveCourseUrl;
 window.blockCourseListUrl = dataElement.dataset.blockCourseListUrl;
 
 // Data that whose lifetime has to persist due to event listeners.
-let coursesData = new CoursesData(startYear);
+let coursesData = new BlockScheduleData(startYear);
 let shouldStackTerms = isNarrowWindow();
 
 /**
@@ -79,7 +79,7 @@ function setupAddYearButton() {
   const button = document.getElementById('block-addyear');
   button.addEventListener('click', () => {
     coursesData.addAcademicYear();
-    updateBlockSchedule(coursesData.coursesByTerm, shouldStackTerms);
+    updateBlockSchedule(coursesData.academicYears, shouldStackTerms);
   });
 }
 
@@ -170,7 +170,7 @@ function block_interface_main() {
   createCategorySumChart();
 
   // Create the block-schedule.
-  updateBlockSchedule(coursesData.coursesByTerm, shouldStackTerms);  
+  updateBlockSchedule(coursesData.academicYears, shouldStackTerms);  
 
   // Show the name of the file to be uploaded when a new file has been selected.
   document.querySelector('.custom-file-input').addEventListener(
@@ -189,7 +189,7 @@ function block_interface_main() {
     shouldStackTerms = isNarrowWindow();
     if (shouldStackTerms !== oldTermLayout) {
       coursesData.update(shouldStackTerms);
-      updateBlockSchedule(coursesData.coursesByTerm, shouldStackTerms);
+      updateBlockSchedule(coursesData.academicYears, shouldStackTerms);
     }
   })
 }

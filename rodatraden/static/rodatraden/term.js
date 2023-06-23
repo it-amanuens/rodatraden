@@ -1,7 +1,5 @@
 import CourseOccasion from "./course_occasion.js";
 
-const springWeekStart = 20;
-
 /**
  * Takes courses within the same year and returns those that start in the fall.
  * 
@@ -12,7 +10,7 @@ function getFallCourses(coursesInSameYear) {
   let courses = [];
 
   for (const course of coursesInSameYear) {
-    if (course.start < springWeekStart) {
+    if (course.start < Term.springWeekStart) {
       // The terms are positioned based on their starting offset relative to
       // the start of the term. For fall courses the start is the same.
       course.termStart = course.start;
@@ -34,11 +32,11 @@ function getSpringCourses(coursesInSameYear) {
   let courses = [];
 
   for (const course of coursesInSameYear) {
-    if (course.start >= springWeekStart) {
+    if (course.start >= Term.springWeekStart) {
       // The terms are positioned based on their starting offset relative to
       // the start of the term. For spring courses we therefore need to
       // subtract 20 weeks from the academic year start.
-      course.termStart = course.start - springWeekStart;
+      course.termStart = course.start - Term.springWeekStart;
       courses.push(course);
     }
   }
@@ -90,6 +88,8 @@ function getEctsSumInPeriod(coursesInSameYear, periodNumber) {
  * Class containing courses within the term and other useful data.
  */
 export default class Term {
+  static springWeekStart = 20;
+
   /**
    * Creates a fall term.
    * @param {number} academicYear
