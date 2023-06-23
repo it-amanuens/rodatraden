@@ -3,7 +3,7 @@
 /**
  * Combines the term prefix and the last two digits of the term year to create
  * the title. The term year differs from the academic year during the spring.
- * @param {str} prefix - Either "VT" or "HT".
+ * @param {string} prefix - Either "VT" or "HT".
  * @param {number} academicYear
  * @returns Combination of prefix and year, e.g., "HT19", "VT20", etc.
  */

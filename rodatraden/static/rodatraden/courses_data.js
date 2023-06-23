@@ -1,8 +1,5 @@
+import CourseOccasion from "./course_occasion.js";
 import CourseGrid from "./course_grid.js";
-
-let allCourses;
-let coursesByYear;
-let coursesByTerm;
 
 /**
  * Class containing all courses. This class is also used to manipulate said
@@ -71,9 +68,13 @@ export default class CoursesData {
     return this.#coursesByTerm;
   }
 
+  /** @type {number} */
   #startYear;
+  /** @type {CourseOccasion[]} */
   #courses;
+  /** @type {any[]} */
   #coursesByYear;
+  /** @type {any[]} */
   #coursesByTerm;
 
   /**
@@ -81,30 +82,22 @@ export default class CoursesData {
    * script tags and return them as a single collection.
    */
   #loadCoursesFromElement() {
-    let courses = JSON.parse(
+    let courses = [];
+
+    const coursesAsJSON = JSON.parse(
       document.getElementById('course-occasions-data').textContent
     );
-    
-    // Add speed to the non-private courses.
-    for (let course of courses) {
-      course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
-      // TODO: Replace all mentions of "length" with "weeks".
-      course.length = course.weeks;
-    }
-    
-    let privateCourses = JSON.parse(
+    const privateCoursesAsJSON = JSON.parse(
       document.getElementById('private-courses-data').textContent
     );
-  
-    // Add speed to the private courses and add them to the other courses.
-    for (let course of privateCourses) {
-      // XXX: Course speed feels arbitrary. Why multiply by 50?
-      course.speed = parseInt(course.ects * 10 * 5 / course.weeks);
-      // TODO: Replace all mentions of "length" with "weeks".
-      course.length = course.weeks;
-      // XXX: Is this needed? Doesn't the course have an "is_priv" attribute?
-      course.type = 'private';
-      courses.push(course);
+
+    for (const course of coursesAsJSON) {
+      const isPrivate = false;
+      courses.push(CourseOccasion.fromJSON(course, isPrivate));
+    }
+    for (const course of privateCoursesAsJSON) {
+      const isPrivate = true;
+      courses.push(CourseOccasion.fromJSON(course, isPrivate));
     }
   
     this.#courses = courses;
@@ -223,7 +216,7 @@ export default class CoursesData {
    * Sorts the courses by start week in ascending order. Courses that start
    * simultaneously are sorted by length in decending order.
    * 
-   * @param {{start: number, length: number}[]} courses
+   * @param {CourseOccasion[]} courses
    */
   #sortCoursesByStartAndLength(courses) {
     courses.sort((a, b) => {
@@ -276,7 +269,7 @@ export default class CoursesData {
    * Splits the courses for an academic year into two groups: fall and spring
    * courses.
    * 
-   * @param {any[]} coursesInSameYear
+   * @param {CourseOccasion[]} coursesInSameYear
    * @returns The courses split into a fall and spring term.
    */
   #divideCoursesIntoTerms(coursesInSameYear) {
@@ -307,7 +300,7 @@ export default class CoursesData {
   /**
    * Calculates the total ECTS of all courses in a spceific period.
    * 
-   * @param {{start: number, weeks: number, ects: number}[]} coursesInSameYear - All courses during an academic year.
+   * @param {CourseOccasion[]} coursesInSameYear - All courses during an academic year.
    * @param {number} periodNumber - 1, 2, 3 or 4.
    * @returns The total ECTS of all courses in the given period.
    */
@@ -345,7 +338,7 @@ export default class CoursesData {
   /**
    * Calculates the height required to contain all given courses.
    * 
-   * @param {{firstRowIndex: number, speed: number}[]} coursesInSameYear
+   * @param {CourseOccasion[]} coursesInSameYear
    * @returns Height of the course container.
    */
   #getCourseContainerHeight(coursesInSameYear) {
