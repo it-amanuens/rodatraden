@@ -1,4 +1,5 @@
 import CourseOccasion from "./course_occasion.js";
+import Term from "./term.js";
 import CourseGrid from "./course_grid.js";
 
 /**
@@ -33,32 +34,27 @@ export default class CoursesData {
    * the block-schedule as fallback if no years exists yet.
    */
   addAcademicYear() {
-    // Create a new year with the startYear to begin with.
-    let newCourseGroup = {
-      year: this.#startYear,
-      fall: {
-        courses: [],
-        ectsSumPeriod1: 0,
-        ectsSumPeriod2: 0
-      },
-      spring: {
-        courses: [],
-        ectsSumPeriod3: 0,
-        ectsSumPeriod4: 0
-      },
-      height: 0
-    };
+    let academicYear;
 
-    // Replace the year used as a fallback if possible.
-    if (this.#coursesByTerm.length !== 0) {
+    // If no years exists yet then wa want to add the start year.
+    if (this.#coursesByTerm.length === 0) {
+      academicYear = this.#startYear;
+      
+    // Otherwise, we want to add the academic year after the last.
+    } else {
       const lastYear = this.#coursesByTerm.reduce(
-        (lastYear, courseGroup) => Math.max(lastYear, courseGroup.year),
+        (lastYear, terms) => Math.max(lastYear, terms.academicYear),
         -Infinity
       );
-      newCourseGroup.year = lastYear + 1;
+      academicYear = lastYear + 1;
     }
-    
-    this.#coursesByTerm.push(newCourseGroup);
+
+    // Create and add the new academic year.
+    this.#coursesByTerm.push({
+      academicYear: academicYear,
+      fall: new Term('HT', academicYear),
+      spring: new Term('VTT', academicYear)
+    });
   }
 
   /**
@@ -72,7 +68,7 @@ export default class CoursesData {
   #startYear;
   /** @type {CourseOccasion[]} */
   #courses;
-  /** @type {any[]} */
+  /** @type {Max<number, Course[]>} */
   #coursesByYear;
   /** @type {any[]} */
   #coursesByTerm;
@@ -155,14 +151,14 @@ export default class CoursesData {
    */
   #groupCoursesByYear() {
     let coursesByYear = new Map();
-  
+
     for (const course of this.#courses) {
-      const year = course.year;
+      const academicYear = course.academicYear;
   
-      if (coursesByYear.has(year)) {
-        coursesByYear.get(year).push(course);
+      if (coursesByYear.has(academicYear)) {
+        coursesByYear.get(academicYear).push(course);
       } else {
-        coursesByYear.set(year, [course]);
+        coursesByYear.set(academicYear, [course]);
       }
     }
   
@@ -171,11 +167,13 @@ export default class CoursesData {
 
   /**
    * Adds empty years if needed to make sure that the first five years exists.
+   * 
+   * @param {Map<number, Course[]>} coursesByYear
    */
-  #addFirstFiveYearsIfMissing() {
+  #addFirstFiveYearsIfMissing(coursesByYear) {
     for (let year = this.#startYear; year < this.#startYear + 5; ++year) {
-      if (!this.#coursesByYear.has(year)) {
-        this.#coursesByYear.set(year, []);
+      if (!coursesByYear.has(year)) {
+        coursesByYear.set(year, []);
       }
     }
   }
@@ -183,14 +181,16 @@ export default class CoursesData {
   /**
    * Adds empty years if needed to make sure that there are no missing years
    * between existing years.
+   * 
+   * @param {Map<number, Course[]>} coursesByYear
    */
-  #addMissingGapYears() {
-    const firstYear = Math.min(...this.#coursesByYear.keys());
-    const lastYear = Math.max(...this.#coursesByYear.keys());
+  #addMissingGapYears(coursesByYear) {
+    const firstYear = Math.min(...coursesByYear.keys());
+    const lastYear = Math.max(...coursesByYear.keys());
   
     for (let year = firstYear; year <= lastYear; ++year) {
-      if (!this.#coursesByYear.has(year)) {
-        this.#coursesByYear.set(year, []);
+      if (!coursesByYear.has(year)) {
+        coursesByYear.set(year, []);
       }
     }
   }
@@ -238,121 +238,22 @@ export default class CoursesData {
     let expectedStructure = [];
 
     for (const courseGroup of this.#coursesByYear) {
-      const year = courseGroup[0];
+      const academicYear = courseGroup[0];
       const coursesInAcademicYear = courseGroup[1];
 
-      const terms = this.#divideCoursesIntoTerms(coursesInAcademicYear);
+      const fallTerm = Term.createFall(academicYear, coursesInAcademicYear);
+      const springTerm = Term.createSpring(academicYear, coursesInAcademicYear);
       
       expectedStructure.push({
-        year: year,
-        fall: {
-          courses: terms.fall,
-          ectsSumPeriod1: this.#getEctsSumInPeriod(coursesInAcademicYear, 1),
-          ectsSumPeriod2: this.#getEctsSumInPeriod(coursesInAcademicYear, 2)
-        },
-        spring: {
-          courses: terms.spring,
-          ectsSumPeriod3: this.#getEctsSumInPeriod(coursesInAcademicYear, 3),
-          ectsSumPeriod4: this.#getEctsSumInPeriod(coursesInAcademicYear, 4)
-        },
-        height: this.#getCourseContainerHeight(coursesInAcademicYear)
+        academicYear: academicYear,
+        fall: fallTerm,
+        spring: springTerm
       });
     }
 
     // Make sure the structure is sorted by year in ascending order.
-    expectedStructure.sort((a, b) => a.year - b.year);
+    expectedStructure.sort((a, b) => a.academicYear - b.academicYear);
 
     this.#coursesByTerm = expectedStructure;
-  }
-
-  /**
-   * Splits the courses for an academic year into two groups: fall and spring
-   * courses.
-   * 
-   * @param {CourseOccasion[]} coursesInSameYear
-   * @returns The courses split into a fall and spring term.
-   */
-  #divideCoursesIntoTerms(coursesInSameYear) {
-    const springWeekStart = 20;
-
-    let fallCourses = [];
-    let springCourses = [];
-
-    for (const course of coursesInSameYear) {
-      if (course.start >= springWeekStart) {
-        // The terms are positioned based on their starting offset relative to
-        // the start of the term. For spring courses we therefore need to
-        // subtract 20 weeks from the academic year start.
-        course.termStart = course.start - springWeekStart;
-        springCourses.push(course);
-      } else {
-        course.termStart = course.start;
-        fallCourses.push(course);
-      }
-    }
-
-    return {
-      fall: fallCourses,
-      spring: springCourses
-    }
-  }
-
-  /**
-   * Calculates the total ECTS of all courses in a spceific period.
-   * 
-   * @param {CourseOccasion[]} coursesInSameYear - All courses during an academic year.
-   * @param {number} periodNumber - 1, 2, 3 or 4.
-   * @returns The total ECTS of all courses in the given period.
-   */
-  #getEctsSumInPeriod(coursesInSameYear, periodNumber) {
-    const periodWeekLength = 10;
-    const periodStart = periodWeekLength * (periodNumber - 1);
-    const periodEnd = periodStart + periodWeekLength - 1;
-
-    const ectsSum = coursesInSameYear.reduce(
-      (ectsSum, course) => {
-        const courseStart = course.start;
-        const courseEnd = course.start + course.weeks - 1;
-
-        // Skip the course if it doesn't overlap with the period.
-        if (courseEnd < periodStart || periodEnd < courseStart) {
-          return ectsSum;
-        }
-
-        // Calculate how many weeks the course overlaps with the period.
-        const overlapStart = Math.max(courseStart, periodStart);
-        const overlapEnd = Math.min(courseEnd, periodEnd);
-        const overlapInWeeks = overlapEnd - overlapStart + 1;
-
-        const ectsPerWeek = course.ects / course.weeks;
-        const ectsInPeriod = ectsPerWeek * overlapInWeeks;
-
-        return ectsSum + ectsInPeriod;
-      },
-      0
-    );
-
-    return ectsSum;
-  }
-
-  /**
-   * Calculates the height required to contain all given courses.
-   * 
-   * @param {CourseOccasion[]} coursesInSameYear
-   * @returns Height of the course container.
-   */
-  #getCourseContainerHeight(coursesInSameYear) {
-    // TEMP: These have been copied here to make it work.
-    const margin = 1;
-    const scale = 3;
-
-    let containerHeight = 0;
-
-    for(const course of coursesInSameYear) {
-      const courseHeight = course.firstRowIndex + course.speed;
-      containerHeight = Math.max(containerHeight, courseHeight);
-    }
-
-    return containerHeight * scale + 2 * margin;
   }
 }

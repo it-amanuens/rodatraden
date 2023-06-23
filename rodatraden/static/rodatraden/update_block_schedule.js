@@ -1,16 +1,24 @@
-
-
 /**
- * Combines the term prefix and the last two digits of the term year to create
- * the title. The term year differs from the academic year during the spring.
- * @param {string} prefix - Either "VT" or "HT".
- * @param {number} academicYear
- * @returns Combination of prefix and year, e.g., "HT19", "VT20", etc.
- */
-function getTermTitle(prefix, academicYear) {
-  // The term year is one more than the academic year in the spring.
-  const termYear = academicYear + (prefix === 'VT');
-  return prefix + termYear.toString().slice(-2);
+   * Calculates the height needed to contain alla courses in the term.
+   */
+function getCourseContainerHeight(coursesSameAcademicYear) {
+  // TEMP: The margin and scale have been copied here to make it work.
+  // XXX: IS this the margin of the course container or the course?
+  const margin = 1;
+  const scale = 3;
+
+  const containerHeight = coursesSameAcademicYear.reduce(
+    (containerHeight, course) => {
+      // Calculate the distance from the top of the term to the bottom of the
+      // course. This is the minimum height needed to contain the course.
+      const distanceToBottomOFCourse = course.firstRowIndex + course.speed;
+      return Math.max(containerHeight, distanceToBottomOFCourse);
+    },
+    0
+  );
+
+  // XXX: This adjustment should be done by the rendering code instead.
+  return containerHeight * scale + 2 * margin;
 }
 
 /**
@@ -30,11 +38,11 @@ function updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTer
   // is used as the key so that existing years gets correctly put in the update
   // selection.
   let academicYearUpdateSelection = academicYearContainer.selectAll(".academic-year")
-    .data(coursesByTerm, courseGroup => courseGroup.year);
+    .data(coursesByTerm, terms => terms.academicYear);
 
   // Add, if needed, new academic years.
   let newAcademicYear = academicYearUpdateSelection.enter().append("div")
-    .attr("id", courseGroup => courseGroup.year)
+    .attr("id", terms => terms.academicYear)
     .style("opacity", 1e-6);
   
   // Remove, if needed, old academic years.
@@ -73,36 +81,34 @@ function updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTer
  * needed.
  * 
  * @param {*} academicYear - D3 selection of all academic years.
+ * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
  * @returns D3 selection of all terms.
  */
-function updateTerm(academicYear) {
+function updateTerm(academicYear, shouldStackTerms) {
   // Create a D3 update selection by binding data for two terms based on the
   // data previously bound to the academic year. We don't need to use a key
   // here since the terms will never be out of order. We therefore let the
   // index be the default key.
   let termUpdateSelection = academicYear.selectAll(".term")
-    .data(courseGroup => [
-      {
-        prefix: 'HT',
-        academicYear: courseGroup.year,
-        courses: courseGroup.fall.courses,
-        ectsSums: [
-          courseGroup.fall.ectsSumPeriod1,
-          courseGroup.fall.ectsSumPeriod2
-        ],
-        height: courseGroup.height
-      },
-      {
-        prefix: 'VT',
-        academicYear: courseGroup.year,
-        courses: courseGroup.spring.courses,
-        ectsSums: [
-          courseGroup.spring.ectsSumPeriod3,
-          courseGroup.spring.ectsSumPeriod4
-        ],
-        height: courseGroup.height
+    .data(terms => {
+      const fallHeight = getCourseContainerHeight(terms.fall.courses);
+      const springHeight = getCourseContainerHeight(terms.spring.courses);
+
+      let fallTerms = terms.fall;
+      let springTerms = terms.spring;
+
+      // Add an attribute to the terms that will be used to set the height of
+      // the course containers.
+      if (shouldStackTerms) {
+        fallTerms.containerHeight = fallHeight;
+        springTerms.containerHeight = springHeight;
+      } else {
+        fallTerms.containerHeight = Math.max(fallHeight, springHeight);
+        springTerms.containerHeight = Math.max(fallHeight, springHeight);
       }
-    ]);
+
+      return [fallTerms, springTerms];
+    });
 
   // Add missing terms.
   let term = termUpdateSelection.enter().append("div")
@@ -122,9 +128,7 @@ function addTermHeader(term) {
   // Create a D3 update selection by binding the term title. We don't need to
   // use a key here since there's only one header per term.
   let termHeaderUpdateSelection = term.selectAll(".term-header")
-    .data(term => [
-      getTermTitle(term.prefix, term.academicYear)
-    ]);
+    .data(term => [term.title]);
 
   // Add missing headers.
   termHeaderUpdateSelection.enter().append("div")
@@ -143,9 +147,7 @@ function addPeriodHeaders(term) {
   // We don't need to use a key here since there's only one period container
   // per term.
   let periodHeaderContainerUpdateSelection = term.selectAll(".period-header-container")
-    .data(term => [
-      term.ectsSums
-    ]);
+    .data(term => [term.ectsSumPerPeriod]);
 
   // Add missing containers.
   let newPeriodHeaderContainer = periodHeaderContainerUpdateSelection.enter().append("div")
@@ -155,7 +157,7 @@ function addPeriodHeaders(term) {
   // need to use a key here since the periods will never be out of order. We
   // therefore let the index be the default key.
   let periodHeaderUpdateSelection = newPeriodHeaderContainer.selectAll(".period-header-container")
-    .data(ectsSums => ectsSums);
+    .data(ectsSumPerPeriod => ectsSumPerPeriod);
 
   // Add period headers to the new containers.
   periodHeaderUpdateSelection.enter().append("div")
@@ -180,31 +182,26 @@ function addPeriodHeaders(term) {
  * @returns D3 selection of all course containers.
  */
 function updateCourseContainer(term) {
-  // Create a D3 update selection by binding data needed for the courses to the
-  // container. We don't need to use a key here since there's only one course
-  // container per term.
+  // Create a D3 update selection by binding term data that includes courses to
+  // the container. We don't need to use a key here since there's only one
+  // course container per term.
   let courseContainerUpdateSelection = term.selectAll(".course-container")
-    .data(term => [
-      {
-        courses: term.courses,
-        height: term.height
-      }
-    ]);
+    .data(term => [term]);
 
   // Add missing course block containers.
   let newCourseContainer = courseContainerUpdateSelection.enter().append("div")
-    .attr("class", "course-container")
-    .style("height", courseContainer => {
-      // XXX: The height of this term might not match the height of the other
-      //      term.
-      // TODO: Pre-calculate the heights, at least in terms of number of rows
-      //       (including space between courses).
-      const height = courseContainer.height;
-      return height + "px";
-    });
+    .attr("class", "course-container");
   
-  // Merge the newly created elements with the existing ones to return all.
-  return newCourseContainer.merge(courseContainerUpdateSelection);
+  // Merge the newly created elements with the existing ones to get all.
+  let courseContainer = newCourseContainer.merge(courseContainerUpdateSelection);
+
+  courseContainer
+    .style("height", term => {
+      const height = term.containerHeight;
+      return height + "px";
+    })
+
+  return courseContainer;
 }
 
 /**
@@ -414,7 +411,7 @@ export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
   let academicYearSelection = updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTerms, transitionDuration);
   
   // Bind data to all terms and create new and empty terms if needed.
-  let termSelection = updateTerm(academicYearSelection);
+  let termSelection = updateTerm(academicYearSelection, shouldStackTerms);
   
   // Add term and period headers to all new terms.
   addTermHeader(termSelection);
