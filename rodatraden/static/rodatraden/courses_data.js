@@ -1,5 +1,5 @@
 import CourseOccasion from "./course_occasion.js";
-import Term from "./term.js";
+import AcademicYear from "./academic_year.js";
 import CourseGrid from "./course_grid.js";
 
 /**
@@ -25,8 +25,8 @@ export default class CoursesData {
     if (shouldStackTerms) {
       this.#splitCoursesOverTermBoundary();
     }
-    this.#assignPositionsAndGroupByYear();
-    this.#groupCoursesByTerm();
+    let coursesByYear = this.#assignPositionsAndGroupByYear();
+    this.#groupCoursesByTerm(coursesByYear);
   }
 
   /**
@@ -34,34 +34,32 @@ export default class CoursesData {
    * the block-schedule as fallback if no years exists yet.
    */
   addAcademicYear() {
-    let academicYear;
+    let year;
 
     // If no years exists yet then wa want to add the start year.
-    if (this.#coursesByTerm.length === 0) {
-      academicYear = this.#startYear;
+    if (this.#academicYears.length === 0) {
+      year = this.#startYear;
       
     // Otherwise, we want to add the academic year after the last.
     } else {
-      const lastYear = this.#coursesByTerm.reduce(
-        (lastYear, terms) => Math.max(lastYear, terms.academicYear),
+      const lastYear = this.#academicYears.reduce(
+        (lastYear, academicYear) => Math.max(lastYear, academicYear.year),
         -Infinity
       );
-      academicYear = lastYear + 1;
+      year = lastYear + 1;
     }
 
-    // Create and add the new academic year.
-    this.#coursesByTerm.push({
-      academicYear: academicYear,
-      fall: new Term('HT', academicYear),
-      spring: new Term('VTT', academicYear)
-    });
+    // Create and add the new empty academic year.
+    this.#academicYears.push(new AcademicYear(year));
+
+    console.log(this.#academicYears);
   }
 
   /**
    * Getter for the courses, grouped by term for each year.
    */
   get coursesByTerm() {
-    return this.#coursesByTerm;
+    return this.#academicYears;
   }
 
   /** @type {number} */
@@ -70,8 +68,8 @@ export default class CoursesData {
   #courses;
   /** @type {Max<number, Course[]>} */
   #coursesByYear;
-  /** @type {any[]} */
-  #coursesByTerm;
+  /** @type {AcademicYear[]} */
+  #academicYears;
 
   /**
    * Gets all private and non-private courses in the block-schedule from external
@@ -129,6 +127,8 @@ export default class CoursesData {
    * 
    * Also adds empty years to make sure that the first five years exists, as well
    * as adding missing years between exsiting years.
+   * 
+   * * @returns {Map<number, {year: number}>} Map of courses grouped by academic year.
    */
   #assignPositionsAndGroupByYear() {
     let coursesByYear = this.#groupCoursesByYear();
@@ -141,7 +141,7 @@ export default class CoursesData {
       this.#generateCoursePositions(coursesInAcademicYear);
     }
 
-    this.#coursesByYear = coursesByYear;
+    return coursesByYear;
   }
 
   /**
@@ -233,27 +233,22 @@ export default class CoursesData {
    * Takes courses grouped by year and further group them by term. Some other
    * useful data is also calculated that will be used when rendering the block-
    * schedule.
+   * 
+   * @param {Map<number, Course[]>} coursesByYear
    */
-  #groupCoursesByTerm() {
+  #groupCoursesByTerm(coursesByYear) {
     let expectedStructure = [];
 
-    for (const courseGroup of this.#coursesByYear) {
-      const academicYear = courseGroup[0];
-      const coursesInAcademicYear = courseGroup[1];
+    for (const courseGroup of coursesByYear) {
+      const year = courseGroup[0];
+      const courses = courseGroup[1];
 
-      const fallTerm = Term.createFall(academicYear, coursesInAcademicYear);
-      const springTerm = Term.createSpring(academicYear, coursesInAcademicYear);
-      
-      expectedStructure.push({
-        academicYear: academicYear,
-        fall: fallTerm,
-        spring: springTerm
-      });
+      expectedStructure.push(new AcademicYear(year, courses));
     }
 
     // Make sure the structure is sorted by year in ascending order.
     expectedStructure.sort((a, b) => a.academicYear - b.academicYear);
 
-    this.#coursesByTerm = expectedStructure;
+    this.#academicYears = expectedStructure;
   }
 }

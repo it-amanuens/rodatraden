@@ -27,22 +27,22 @@ function getCourseContainerHeight(coursesSameAcademicYear) {
  * them.
  * 
  * @param {*} academicYearContainer - D3 selection of a container for academic years.
- * @param {any[]} coursesByTerm
+ * @param {any[]} academicYearsData
  * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
  * @param {number} transitionDuration - Transition duration in milliseconds.
  * @returns D3 selection of all academic years.
  */
-function updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTerms, transitionDuration) {
+function updateAcademicYear(academicYearContainer, academicYearsData, shouldStackTerms, transitionDuration) {
   // Create a D3 update selection by binding each array in the containers bound
   // data to an academic year, previously existing or not. The parameter "year"
   // is used as the key so that existing years gets correctly put in the update
   // selection.
   let academicYearUpdateSelection = academicYearContainer.selectAll(".academic-year")
-    .data(coursesByTerm, terms => terms.academicYear);
+    .data(academicYearsData, academicYear => academicYear.year);
 
   // Add, if needed, new academic years.
   let newAcademicYear = academicYearUpdateSelection.enter().append("div")
-    .attr("id", terms => terms.academicYear)
+    .attr("id", academicYear => academicYear.year)
     .style("opacity", 1e-6);
   
   // Remove, if needed, old academic years.
@@ -90,12 +90,12 @@ function updateTerm(academicYear, shouldStackTerms) {
   // here since the terms will never be out of order. We therefore let the
   // index be the default key.
   let termUpdateSelection = academicYear.selectAll(".term")
-    .data(terms => {
-      const fallHeight = getCourseContainerHeight(terms.fall.courses);
-      const springHeight = getCourseContainerHeight(terms.spring.courses);
+    .data(academicYear => {
+      const fallHeight = getCourseContainerHeight(academicYear.fall.courses);
+      const springHeight = getCourseContainerHeight(academicYear.spring.courses);
 
-      let fallTerms = terms.fall;
-      let springTerms = terms.spring;
+      let fallTerms = academicYear.fall;
+      let springTerms = academicYear.spring;
 
       // Add an attribute to the terms that will be used to set the height of
       // the course containers.

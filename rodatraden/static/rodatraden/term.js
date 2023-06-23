@@ -132,11 +132,11 @@ export default class Term {
    * @param {CourseOccasion[]} termCourses 
    * @param {[number, number]} ectsSumPerPeriod 
    */
-  constructor(termPrefix, academicYear, termCourses, ectsSumPerPeriod) {
+  constructor(termPrefix, academicYear, termCourses = [], ectsSumPerPeriod = [0, 0]) {
     this.#prefix = termPrefix;
     this.#academicYear = academicYear;
-    this.#courses = termCourses ?? [];
-    this.#ectsSumPerPeriod = ectsSumPerPeriod ?? [0, 0];
+    this.#courses = termCourses;
+    this.#ectsSumPerPeriod = ectsSumPerPeriod;
   }
 
   get prefix() {
