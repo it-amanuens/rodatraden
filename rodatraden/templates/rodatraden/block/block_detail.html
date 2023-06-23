@@ -51,7 +51,7 @@
 
 <div id="block-schedule" class="block-schedule">
   <div id="academic-year-container"></div>
-  <div id="block-addyear" class="block-schedule-footer text-center">
+  <div id="block-schedule-add-year" class="block-schedule-footer text-center">
     Lägg till ett år
   </div>
 </div>
@@ -127,8 +127,14 @@
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
   ></script>
 
-  <!-- Helper scripts for rendering blocks -->
-  <script src="{% static 'rodatraden/rodatraden_blocks_interface.js' %}"
+  <!---->
+  <script src="{% static 'rodatraden/block_detail.js' %}"
+          defer
+  ></script>
+
+  <!-- Script responsible for rendering the block-schedule and the rest of the
+  information on this page -->
+  <script src="{% static 'rodatraden/block_schedule/block_schedule_main.js' %}"
           type='module'
           data-start-year="{{ start_year }}"
           data-is-logged-in="{{ logged_in }}"
