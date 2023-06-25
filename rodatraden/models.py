@@ -695,6 +695,14 @@ class PrivateCourse(models.Model):
                 slug = self.slug,
                 is_priv = 1,
                 )
+    
+    def get_tempo(self):
+        """Return in percent the courseoccasion tempo.
+
+        7.5 ECTS in five weeks is 100%.
+        """
+
+        return round(self.ects/self.weeks*200/3, 0)
 
     def category_ects(self, category_sum):
         """Get the ects sum per category.
@@ -714,6 +722,16 @@ class PrivateCourse(models.Model):
                 category_sum[title] += category.ects
 
         return category_sum
+    
+    def get_start_weeks_into_period(self):
+        """Returns how many weeks into the start of the period the course
+        starts."""
+        period_week_length = 10
+        
+        start_week = self.start
+        weeks_into_period = start_week % period_week_length
+
+        return weeks_into_period
 
 
 class PrivateCourseCategory(models.Model):

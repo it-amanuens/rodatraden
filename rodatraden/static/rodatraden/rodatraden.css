@@ -197,6 +197,12 @@ a:not(.default):hover{
   margin-inline: 0.25rem;
 }
 
+.modal-divider {
+  /* Bootstrap modals have a 1rem padding. To get the divider all the way out
+  to the edge the margin of the divider need to be the same but negative. */
+  margin-inline: -1rem;
+}
+
 /* Block stuff */
 
 .block-schedule {

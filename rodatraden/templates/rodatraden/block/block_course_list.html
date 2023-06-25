@@ -45,31 +45,43 @@
     </ul>
   </div>
 
+  <hr class='modal-divider'>
   <h2>Egna kurser</h2>
-  <hr>
-  <table class="table table-hover table-sm">
-    <thead>
-      <tr>
-        <th>Kursnamn</th>
-        <th>Veckor</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for privatecourse in privatecourses %}
-      <tr>
-        <td><a href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}">{{ privatecourse.title }}</a></td>
-        <td>{{ privatecourse.weeks }}</td>
-        <td>
-          <a href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1">
-            <span class="fa fa-plus"></span>
-          </a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
 
+  <div class='course-table'>
+    <div class='course-table__header'>
+        <span class='course-row__text'>Kursnamn</span>
+        <span class='course-row__number'>Veckor</span>
+        <span class='course-row__number'>Takt</span>
+    </div>
+    
+    <ul class='course-table__body'>
+      {% for privatecourse in privatecourses %}
+      <li class='course-table__row course-row'>
+        <div class='course-row__main'>
+          <span class='course-row__text'>
+            <a class='course-row__link' href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}">
+              {{ privatecourse.title }}
+            </a>
+            <span class='course-row__ects'>{{ privatecourse.ects }} hp</span>
+          </span>
+          <span class='course-row__number'>{{ privatecourse.weeks }}</span>
+          <span class='course-row__number'>{{ privatecourse.get_tempo }}%</span>
+          <a class="course-row__icon" href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1">
+            <i class='fa fa-plus'></i>
+          </a>
+        </div>
+        <ul class='course-row__extra'>
+          {% if privatecourse.get_start_weeks_into_period %}
+          <li class='course-row__extra__item'>
+            Startar {{ privatecourse.get_start_weeks_into_period }} veckor in
+          </li>
+          {% endif %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 
 <div class="modal-footer">
