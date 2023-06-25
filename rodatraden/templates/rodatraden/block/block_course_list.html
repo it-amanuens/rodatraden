@@ -1,3 +1,4 @@
+{% load l10n %}
 {% load widget_tweaks %}
 
 <div class="modal-header">
@@ -9,30 +10,35 @@
 
 <div class="modal-body">
 
-  <table class="table table-hover table-sm">
-    <thead>
-      <tr>
-        <th>Kursnamn</th>
-        <th>År</th>
-        <th>Längd</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
+  <div class='course-table'>
+    <div class='course-table__header'>
+        <span class='course-row__text'>Kursnamn</span>
+        <span class='course-row__number'>Veckor</span>
+        <span class='course-row__number'>Takt</span>
+    </div>
+    
+    <ul class='course-table__body'>
       {% for courseoccasion in courseoccasions %}
-      <tr>
-        <td><a href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">{{ courseoccasion.course.title }}</a></td>
-        <td>{{ courseoccasion.academic_year.year }}</td>
-        <td>{{ courseoccasion.weeks }}</td>
-        <td>
-          <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}">
-            <span class="fa fa-plus"></span>
+      <li class='course-table__row course-row'>
+        <div class='course-row__main'>
+          <span class='course-row__text'>
+            <a class='course-row__link' href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
+              {{ courseoccasion.course.title }}
+            </a>
+            <span>{{ courseoccasion.course.ects }} hp</span>
+          </span>
+          <span class='course-row__number'>{{ courseoccasion.weeks }}</span>
+          <span class='course-row__number'>{{ courseoccasion.get_tempo }}%</span>
+          <a class="course-row__icon" href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}">
+            <i class='fa fa-plus'></i>
           </a>
-        </td>
-      </tr>
+        </div>
+          
+        </div>
+      </li>
       {% endfor %}
-    </tbody>
-  </table>
+    </ul>
+  </div>
 
   <h2>Egna kurser</h2>
   <hr>
@@ -40,8 +46,7 @@
     <thead>
       <tr>
         <th>Kursnamn</th>
-        <th>År</th>
-        <th>Längd</th>
+        <th>Veckor</th>
         <th></th>
       </tr>
     </thead>
@@ -49,7 +54,6 @@
       {% for privatecourse in privatecourses %}
       <tr>
         <td><a href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}">{{ privatecourse.title }}</a></td>
-        <td>{{ privatecourse.year }}</td>
         <td>{{ privatecourse.weeks }}</td>
         <td>
           <a href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1">

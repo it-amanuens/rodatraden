@@ -129,6 +129,55 @@ a:not(.default):hover{
   background-color: var(--main-color);
 }
 
+/* Block-schedule course-list modal */
+
+.course-table {
+  --row-padding: 0.25rem;
+  --icon-size: 1.5em;
+}
+
+.course-table__header {
+  font-weight: bold;
+}
+
+/* Reset list style  */
+.course-table__body {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.course-table__row {
+  border-top: 1px solid rgba(0,0,0,.1);
+}
+
+.course-table__header,
+.course-table__row {
+  padding-block: 0.25rem;
+  padding-inline-start: 0.25rem;
+}
+
+.course-table__header,
+.course-row__main {
+  display: grid;
+  grid-template-columns: 1fr 3.5em 3em calc(var(--icon-size) + 0.5rem);
+}
+
+.course-row__number {
+  text-align: end;
+}
+
+.course-row__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: var(--icon-size);
+  aspect-ratio: 1;
+  justify-self: end;
+}
+
 /* Block stuff */
 
 .block-schedule {
