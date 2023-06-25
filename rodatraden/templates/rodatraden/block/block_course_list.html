@@ -36,7 +36,13 @@
         <ul class='course-row__extra'>
           {% if courseoccasion.get_start_weeks_into_period %}
           <li class='course-row__extra__item'>
-            Startar {{ courseoccasion.get_start_weeks_into_period }} veckor in
+            Startar {{ courseoccasion.get_start_weeks_into_period }} 
+            {% if courseoccasion.get_start_weeks_into_period == 1 %}
+            vecka
+            {% else %}
+            veckor
+            {% endif %}
+            in
           </li>
           {% endif %}
         </ul>
@@ -74,7 +80,13 @@
         <ul class='course-row__extra'>
           {% if privatecourse.get_start_weeks_into_period %}
           <li class='course-row__extra__item'>
-            Startar {{ privatecourse.get_start_weeks_into_period }} veckor in
+            Startar {{ privatecourse.get_start_weeks_into_period }} 
+            {% if privatecourse.get_start_weeks_into_period == 1 %}
+            vecka
+            {% else %}
+            veckor
+            {% endif %}
+            in
           </li>
           {% endif %}
         </ul>
