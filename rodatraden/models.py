@@ -553,7 +553,7 @@ class CourseOccasion(models.Model):
     def get_tempo(self):
         """Return in percent the courseoccasion tempo.
 
-        7.5 hp in four weeks is 100%
+        7.5 ECTS in five weeks is 100%.
         """
 
         return round(self.course.ects/self.weeks*200/3, 0)
@@ -565,6 +565,17 @@ class CourseOccasion(models.Model):
         """
 
         self.course.category_ects(category_sum)
+
+
+    def get_start_weeks_into_period(self):
+        """Returns how many weeks into the start of the period the course
+        starts."""
+        period_week_length = 10
+        
+        start_week = self.time_period.week
+        weeks_into_period = start_week % period_week_length
+
+        return weeks_into_period
 
 
 class Exam(models.Model):

@@ -141,7 +141,8 @@ a:not(.default):hover{
 }
 
 /* Reset list style  */
-.course-table__body {
+.course-table__body,
+.course-row__extra {
   margin: 0;
   padding: 0;
 
@@ -164,6 +165,10 @@ a:not(.default):hover{
   grid-template-columns: 1fr 3.5em 3em calc(var(--icon-size) + 0.5rem);
 }
 
+.course-row__ects {
+  display: inline-block;
+}
+
 .course-row__number {
   text-align: end;
 }
@@ -176,6 +181,20 @@ a:not(.default):hover{
   height: var(--icon-size);
   aspect-ratio: 1;
   justify-self: end;
+}
+
+.course-row__extra {
+  display: flex;
+
+  margin-inline-start: 0.5rem;
+
+  font-size: small;
+  color: var(--gray);
+}
+
+.course-row__extra__item:not(:first-child)::before {
+  content: "\2022";
+  margin-inline: 0.25rem;
 }
 
 /* Block stuff */

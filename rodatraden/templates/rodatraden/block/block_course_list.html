@@ -25,7 +25,7 @@
             <a class='course-row__link' href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
               {{ courseoccasion.course.title }}
             </a>
-            <span>{{ courseoccasion.course.ects }} hp</span>
+            <span class='course-row__ects'>{{ courseoccasion.course.ects }} hp</span>
           </span>
           <span class='course-row__number'>{{ courseoccasion.weeks }}</span>
           <span class='course-row__number'>{{ courseoccasion.get_tempo }}%</span>
@@ -33,8 +33,13 @@
             <i class='fa fa-plus'></i>
           </a>
         </div>
-          
-        </div>
+        <ul class='course-row__extra'>
+          {% if courseoccasion.get_start_weeks_into_period %}
+          <li class='course-row__extra__item'>
+            Startar {{ courseoccasion.get_start_weeks_into_period }} veckor in
+          </li>
+          {% endif %}
+        </ul>
       </li>
       {% endfor %}
     </ul>
