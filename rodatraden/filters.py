@@ -11,7 +11,7 @@ class CourseFilter(django_filters.FilterSet):
         queryset=Course.objects.all().order_by('title'), empty_label='Kursnamn'
     )
     categories = django_filters.ModelChoiceFilter(
-        queryset=Category.objects.all().order_by('title')
+        queryset=Category.objects.all().order_by('title'), empty_label='Kategori'
     )
     level = django_filters.ModelChoiceFilter(
         queryset=Level.objects.all(), empty_label='Nivå'

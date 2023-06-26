@@ -340,6 +340,18 @@ a:not(.default):hover{
   cursor: pointer;
 }
 
+/* Course list */
+.course-list-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+
+
+  padding: 1rem;
+  border-radius: 0.25rem;
+  margin-block: 1rem;
+  background-color: #ececec;
+}
+
 /** SELECT2 */
 .select2-results__option--highlighted {
   background-color: var(--main-color) !important;

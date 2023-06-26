@@ -22,17 +22,13 @@
 
 {% block content %}
 
-<div class="row course-etc p-3 pt-4 mb-2">
-  <div class="col-lg">
-    {% if filter %}
-      <form action="" method="get" class="form form-inline">
-        {% for field in filter.form %}
-        {% render_field field class+="course-list-filter" %}
-        {% endfor %}
-      </form>
-    {% endif %}
-  </div>
-</div>
+{% if filter %}
+<form action="" method="get" class="form form-inline course-list-filters">
+  {% for field in filter.form %}
+  {% render_field field class+="course-list-filter" %}
+  {% endfor %}
+</form>
+{% endif %}
 
 {% render_table table %}
 
@@ -46,7 +42,7 @@
       $("form :input").change(function() {
         $("form:first").submit();
       });
-      $(".course-list-filter").select2({ width: '20%' });
+      $(".course-list-filter").select2({ width: 'style' });
     });
 
   </script>
