@@ -31,6 +31,33 @@ def get_unique_slug(to_slug, model):
     return unique_slug
 
 
+def get_pace(ects: float, weeks: int) -> int:
+    """Returns the pace of a courseoccasion as an integer percentage.
+
+    7.5 ECTS in five weeks is equivalent to a 100% pace.
+    """
+
+    # Converts from ects per week to pace as a percentage.
+    conversionFactor = 200/3
+    
+    # E.g., 7.5 ects / 5 weeks * 200/3 = 1.5 * 200/3 = 100%
+    pace = ects / weeks * conversionFactor
+
+    return int(round(pace, 0))
+
+
+def get_start_weeks_into_period(start_week: int) -> int:
+    """Returns how many weeks into the start of the period the course
+    starts."""
+
+    period_week_length = 10
+
+    # Modulo is used since the start of each period is a multiple of 10.
+    weeks_into_period = start_week % period_week_length
+
+    return weeks_into_period
+
+
 class ISPTemplate(models.Model):
     """For admins to upload ISP-templates."""
 
@@ -550,13 +577,24 @@ class CourseOccasion(models.Model):
                 is_priv = '',
                 )
 
-    def get_tempo(self):
-        """Return in percent the courseoccasion tempo.
 
-        7.5 ECTS in five weeks is 100%.
+    @property
+    def pace(self):
+        """Pace of the courseoccasion as an integer percentage.
+
+        7.5 ECTS in five weeks is equivalent to a 100% pace.
         """
 
-        return round(self.course.ects/self.weeks*200/3, 0)
+        return get_pace(float(self.course.ects), self.weeks)
+
+
+    @property
+    def start_weeks_into_period(self):
+        """The number of weeks into the start of the period the course
+        starts."""
+        
+        return get_start_weeks_into_period(self.time_period.week)
+
 
     def category_ects(self, category_sum):
         """Pass through.
@@ -565,17 +603,6 @@ class CourseOccasion(models.Model):
         """
 
         self.course.category_ects(category_sum)
-
-
-    def get_start_weeks_into_period(self):
-        """Returns how many weeks into the start of the period the course
-        starts."""
-        period_week_length = 10
-        
-        start_week = self.time_period.week
-        weeks_into_period = start_week % period_week_length
-
-        return weeks_into_period
 
 
 class Exam(models.Model):
@@ -695,14 +722,25 @@ class PrivateCourse(models.Model):
                 slug = self.slug,
                 is_priv = 1,
                 )
-    
-    def get_tempo(self):
-        """Return in percent the courseoccasion tempo.
 
-        7.5 ECTS in five weeks is 100%.
+
+    @property
+    def pace(self):
+        """Pace of the courseoccasion as an integer percentage.
+
+        7.5 ECTS in five weeks is equivalent to a 100% pace.
         """
 
-        return round(self.ects/self.weeks*200/3, 0)
+        return get_pace(float(self.ects), self.weeks)
+
+
+    @property
+    def start_weeks_into_period(self):
+        """The number of weeks into the start of the period the course
+        starts."""
+        
+        return get_start_weeks_into_period(self.start)
+
 
     def category_ects(self, category_sum):
         """Get the ects sum per category.
@@ -722,16 +760,6 @@ class PrivateCourse(models.Model):
                 category_sum[title] += category.ects
 
         return category_sum
-    
-    def get_start_weeks_into_period(self):
-        """Returns how many weeks into the start of the period the course
-        starts."""
-        period_week_length = 10
-        
-        start_week = self.start
-        weeks_into_period = start_week % period_week_length
-
-        return weeks_into_period
 
 
 class PrivateCourseCategory(models.Model):

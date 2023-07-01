@@ -28,16 +28,16 @@
             <span class='course-row__ects'>{{ courseoccasion.course.ects }} hp</span>
           </span>
           <span class='course-row__number'>{{ courseoccasion.weeks }}</span>
-          <span class='course-row__number'>{{ courseoccasion.get_tempo }}%</span>
+          <span class='course-row__number'>{{ courseoccasion.pace }}%</span>
           <a class="course-row__icon" href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}">
             <i class='fa fa-plus'></i>
           </a>
         </div>
         <ul class='course-row__extra'>
-          {% if courseoccasion.get_start_weeks_into_period %}
+          {% if courseoccasion.start_weeks_into_period %}
           <li class='course-row__extra__item'>
-            Startar {{ courseoccasion.get_start_weeks_into_period }} 
-            {% if courseoccasion.get_start_weeks_into_period == 1 %}
+            Startar {{ courseoccasion.start_weeks_into_period }} 
+            {% if courseoccasion.start_weeks_into_period == 1 %}
             vecka
             {% else %}
             veckor
@@ -72,16 +72,16 @@
             <span class='course-row__ects'>{{ privatecourse.ects }} hp</span>
           </span>
           <span class='course-row__number'>{{ privatecourse.weeks }}</span>
-          <span class='course-row__number'>{{ privatecourse.get_tempo }}%</span>
+          <span class='course-row__number'>{{ privatecourse.pace }}%</span>
           <a class="course-row__icon" href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1">
             <i class='fa fa-plus'></i>
           </a>
         </div>
         <ul class='course-row__extra'>
-          {% if privatecourse.get_start_weeks_into_period %}
+          {% if privatecourse.start_weeks_into_period %}
           <li class='course-row__extra__item'>
-            Startar {{ privatecourse.get_start_weeks_into_period }} 
-            {% if privatecourse.get_start_weeks_into_period == 1 %}
+            Startar {{ privatecourse.start_weeks_into_period }} 
+            {% if privatecourse.start_weeks_into_period == 1 %}
             vecka
             {% else %}
             veckor
