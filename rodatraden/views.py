@@ -271,15 +271,20 @@ class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
 # COURSES #
 ###########
 
-class CourseList(SingleTableMixin, FilterView):
+class CourseList(FilterView):
     """List view for courses."""
 
     model = Course
-    table_class = CourseTable
     filterset_class = CourseFilter
     # Amount of queries per page
     paginate_by = 15
     template_name = 'rodatraden/course/course_list.html'
+
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Sort the courses ascending by title.
+        return qs.order_by('title')
 
 
 class CourseDetail(DetailView):

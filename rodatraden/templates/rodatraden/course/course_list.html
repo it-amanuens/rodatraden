@@ -1,8 +1,6 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load render_table from django_tables2 %}
 {% load widget_tweaks %}
-{% load bootstrap4 %}
 
 {% block title %}
   Kurser
@@ -30,21 +28,95 @@
 </form>
 {% endif %}
 
-{% render_table table %}
+<div class="course-list__header">
+  <div class="header-section">
+    <span class="header-section__title">Kursnamn</span>
+    <span class="header-section__ects">Poäng</span>
+    <span class="header-section__level">Nivå</span>
+    <span class="header-section__category">Kategorier</span>
+  </div>
+  <div class="header-section">
+    <span class="ects--column">Poäng</span>
+    <span class="level--column">Nivå</span>
+    <span class="categories--column">Kategorier</span>
+  </div>
+</div>
+
+<ul class="courses">
+  {% for course in filter.qs %}
+  <li>
+    <div>
+      <div>
+        <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+        <span class="ects--row">{{ course.ects }} hp</span>
+      </div>
+      <ul class="courses__extra">
+        <li class="level--row">
+          <span class=
+                {% if course.level.title == "Grundläggande" %}
+                'badge badge-success'
+                {% else %}
+                'badge badge-warning'
+                {% endif %}
+              data-toggle='tooltip'
+              title='{{ course.level.title }}'>
+            {{ course.level.first_letter }}
+          </span>
+        </li>
+        {% for category in course.categories.all %}
+        <li class="category--row">
+          <a href="{{ category.get_absolute_url }}">
+            <span class="badge badge-secondary" data-toggle='tooltip' title='{{ category.title }}'>
+              {{ category.abbreviation }}
+            </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="courses__columns">
+      <span class="ects--column">{{ course.ects }}</span>
+      <div class="level--column">
+        <span class=
+              {% if course.level.title == "Grundläggande" %}
+              'badge badge-success'
+              {% else %}
+              'badge badge-warning'
+              {% endif %}
+            data-toggle='tooltip'
+            title='{{ course.level.title }}'>
+          {{ course.level.first_letter }}
+        </span>
+      </div>
+      <ul class="courses__extra categories--column">
+        {% for category in course.categories.all %}
+        <li>
+          <a href="{{ category.get_absolute_url }}">
+            <span class="badge badge-secondary" data-toggle='tooltip' title='{{ category.title }}'>
+              {{ category.abbreviation }}
+            </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
 
 {% endblock %}
 
 {% block extra_scripts %}
 
-  <script type="text/javascript">
+<script type="text/javascript">
 
-    $(function() {
-      $("form :input").change(function() {
-        $("form:first").submit();
-      });
-      $(".course-list-filter").select2({ width: 'style' });
+  $(function() {
+    $("form :input").change(function() {
+      $("form:first").submit();
     });
+    $(".course-list-filter").select2({ width: 'style' });
+  });
 
-  </script>
+</script>
 
 {% endblock %}
