@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
@@ -271,15 +271,19 @@ class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
 # COURSES #
 ###########
 
-class CourseList(FilterView):
-    """List view for courses."""
+def course_list(request: HttpRequest):
+    """Custom list view for courses that both filters and sorts the courses."""
 
-    model = Course
-    filterset_class = CourseFilter
+    filter = CourseFilter(request.GET)
+
     # Amount of queries per page
     paginate_by = 15
-    template_name = 'rodatraden/course/course_list.html'
 
+    context = {
+        'filter': filter
+    }
+
+    return render(request, 'rodatraden/course/course_list.html', context)
 
     def get_queryset(self):
         qs = super().get_queryset()

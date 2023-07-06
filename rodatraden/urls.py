@@ -29,7 +29,7 @@ urlpatterns = [
          name='category-detail'),
 
     # Courses
-    path('kurser/', views.CourseList.as_view(), name='course-list'),
+    path('kurser/', views.course_list, name='course-list'),
     path('kurser/skapa/', views.CourseCreate.as_view(), name='course-create'),
     path('kurser/<slug:slug>/radera/',
          views.CourseDelete.as_view(), name='course-delete'),

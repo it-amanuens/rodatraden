@@ -1,5 +1,6 @@
 {% extends 'rodatraden/index.html' %}
 
+{% load static %}
 {% load widget_tweaks %}
 
 {% block title %}
@@ -30,15 +31,15 @@
 
 <div class="course-list__header">
   <div class="header-section">
-    <span class="header-section__title">Kursnamn</span>
-    <span class="header-section__ects">Poäng</span>
-    <span class="header-section__level">Nivå</span>
+    <a href="{% url 'course-list' %}?sort_order=-title" class="header-section__title title-link">Kursnamn</a>
+    <a href="{% url 'course-list' %}?sort_order=ects" class="header-section__ects ects-link">Poäng</a>
+    <a href="{% url 'course-list' %}?sort_order=level" class="header-section__level level-link">Nivå</a>
     <span class="header-section__category">Kategorier</span>
   </div>
   <div class="header-section">
-    <span class="ects--column">Poäng</span>
-    <span class="level--column">Nivå</span>
-    <span class="categories--column">Kategorier</span>
+    <a href="{% url 'course-list' %}?sort_order=ects" class="ects-column ects-link">Poäng</a>
+    <a href="{% url 'course-list' %}?sort_order=level" class="level-column level-link">Nivå</a>
+    <span class="categories-column">Kategorier</span>
   </div>
 </div>
 
@@ -48,25 +49,25 @@
     <div>
       <div>
         <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
-        <span class="ects--row">{{ course.ects }} hp</span>
+        <span class="ects-row">{{ course.ects }} hp</span>
       </div>
       <ul class="courses__extra">
-        <li class="level--row">
+        <li class="level-row">
           <span class=
                 {% if course.level.title == "Grundläggande" %}
-                'badge badge-success'
+                "badge badge-success"
                 {% else %}
-                'badge badge-warning'
+                "badge badge-warning"
                 {% endif %}
-              data-toggle='tooltip'
-              title='{{ course.level.title }}'>
+              data-toggle="tooltip"
+              title="{{ course.level.title }}">
             {{ course.level.first_letter }}
           </span>
         </li>
         {% for category in course.categories.all %}
-        <li class="category--row">
+        <li class="category-row">
           <a href="{{ category.get_absolute_url }}">
-            <span class="badge badge-secondary" data-toggle='tooltip' title='{{ category.title }}'>
+            <span class="badge badge-secondary" data-toggle="tooltip" title="{{ category.title }}">
               {{ category.abbreviation }}
             </span>
           </a>
@@ -75,8 +76,8 @@
       </ul>
     </div>
     <div class="courses__columns">
-      <span class="ects--column">{{ course.ects }}</span>
-      <div class="level--column">
+      <span class="ects-column">{{ course.ects }}</span>
+      <div class="level-column">
         <span class=
               {% if course.level.title == "Grundläggande" %}
               'badge badge-success'
@@ -88,7 +89,7 @@
           {{ course.level.first_letter }}
         </span>
       </div>
-      <ul class="courses__extra categories--column">
+      <ul class="courses__extra categories-column">
         {% for category in course.categories.all %}
         <li>
           <a href="{{ category.get_absolute_url }}">
@@ -118,5 +119,9 @@
   });
 
 </script>
+
+<script src="{% static 'rodatraden/course_list.js' %}"
+        defer
+></script>
 
 {% endblock %}
