@@ -44,7 +44,7 @@
 </div>
 
 <ul class="courses">
-  {% for course in filter.qs %}
+  {% for course in page %}
   <li>
     <div>
       <div>
@@ -104,6 +104,59 @@
   </li>
   {% endfor %}
 </ul>
+
+<nav role="navigation" aria-label="Pagination Navigation">
+  <ul class="pagination">
+    {% if page.has_previous %}
+    <li class="page-item">
+      <a href="{{ unfinished_page_path }}{{ page.previous_page_number }}"
+         class="page-link"
+         aria-label="Previous page"
+      >
+        &lt
+      </a>
+    </li>
+    {% endif %}
+    
+    {% for page_number in page_numbers %}
+    {% if page_number == ellipsis %}
+    <li class="page-item" aria-hidden="true">
+      <span class="page-ellipsis">{{ page_number }}</span>
+    </li>
+    {% elif page_number == page.number %}
+    <li class="page-item active">
+      <a href="{{ unfinished_page_path }}{{ page_number }}"
+         class="page-link"
+         aria-label="Current page, page {{ page_number }}"
+         aria-current="true"
+      >
+        {{ page_number }} 
+      </a>
+    </li>
+    {% else %}
+    <li class="page-item">
+      <a href="{{ unfinished_page_path }}{{ page_number }}"
+         class="page-link"
+         aria-label="Page {{ page_number }}"
+      >
+        {{ page_number }} 
+      </a>
+    </li>
+    {% endif %}
+    {% endfor %}
+
+    {% if page.has_next %}
+    <li class="page-item">
+      <a href="{{ unfinished_page_path }}{{ page.next_page_number }}"
+         class="page-link"
+         aria-label="Next page"
+      >
+        &gt
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
 
 {% endblock %}
 

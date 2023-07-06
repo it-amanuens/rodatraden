@@ -494,6 +494,10 @@ a:not(.default):hover{
 }
 
 /* PAGINATION */
+.pagination {
+  justify-content: center;
+}
+
 .page-link {
   color: var(--main-color) !important;
 }
@@ -502,6 +506,20 @@ a:not(.default):hover{
   background-color: var(--main-color) !important;
   border-color: var(--main-color) !important;
   color: white !important;
+}
+
+.page-item:first-child .page-link {
+  margin-right: 0.5rem;
+}
+
+.page-item:last-child .page-link {
+  margin-left: 0.5rem;
+}
+
+.page-ellipsis {
+  display: block;
+  padding: 0.5rem 0.5rem;
+  line-height: 1.25;
 }
 
 /* FORM CATEGORY */
