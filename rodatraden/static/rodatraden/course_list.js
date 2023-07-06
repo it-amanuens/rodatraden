@@ -13,7 +13,7 @@ function getSortOrder(queryString) {
     const [parameter, value] = query.split('=');
     
     if (parameter == 'sort_order') {
-      const isDecending = parameter[0] === '-';
+      const isDecending = value[0] === '-';
       // Remove leading minus sign if present.
       const category = isDecending ? value.slice(1) : value;
 
@@ -45,6 +45,38 @@ function setSortOrder(links, category, isAscending) {
 }
 
 /**
+ * Changes the direction of a caret, or adds it if missing, to each link.
+ * 
+ * @param {HTMLCollection} links - Links whose carets will be changed.
+ * @param {boolean} isAscending - True if clicking the link should sort in ascending order.
+ */
+function setCaret(links, isAscending) {
+  for (let link of links) {
+    const icon = link.querySelector('.fa');
+
+    if (isAscending) {
+      icon.classList.add('fa-caret-up');
+      icon.classList.remove('fa-caret-down');
+    } else {
+      icon.classList.remove('fa-caret-up');
+      icon.classList.add('fa-caret-down');
+    }
+  }
+}
+
+/**
+ * Removes any existing caret from the links.
+ * @param {HTMLCollection} links - Links whose carets will be changed.
+ */
+function removeCaret(links) {
+  for (let link of links) {
+    const icon = link.querySelector('.fa');
+    icon.classList.remove('fa-caret-up');
+    icon.classList.remove('fa-caret-down');
+  }
+}
+
+/**
  * Updates the header links used to sort the courses. Clicking on a link should
  * either switch sorting category or reverse the order of the currently
  * sorted-by category.
@@ -54,7 +86,6 @@ function updateSortingLinks() {
   const ectsLinks = document.getElementsByClassName('ects-link');
   const levelLinks = document.getElementsByClassName('level-link');
   const queryString = window.location.search;
-
 
   // No need to update the links if there are no GET-parameters.
   if (!queryString) return;
@@ -68,19 +99,27 @@ function updateSortingLinks() {
   setSortOrder(ectsLinks, 'ects', true);
   setSortOrder(levelLinks, 'level', true);
 
+  // Reset caret icons.
+  removeCaret(titleLinks);
+  removeCaret(ectsLinks);
+  removeCaret(levelLinks);
+
   const { category, isAscending } = sortOrder;
   
   // Clicking on the header of the currently sorted-by category should reverse
-  // the sort order.
+  // the sort order. The caret should highlight the current sort order.
   switch (category) {
     case 'title':
       setSortOrder(titleLinks, 'title', !isAscending);
+      setCaret(titleLinks, isAscending);
       break;
     case 'ects':
       setSortOrder(ectsLinks, 'ects', !isAscending);
+      setCaret(ectsLinks, isAscending);
       break;
     case 'level':
       setSortOrder(levelLinks, 'level', !isAscending);
+      setCaret(levelLinks, isAscending);
       break;
   }
 }

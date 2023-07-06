@@ -419,6 +419,12 @@ a:not(.default):hover{
   margin-top: 0.25rem;
 }
 
+.courses__columns .level-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .ects-row,
 .level-row,
 .category-row {
@@ -433,11 +439,7 @@ a:not(.default):hover{
 }
 
 .level-column {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 3rem;
+  width: 3.5rem;
   height: 1.5rem;
   margin-right: 5rem;
 }
@@ -468,7 +470,7 @@ a:not(.default):hover{
   }
 }
 
-@media (width < 39rem) {
+@media (width < 40rem) {
   .header-section__category,
   .category-row {
     display: block;

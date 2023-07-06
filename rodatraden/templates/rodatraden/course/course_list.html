@@ -31,14 +31,24 @@
 
 <div class="course-list__header">
   <div class="header-section">
-    <a href="{% url 'course-list' %}?sort_order=-title" class="header-section__title title-link">Kursnamn</a>
-    <a href="{% url 'course-list' %}?sort_order=ects" class="header-section__ects ects-link">Poäng</a>
-    <a href="{% url 'course-list' %}?sort_order=level" class="header-section__level level-link">Nivå</a>
+    <a href="{% url 'course-list' %}?sort_order=-title" class="header-section__title title-link">
+      Kursnamn <span class="fa fa-caret-up"></span>
+    </a>
+    <a href="{% url 'course-list' %}?sort_order=ects" class="header-section__ects ects-link">
+      Poäng <span class="fa"></span>
+    </a>
+    <a href="{% url 'course-list' %}?sort_order=level" class="header-section__level level-link">
+      Nivå <span class="fa"></span>
+    </a>
     <span class="header-section__category">Kategorier</span>
   </div>
   <div class="header-section">
-    <a href="{% url 'course-list' %}?sort_order=ects" class="ects-column ects-link">Poäng</a>
-    <a href="{% url 'course-list' %}?sort_order=level" class="level-column level-link">Nivå</a>
+    <a href="{% url 'course-list' %}?sort_order=ects" class="ects-column ects-link">
+      Poäng <span class="fa"></span>
+    </a>
+    <a href="{% url 'course-list' %}?sort_order=level" class="level-column level-link">
+      Nivå <span class="fa"></span>
+    </a>
     <span class="categories-column">Kategorier</span>
   </div>
 </div>
