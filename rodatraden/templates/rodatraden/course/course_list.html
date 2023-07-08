@@ -118,7 +118,7 @@
 <nav role="navigation" aria-label="Pagination Navigation">
   <ul class="pagination">
     {% if page.has_previous %}
-    <li class="page-item">
+    <li class="page-item page-item--previous">
       <a href="{{ unfinished_page_path }}{{ page.previous_page_number }}"
          class="page-link"
          aria-label="Previous page"
@@ -156,7 +156,7 @@
     {% endfor %}
 
     {% if page.has_next %}
-    <li class="page-item">
+    <li class="page-item page-item--next">
       <a href="{{ unfinished_page_path }}{{ page.next_page_number }}"
          class="page-link"
          aria-label="Next page"

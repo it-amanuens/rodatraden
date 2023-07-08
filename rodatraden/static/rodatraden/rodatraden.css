@@ -465,6 +465,7 @@ a:not(.default):hover{
     display: block;
   }
 
+  .courses__columns .level-column,
   .level-column {
     display: none;
   }
@@ -512,11 +513,11 @@ a:not(.default):hover{
   color: white !important;
 }
 
-.page-item:first-child .page-link {
+.page-item--previous {
   margin-right: 0.5rem;
 }
 
-.page-item:last-child .page-link {
+.page-item--next {
   margin-left: 0.5rem;
 }
 
