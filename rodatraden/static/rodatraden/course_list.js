@@ -1,30 +1,80 @@
 /**
+ * Parses out the parameters of the GET-request into a Map structure.
+ * 
+ * @param {string} queryString - String on the format "?k1=v1&k2=v2" etc.
+ * @returns Map of GET-request parameters and their values.
+ */
+function parseQueryString(queryString) {
+  // Remove the first '?' character and split the string.
+  const parameterStrings = queryString.slice(1).split('&');
+
+  /** @type {Map<string, string>} */
+  let parameters = new Map();
+
+  for (const parameterString of parameterStrings) {
+    const [key, value] = parameterString.split('=');
+    parameters.set(key, value);
+  }
+
+  return parameters;
+}
+
+/**
+ * Creates a query string used in a GET request from a Map of parameters and
+ * their values.
+ * 
+ * @param {Map<string, string>} parameters - GET request parameters.
+ * @returns String on the format "?k1=v1&k2=v2" etc.
+ */
+function createQueryString(parameters) {
+  // Leave the string empty if there are no parameters.
+  if (parameters.size === 0) return '';
+
+  // Create a list of key-value pair strings on the form 'key=value'.
+  let parameterStrings = [];
+  for (const [key, value] of parameters) {
+    parameterStrings.push(key + '=' + value);
+  }
+
+  // Create a full query string from the key-value pairs.
+  const queryString = '?' + parameterStrings.join('&');
+
+  return queryString;
+}
+
+/**
  * Parses the URL to find the sort order. The sort order is expressed as a
  * sorting category and whether or not to sort in ascending order.
  * 
- * @param {string} queryString - String on the format "?k1=v1&k2=v2" etc.
+ * @param {Map<string, string>} parameters - GET request parameters.
  * @returns Sort order if found, otherwise null.
  */
-function getSortOrder(queryString) {
-  // Remove the first '?' character and split the string.
-  const queries = queryString.slice(1).split('&');
+function getSortOrder(parameters) {
+  if (!parameters.has('sort_order')) return null;
 
-  for (const query of queries) {
-    const [parameter, value] = query.split('=');
-    
-    if (parameter == 'sort_order') {
-      const isDecending = value[0] === '-';
-      // Remove leading minus sign if present.
-      const category = isDecending ? value.slice(1) : value;
+  value = parameters.get('sort_order');
 
-      return {
-        category: category,
-        isAscending: !isDecending
-      };
-    }
-  }
+  // A leading minus sign signifies descending order.
+  const isDecending = value[0] === '-';
+  // Keep only the category name without any prefix.
+  const category = isDecending ? value.slice(1) : value;
 
-  return null;
+  return {
+    category: category,
+    isAscending: !isDecending
+  };
+}
+
+/**
+ * Sets the sort order parameter.
+ * 
+ * @param {Map<string, string>} parameters - GET request parameters.
+ * @param {string} category - Sorting category, e.g., "title".
+ * @param {boolean} isAscending - True if clicking the link should sort in ascending order.
+ */
+function setSortOrder(parameters, category, isAscending) {
+  const sortOrder = (isAscending ? '' : '-') + category;
+  parameters.set('sort_order', sortOrder);
 }
 
 /**
@@ -32,15 +82,16 @@ function getSortOrder(queryString) {
  * of links.
  * 
  * @param {HTMLCollection} links - Links whose href attributes will be updated.
- * @param {string} category - Sorting category, e.g., "title".
- * @param {boolean} isAscending - True if clicking the link should sort in ascending order.
+ * @param {Map<string, string>} parameters - GET request parameters.
  */
-function setSortOrder(links, category, isAscending) {
+function applySortURL(links, parameters) {
+  // Create the URL for the sort links.
   const pathname = window.location.pathname;
-  const sortOrder = (isAscending ? '' : '-') + category;
+  const queryString = createQueryString(parameters);
+  const url = pathname + queryString;
 
   for (let link of links) {
-    link.href = pathname + '?sort_order=' + sortOrder;
+    link.href = url;
   }
 }
 
@@ -50,7 +101,7 @@ function setSortOrder(links, category, isAscending) {
  * @param {HTMLCollection} links - Links whose carets will be changed.
  * @param {boolean} isAscending - True if clicking the link should sort in ascending order.
  */
-function setCaret(links, isAscending) {
+function addCaret(links, isAscending) {
   for (let link of links) {
     const icon = link.querySelector('.fa');
 
@@ -90,38 +141,57 @@ function updateSortingLinks() {
   // No need to update the links if there are no GET-parameters.
   if (!queryString) return;
 
-  const sortOrder = getSortOrder(queryString);
-  // No need to update the links if the sort order isn't specified.
-  if (!sortOrder) return;
+  const parameters = parseQueryString(queryString);
+  // Make sure that the user lands on the first page after sorting the courses.
+  parameters.delete('page');
+  // Create a set of parameters for each sorting category.
+  let titleParameters = structuredClone(parameters);
+  let ectsParameters = structuredClone(parameters);
+  let levelParameters = structuredClone(parameters);
   
-  // Reset all links to ascending.
-  setSortOrder(titleLinks, 'title', true);
-  setSortOrder(ectsLinks, 'ects', true);
-  setSortOrder(levelLinks, 'level', true);
+  // Set all sorting to ascending order as a start. Then only the incorrect one
+  // need to be changed.
+  setSortOrder(titleParameters, 'title', true);
+  setSortOrder(ectsParameters, 'ects', true);
+  setSortOrder(levelParameters, 'level', true);
 
-  // Reset caret icons.
+  // Remove caret icons. The correct one will be added later.
   removeCaret(titleLinks);
   removeCaret(ectsLinks);
   removeCaret(levelLinks);
 
-  const { category, isAscending } = sortOrder;
-  
-  // Clicking on the header of the currently sorted-by category should reverse
-  // the sort order. The caret should highlight the current sort order.
-  switch (category) {
-    case 'title':
-      setSortOrder(titleLinks, 'title', !isAscending);
-      setCaret(titleLinks, isAscending);
-      break;
-    case 'ects':
-      setSortOrder(ectsLinks, 'ects', !isAscending);
-      setCaret(ectsLinks, isAscending);
-      break;
-    case 'level':
-      setSortOrder(levelLinks, 'level', !isAscending);
-      setCaret(levelLinks, isAscending);
-      break;
+  const currentSortOrder = getSortOrder(parameters);
+
+  if (currentSortOrder) {
+    const { category, isAscending } = currentSortOrder;
+    
+    // Clicking on the header of the currently sorted-by category should reverse
+    // the sort order. The caret should highlight the current sort order.
+    switch (category) {
+      case 'title':
+        setSortOrder(titleParameters, 'title', !isAscending);
+        addCaret(titleLinks, isAscending);
+        break;
+      case 'ects':
+        setSortOrder(ectsParameters, 'ects', !isAscending);
+        addCaret(ectsLinks, isAscending);
+        break;
+      case 'level':
+        setSortOrder(levelParameters, 'level', !isAscending);
+        addCaret(levelLinks, isAscending);
+        break;
+    }
+  } else {
+    // The courses are sorted by title in ascending order if no sort order is
+    // specified.
+    setSortOrder(titleParameters, 'title', false);
+    addCaret(titleLinks, false);
   }
+  
+  // Update all href attributes with the new URLs.
+  applySortURL(titleLinks, titleParameters);
+  applySortURL(ectsLinks, ectsParameters);
+  applySortURL(levelLinks, levelParameters);
 }
 
 /**
