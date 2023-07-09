@@ -214,7 +214,7 @@ a:not(.default):hover{
   --schedule-border-width: 0.125rem;
   --schedule-border-radius: 0.25rem;
   --schedule-gap: 0.125rem;
-  --schedule-block-font-size: 0.6vw;
+  --schedule-remove-button-size: 1.75rem;
 
   color: var(--schedule-text-color);
 }
@@ -224,15 +224,22 @@ a:not(.default):hover{
   gap: var(--schedule-gap);
   
   margin: var(--schedule-margin) 0;
+}
+
+.academic-year--one-column {
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--schedule-margin);
+}
+
+.academic-year--one-column .term {
   background-color: var(--schedule-background-color-light);
 }
 
-.academic-year.one-column {
-  grid-template-columns: repeat(1, 1fr);
-}
-
-.academic-year.two-columns {
+.academic-year--two-columns {
   grid-template-columns: repeat(2, 1fr);
+  /* Join the terms visually by applying the background color to the whole year
+     instead of the terms when the terms are parallel. */
+  background-color: var(--schedule-background-color-light);
 }
 
 .term-header {
@@ -268,33 +275,34 @@ a:not(.default):hover{
 
 .course {
   position: absolute;
+  container-type: size;
+
   border: var(--schedule-border-width) var(--main-color) solid;
   background-color: var(--main-color-dark);
 }
 
-.one-column .course {
-  font-size: calc(2 * var(--schedule-block-font-size));
-}
-
-.two-columns .course {
-  font-size: var(--schedule-block-font-size);
-}
-
 .course-title {
+  padding-inline: var(--schedule-padding);
   margin: 0;
   margin-top: 0.75rem;
-  padding-left: 0.25rem;
-  padding-right: 1.5rem;
   cursor: pointer;
 
+  font-size: 0.625rem;
   font-weight: bold;
   text-align: left;
+  /* To allow for a larger font-size we need to break long words to prevent
+     them from overflowing. */
+  word-wrap: break-word;
 }
 
 .course-remove-button {
   position: absolute;
   top: 0;
   right: 0;
+
+  width: var(--schedule-remove-button-size);
+  aspect-ratio: 1;
+  padding: 0;
 }
 
 .course a,
@@ -338,6 +346,37 @@ a:not(.default):hover{
 .block-schedule-footer:hover {
   background-color: var(--main-color);
   cursor: pointer;
+}
+
+/* If the course block is large enough, increase the font-size. The height is
+   important since we would like to be able to fit two rows of text. */
+@container (width >= 10rem) and (height >= 4rem) {
+  .course-title {
+    font-size: 1rem;
+  }
+}
+
+/* The remove buttons are hidden on devices with a mouse to remove clutter. */
+@media (hover: hover) {
+  .course:not(:hover) .course-remove-button {
+    display: none;
+  }
+}
+
+/* Depending on the size of the course block on a touch screen, either add
+   space above or to the right of the title to remove overlap with the button.
+ */
+@media (hover: none) {
+  @container (height < 4rem) {
+    .course-title {
+      padding-right: var(--schedule-remove-button-size);
+    }
+  }
+  @container (height >= 4rem) {
+    .course-title {
+      margin-top: var(--schedule-remove-button-size);
+    }
+  }
 }
 
 /** SELECT2 */
