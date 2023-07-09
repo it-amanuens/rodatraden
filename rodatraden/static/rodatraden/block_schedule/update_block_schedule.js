@@ -241,10 +241,17 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
     })
     .attr('class', 'courseoccasion-info')
     .attr('data-id', course => {
-      const url = courseoccasionInfoUrl + "?year=" + course.year
+      const url = courseoccasionInfoUrl + "?year=" + course.academicYear
         + "&slug=" + course.slug;
       return url;
     });
+
+  // Clicking the title opens a modal with info about the course occasion.
+  $(".courseoccasion-info").each(function () {
+    $(this).modalForm({
+      formURL: $(this).data('id')
+    });
+  });
 
   // Only logged in users can remove courses.
   if (isLoggedIn) {
@@ -261,13 +268,6 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
         const url = blockRemoveCourseUrl + "?slug=" + course.slug
           + "&private=" + course.is_priv;
         return url;
-    });
-
-    // Clicking the button removes the course.
-    $(".courseoccasion-info").each(function () {
-      $(this).modalForm({
-        formURL: $(this).data('id')
-      });
     });
   }
 
