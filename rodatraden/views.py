@@ -878,6 +878,7 @@ def block_course_list(request, username, slug):
 
     # All courses defined by user
     privatecourses = PrivateCourse.objects.filter(user=request.user,
+            year=year,
             start__gte=start, start__lt=start+10).exclude(
                     block__id=block.id).order_by('title')
 
