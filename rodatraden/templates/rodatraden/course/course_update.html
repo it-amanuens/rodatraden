@@ -33,7 +33,7 @@
     <h2>Spår</h2>
     <hr>
 
-    {% for field in form.visible_fields|slice:"11:13" %}
+    {% for field in form.visible_fields|slice:"11:14" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class+="form-control" placeholder=field.label %}

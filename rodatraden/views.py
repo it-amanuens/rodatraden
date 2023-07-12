@@ -44,6 +44,7 @@ from rodatraden import validator
 from openpyxl.styles import Alignment, Font
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 def index(request):
@@ -510,18 +511,11 @@ class ProfileDetail(DetailView):
         context = super().get_context_data(**kwargs)
         context['tracks'] = self.object.track_set.all()
 
-        return context
-
-
-class ProfileDetailKristerEdit(DetailView):
-    """Test of a new layout for the detail view for profiles as requested by Krister."""
-
-    model = Profile
-    template_name = 'rodatraden/profile/profile_detail_krister_edit.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['tracks'] = self.object.track_set.all()
+        # Courses related to the profile (profile courses and core courses.)
+        relatedCoursesQuery = (Q(tracks__profile__id=self.object.id)
+            | Q(coreBelonging__profile__id=self.object.id))
+        context['relatedCourses'] = Course.objects.filter(relatedCoursesQuery).distinct().order_by('title')
+        context['profile_id'] = self.object.id
 
         return context
 

@@ -46,63 +46,107 @@
     </div>
   </div>
 </div>
-{% for track in tracks %}
-<hr>
-<h2 class="mb-3">{{ track.title }}</h2>
-{% if track.description %}
-<div class="course-etc p-2 m-2">
-{{ track.description | safe}}
-</div>
-{% endif %}
-<div class="row">
-  <div class="col-lg-4">
-    <div class="card">
-      <h5 class="card-header">Profilkurser</h5>
-      <div class="card-body">
-        <ul class="list-group list-group-flush m-0">
-        {% for course in track.course_set.all %}
-        <li class="list-group-item">
-          <a href="{% url 'course-detail' course.slug %}"
-          style="font-weight:bold;">{{ course.title }}</a>
-        </li>
-        {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card">
-      <h5 class="card-header">Rekommenderade kurser</h5>
-      <div class="card-body">
-        <ul class="list-group list-group-flush m-0">
-        {% for course in track.recommended_track.all %}
-        <li class="list-group-item">
-          <a href="{% url 'course-detail' course.slug %}"
-          style="font-weight:bold;">{{ course.title }}</a>
-        </li>
-        {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card">
-      <h5 class="card-header">Blockschema</h5>
-      <div class="card-body">
-        <ul class="list-group list-group-flush m-0">
-        {% for this_block in track.block_set.all %}
-        {% if not this_block.private %}
-        <li class="list-group-item">
-          <a href="{% url 'block-detail' this_block.user.username this_block.slug %}"
-          style="font-weight:bold;">{{ this_block.title }}</a>
-        </li>
+<div class="row px-3">
+  
+  <div class="col-lg-7 p-3 text-center">
+    <div class="row pr-3">
+      <div>
+        <p class="profile-detail-title">Kärnkurser - {{ profile.title }}</p>
+        <img 
+        {% if profile.schedule %}
+          src="{{ profile.schedule.url }}" 
+        {% else %} 
+          src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
         {% endif %}
-        {% endfor %}
-        </ul>
+          alt="{{ profile.title }}" class="img-thumbnail">
+        </img>
       </div>
+      <div class="text-left mt-3">
+        <p>
+          I blockschemat visas profilens Nyckelkurser, dvs de kurser som utgör
+          profilens grundstomme. Utöver dessa finns Tillvalskurser som ger
+          ytterligare fördjupning inom olika områden.
+        </p>
+        <p>
+          Nyckelkurserna är inte obligatoriska men det rekommenderas starkt att
+          ha med dessa som grund i ditt blockschema. Välj sedan för dig
+          intressanta kurser från listan Tillvalskurser för att skapa det
+          blockschema som passar dig bäst, alla kurser i listan passar bra för
+          en Beräkningsfysiker. Det går även bra att välja kurser från en annan
+          profil.
+        </p>
+        <p>
+          Var noga med att ditt blockschema uppfyller alla kategorier i din
+          examen, dvs att du har valt tillräckligt med profilkurser, allmänna
+          ingenjörskurser, projektkurser och hållbarhetskurser.
+        </p>
+      </div>
+    </div>
+
+    
+  </div>
+  <div class="col-lg-5 p-3">
+
+    <p class="profile-detail-title">Valbara kurser inom profilen</p>
+    <ul class="profile-detail-list">
+      {% for course in relatedCourses %}
+      <li>
+        <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+
+        <span>
+          {% for track in course.coreBelonging.all %}
+          {% if track.profile.id == profile_id %}
+          <span class="badge badge-success">Kärnkurs</span>
+          {% endif %}
+          {% endfor %}
+
+          {% for category in course.categories.all %}
+          {% if category.title == 'Profilkurs' %}
+          <span class="badge badge-secondary">Profilkurs</span>
+          {% endif %}
+          {% endfor %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <p class="profile-detail-title">Projekt och Teknik för hållbar utveckling</p>
+    {# Hardcoded for now, without links. This is a first draft. #}
+    <ul class="profile-detail-list">
+      <li>
+        Utvecklingsarbete i samverkan med näringslivet (Lp1,2,3,4, Sommar)
+      </li>
+      <li>
+        Forsknings- och utvecklingsprojekt inom teknisk fysik (Lp1,2,3,4, Sommar)
+      </li>
+      <li>
+        Hållbar utveckling för ingenjörer (Lp1,2,3,4, Sommar)
+      </li>
+      <li>
+        Hållbar utveckling och strålningsmiljö (Lp1)
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="profile-detail-schedules">
+  <div class="card">
+    <h5 class="card-header">Blockschema</h5>
+    <div class="card-body">
+      <ul class="list-group list-group-flush m-0">
+      {% for track in tracks %}
+      {% for this_block in track.block_set.all %}
+      {% if not this_block.private %}
+      <li class="list-group-item">
+        <a href="{% url 'block-detail' this_block.user.username this_block.slug %}"
+        style="font-weight:bold;">{{ this_block.title }}</a>
+      </li>
+      {% endif %}
+      {% endfor %}
+      {% endfor %}
+      </ul>
     </div>
   </div>
 </div>
-{% endfor %}
 
 {% endblock %}

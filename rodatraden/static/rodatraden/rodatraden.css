@@ -591,3 +591,32 @@ a:not(.default):hover{
   width: auto;
   flex-grow: 1;
 }
+
+.profile-detail-title {
+  margin: 0;
+  margin-bottom: 0.25rem;
+
+  font-weight: bold;
+}
+
+/* Course list on profile page */
+.profile-detail-list {
+  padding: 0;
+  margin: 0;
+  margin-bottom: 1rem;
+
+  list-style: none;
+}
+
+.profile-detail-list li {
+  padding: 0.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1)
+}
+
+.profile-detail-list a {
+  margin-right: 0.5rem;
+}
+
+.profile-detail-schedules {
+  display: inline-block;
+}

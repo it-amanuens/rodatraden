@@ -52,6 +52,10 @@ class CourseForm(CategoryFormMixin, BSModalModelForm):
             'select2-mult-choice'})
         self.fields['ects'].widget.attrs.update({'min':0})
 
+        # Add which tracks label this this course as a core course.
+        self.fields['coreBelonging'].widget.attrs.update({'class' :
+            'select2-mult-choice'})
+
     class Meta:
         model = Course
         exclude = ['note', 'categories', 'slug', 'created_at', 'updated_at']
