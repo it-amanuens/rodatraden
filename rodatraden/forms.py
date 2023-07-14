@@ -114,7 +114,10 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         model = PrivateCourse
         fields = ['title', 'ects', 'year', 'start', 'weeks', 'note', 'user']
         # Hide the user input
-        widgets = {'user': forms.HiddenInput()}
+        widgets = {
+            'note': forms.Textarea(attrs={'rows': 5}),
+            'user': forms.HiddenInput()
+        }
 
 
 class ProfileForm(BSModalModelForm):

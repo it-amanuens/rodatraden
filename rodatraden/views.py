@@ -575,12 +575,14 @@ class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
     table_class = PrivateCourseTable
     template_name = 'rodatraden/privatecourse/privatecourse_list.html'
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self):
         """Extend get_queryset to filter only private courses for user."""
 
-        self.qs = super().get_queryset()
+        qs = super().get_queryset()
 
-        return self.qs.filter(user__username=self.kwargs['username'])
+        return qs.filter(
+            user__username=self.kwargs['username']
+        ).order_by('title')
 
 
 class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin,

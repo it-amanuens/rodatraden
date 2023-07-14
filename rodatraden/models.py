@@ -742,6 +742,25 @@ class PrivateCourse(models.Model):
         starts."""
         
         return get_start_weeks_into_period(self.start)
+    
+
+    @property
+    def start_string(self):
+        """Alternative representation of the start week.
+        
+        Example: start = 13 results in "LP2 - 3 veckor in" """
+
+        weeks_in_period = 10
+        # Period 1 for weeks 0-9, period 2 for weeks 10-19, etc.
+        period_number = self.start // weeks_in_period + 1
+        # The number of weeks after the start of the period.
+        period_start_offset = self.start % weeks_in_period
+
+        result = f'LP{period_number}'
+        if period_start_offset:
+            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
+            result += f' - {period_start_offset} {postfix} in'
+        return result
 
 
     def category_ects(self, category_sum):

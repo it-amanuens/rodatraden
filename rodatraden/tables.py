@@ -101,6 +101,12 @@ class PrivateCourseTable(tables.Table):
     # Need to fetch url from private course model
     title = tables.Column(linkify=lambda record: record.get_absolute_url())
 
+    # The start week is presented differently.
+    start = tables.TemplateColumn(
+        template_code='{{ record.start_string }}',
+        verbose_name='Start'
+    )
+
     # Editing buttons
     edit = tables.TemplateColumn(
             template_name='rodatraden/tables/privatecourse_edit.html', 
@@ -110,7 +116,7 @@ class PrivateCourseTable(tables.Table):
         model = PrivateCourse
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
-        fields = ('title', 'year', 'ects', 'start', 'weeks')
+        fields = ('title', 'ects', 'year', 'start', 'weeks')
 
 
 class ReportTable(tables.Table):
