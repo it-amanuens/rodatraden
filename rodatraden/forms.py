@@ -10,6 +10,7 @@ from .models import (
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, SaveAndImportBlockMixin
 )
+from rodatraden.rodatraden_modules.forms import StartWeekField
 
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
 
@@ -75,7 +76,7 @@ class ExamForm(CategoryFormMixin, BSModalModelForm):
     class Meta:
         model = Exam
         exclude = ['note']
-        
+
 
 class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
     """Form for private courses."""
@@ -100,6 +101,15 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
             username=self.request.user.username
         )
         self.fields['user'].initial = self.request.user
+
+        self.fields['start'] = StartWeekField()
+
+        # The year label serves both the year and start field, since they are on
+        # the same row.
+        self.fields['year'].label = 'Start (ex: 2019 för HT19 och VT20)'
+        self.fields['weeks'].label = 'Längd i veckor'
+
+
 
     class Meta:
         model = PrivateCourse

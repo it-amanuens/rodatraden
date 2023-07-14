@@ -664,11 +664,13 @@ class CategoryExam(models.Model):
 
 class PrivateCourse(models.Model):
     """User specified courses."""
+
     title = models.CharField(max_length=250, verbose_name='Kursnamn')
     ects = models.DecimalField(max_digits=3,decimal_places=1,
             verbose_name='Poäng')
-    note = models.CharField(max_length=250, blank=True, null=True)
-    weeks = models.IntegerField(verbose_name='Längd')
+    note = models.CharField(max_length=250, blank=True, null=True,
+            verbose_name='anteckning')
+    weeks = models.IntegerField(verbose_name='Veckor')
     # Users can specify their own years and starts
     year = models.IntegerField(verbose_name='Startår')
     start = models.IntegerField(verbose_name='Startvecka')

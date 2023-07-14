@@ -5,7 +5,7 @@
   {% csrf_token %}
 
   <div class="modal-header">
-    <h3 class="modal-title">Skapa ny egen kurs</h3>
+    <h3 class="modal-title">Ändra egen kurs</h3>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -19,7 +19,8 @@
       {% endfor %}
     </div>
 
-    {% for field in form.visible_fields|slice:":6" %}
+    {# Fields for title, ects and note #}
+    {% for field in form.visible_fields|slice:":3" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {% render_field field class+="form-control" placeholder=field.label %}
@@ -31,6 +32,44 @@
       </div>
     {% endfor %}
 
+    {# Fields for start year and week #}
+    <div class="form-group">
+      {# Label for both the year and start field. #}
+      {% for field in form.visible_fields|slice:"3:4" %}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% endfor %}
+      
+      {# Render both fields #}
+      <div class='form-start-week'>
+        {% for field in form.visible_fields|slice:"3:5" %}
+        {% render_field field class+="form-control" placeholder=field.label %}
+        {% endfor %}
+      </div>
+
+      {# Render errors for both fields #}
+      <div class="pt-1 {% if field.errors %} invalid{% endif %}">
+        {% for field in form.visible_fields|slice:"3:5" %}
+        {% for error in field.errors %}
+        <p class="alert alert-danger">{{ error }}</p>
+        {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Field for duration in weeks #}
+    {% for field in form.visible_fields|slice:"5:6" %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {% render_field field class+="form-control" placeholder=field.label %}
+        <div class="pt-1 {% if field.errors %} invalid{% endif %}">
+          {% for error in field.errors %}
+            <p class="alert alert-danger">{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+    {# Hidden user field #}
     {% for field in form.hidden_fields %}
       <div class="form-group">
         {% render_field field class+="form-control" placeholder=field.label %}
@@ -42,9 +81,9 @@
       </div>
     {% endfor %}
 
+    {# Fields for categories #}
     <h2>Kategorier</h2>
     <hr>
-
     {% for category_field in form.get_category_fields %}
     <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
       row px-3">

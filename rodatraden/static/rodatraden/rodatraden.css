@@ -372,3 +372,14 @@ a:not(.default):hover{
 .cat-ects {
   width: 20%;
 }
+
+/* Fields for start year and week in private course form. */
+.form-start-week {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.form-start-week > * {
+  width: auto;
+  flex-grow: 1;
+}
