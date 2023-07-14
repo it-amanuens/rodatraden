@@ -93,8 +93,8 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         self._build_category_fields(categories)
 
         # Get choices given from academic years
-        years = [(x.year, x.year) for x in AcademicYear.objects.all()]
-        self.fields['year'] = forms.ChoiceField(choices=years,
+        year_choices = [(x.year, x.title) for x in AcademicYear.objects.all().order_by('year')]
+        self.fields['year'] = forms.ChoiceField(choices=year_choices,
                 initial=datetime.datetime.now().year)
         # Always save to current user
         self.fields['user'].queryset = User.objects.filter(
@@ -104,16 +104,15 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
 
         self.fields['start'] = StartWeekField()
 
-        # The year label serves both the year and start field, since they are on
-        # the same row.
-        self.fields['year'].label = 'Start (ex: 2019 för HT19 och VT20)'
+        self.fields['year'].label = 'Läsår'
+        self.fields['start'].label = 'Start'
         self.fields['weeks'].label = 'Längd i veckor'
 
 
 
     class Meta:
         model = PrivateCourse
-        fields = ['title', 'ects', 'note', 'year', 'start', 'weeks', 'user']
+        fields = ['title', 'ects', 'year', 'start', 'weeks', 'note', 'user']
         # Hide the user input
         widgets = {'user': forms.HiddenInput()}
 

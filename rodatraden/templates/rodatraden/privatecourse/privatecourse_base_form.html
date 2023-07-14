@@ -27,7 +27,9 @@ This base template is extended by privatecourse_create and privatecourse_update
     {% for field in form.visible_fields|slice:":3" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
         {% render_field field class+="form-control" placeholder=field.label %}
+
         <div class="pt-1 {% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
             <p class="alert alert-danger">{{ error }}</p>
@@ -36,35 +38,31 @@ This base template is extended by privatecourse_create and privatecourse_update
       </div>
     {% endfor %}
     
-    {# Fields for start year and week #}
+    {# Fields for start week #}
+    {% for field in form.visible_fields|slice:"3:4" %}
     <div class="form-group">
-      {# Label for both the year and start field. #}
-      {% for field in form.visible_fields|slice:"3:4" %}
       <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {% endfor %}
 
-      {# Render both fields #}
+      {# Container needed so that the combined fields are on the same row #}
       <div class='form-start-week'>
-        {% for field in form.visible_fields|slice:"3:5" %}
         {% render_field field class+="form-control" placeholder=field.label %}
-        {% endfor %}
       </div>
 
-      {# Render errors for both fields #}
       <div class="pt-1 {% if field.errors %} invalid{% endif %}">
-        {% for field in form.visible_fields|slice:"3:5" %}
         {% for error in field.errors %}
         <p class="alert alert-danger">{{ error }}</p>
         {% endfor %}
-        {% endfor %}
       </div>
     </div>
+    {% endfor %}
 
     {# Field for duration in weeks #}
-    {% for field in form.visible_fields|slice:"5:6" %}
+    {% for field in form.visible_fields|slice:"4:6" %}
       <div class="form-group">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
         {% render_field field class+="form-control" placeholder=field.label %}
+
         <div class="pt-1 {% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
             <p class="alert alert-danger">{{ error }}</p>
@@ -77,6 +75,7 @@ This base template is extended by privatecourse_create and privatecourse_update
     {% for field in form.hidden_fields %}
       <div class="form-group">
         {% render_field field class+="form-control" placeholder=field.label %}
+
         <div class="pt-1 {% if field.errors %} invalid{% endif %}">
           {% for error in field.errors %}
             <p class="alert alert-danger">{{ error }}</p>
@@ -99,6 +98,7 @@ This base template is extended by privatecourse_create and privatecourse_update
           <span class="fa fa-trash"></span>
         </button>
     </div>
+
     <div class="{% if category_field.errors %} invalid{% endif %}">
       {% for error in category_field.errors %}
         <p class="alert alert-danger">{{ error }}</p>

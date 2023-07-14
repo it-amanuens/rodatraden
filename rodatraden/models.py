@@ -672,7 +672,7 @@ class PrivateCourse(models.Model):
             verbose_name='anteckning')
     weeks = models.IntegerField(verbose_name='Veckor')
     # Users can specify their own years and starts
-    year = models.IntegerField(verbose_name='Startår')
+    year = models.IntegerField(verbose_name='Läsår')
     start = models.IntegerField(verbose_name='Startvecka')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     categories = models.ManyToManyField(Category,
