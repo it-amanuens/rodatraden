@@ -1,4 +1,4 @@
-from rodatraden.models import Category, CourseOccasion
+from rodatraden.models import Block, Category, CourseOccasion
 from .functions import is_ajax
 from .forms import CategoryEctsField
 from decimal import Decimal
@@ -115,40 +115,42 @@ class SaveAndImportBlockMixin(object):
             instance = super().save(commit=commit)
 
             # Skip if field not set
-            if 'import_from' in self.fields:
-                # Skip if no import block
-                if (self.cleaned_data['import_from']):
+            if not 'import_from' in self.fields:
+                return instance
 
-                    # Get all courseoccasions from selected block
-                    courseoccasions = self.cleaned_data[
-                        'import_from'
-                    ].courseoccasions.all().order_by(
-                        'academic_year__year', 'time_period__week'
+            imported_block: Block = self.cleaned_data['import_from']
+            # Skip if no import block
+            if not imported_block:
+                return instance
+
+            # Get all courseoccasions from selected block
+            courseoccasions = imported_block.courseoccasions.all().order_by(
+                'academic_year__year', 'time_period__week'
+            )
+
+            # Difference in years from new block to the import block
+            year_diff = (int(self.cleaned_data['start_year'])
+                         - imported_block.start_year)
+
+            # Main insertion loop
+            for courseocc in courseoccasions:
+                # Get the new courseoccasion
+                # Just skip if something bad happens
+                try:
+                    new_courseocc = CourseOccasion.objects.get(
+                        course=courseocc.course,
+                        academic_year__year=(
+                            courseocc.academic_year.year+year_diff
+                        ),
+                        time_period__week=courseocc.time_period.week
                     )
-                    # Difference in years from new block to the import block
-                    year_diff = int(
-                        self.cleaned_data['start_year']
-                    ) - courseoccasions.first().academic_year.year
+                except:
+                    pass
 
-                    # Main insertion loop
-                    for courseocc in courseoccasions:
-                        # Get the new courseoccasion
-                        # Just skip if something bad happens
-                        try:
-                            new_courseocc = CourseOccasion.objects.get(
-                                course=courseocc.course,
-                                academic_year__year=(
-                                    courseocc.academic_year.year+year_diff
-                                ),
-                                time_period__week=courseocc.time_period.week
-                            )
-                        except:
-                            pass
-
-                        try:
-                            instance.courseoccasions.add(new_courseocc)
-                        except:
-                            pass
+                try:
+                    instance.courseoccasions.add(new_courseocc)
+                except:
+                    pass
 
         else:
             instance = super().save(commit=False)
