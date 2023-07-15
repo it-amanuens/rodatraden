@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse
+from django.http import Http404, HttpRequest
 from django.views.generic.edit import UpdateView
 
 from .models import (
@@ -854,39 +854,57 @@ def block_detail(request, username, slug):
         return render(request, 'rodatraden/block/block_detail.html', context)
 
 @login_required
-def block_course_list(request, username, slug):
+def block_course_list(request: HttpRequest, username: str, slug: str):
     """Custom list view with all courses that can be added a specific year and
     time period range."""
 
-    # Get year and start from get request
-    year = int(request.GET.get('year', ''))
-    start = int(request.GET.get('start', ''))
+    # Get year and start week from GET request.
+    try:
+        year = int(request.GET.get('year'))
+        start = int(request.GET.get('start'))
+    except (TypeError, ValueError):
+        raise Http404("Unspecified year or start week.")
 
-    # Get block id so we don't show courses already in block
+    # The block is used for user validation and to know which courses have
+    # already been added.
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
-    # Only blocks made by same user
+    # Can only add courses to blocks the user owns, unless the user is staff.
     if not request.user.is_staff:
         if (block.user.username != request.user.username):
             return redirect(reverse('index'))
 
-    # Sort by year, start, if not in block and order by title
-    courseoccasions = CourseOccasion.objects.filter(academic_year__year=year,
-            time_period__week__gte=start,
-            time_period__week__lt=start+10).exclude(
-            block__id=block.id).order_by('course__title')
+    # Get course-occasions starting in the given period and not already in the
+    # block, ordered by title.
+    courseoccasions = CourseOccasion.objects.filter(
+        academic_year__year=year,
+        time_period__week__gte=start,
+        time_period__week__lt=start+10
+    ).exclude(
+        # This is a reverse lookup. A course-occasion doesn't have a block, but
+        # a block has course-occasions. If this block includes the
+        # course-occasion then it is excluded.
+        block__id=block.id
+    ).order_by('course__title')
 
-    # All courses defined by user
-    privatecourses = PrivateCourse.objects.filter(user=request.user,
-            start__gte=start, start__lt=start+10).exclude(
-                    block__id=block.id).order_by('title')
+    # Get private course-occasions starting in the given period and not already
+    # in the block, ordered by title.
+    privatecourses = PrivateCourse.objects.filter(
+        user=request.user,
+        year=year,
+        start__gte=start,
+        start__lt=start+10
+    ).exclude(
+        # This is also a reverse lookup just like for course-occasions.
+        block__id=block.id
+    ).order_by('title')
 
     context = {
-            'b_slug': slug,
-            'username': username,
-            'courseoccasions': courseoccasions,
-            'privatecourses': privatecourses,
-            }
+        'b_slug': slug,
+        'username': username,
+        'courseoccasions': courseoccasions,
+        'privatecourses': privatecourses,
+    }
 
     return render(request, 'rodatraden/block/block_course_list.html', context)
 
