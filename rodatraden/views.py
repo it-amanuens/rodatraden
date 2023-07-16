@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.http import Http404, HttpRequest
+from django.http import Http404, HttpRequest, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
@@ -43,6 +43,7 @@ from operator import itemgetter
 from rodatraden import validator
 from openpyxl.styles import Alignment, Font
 from django.conf import settings
+from django.core.paginator import Paginator
 
 
 def index(request):
@@ -271,15 +272,67 @@ class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
 # COURSES #
 ###########
 
-class CourseList(SingleTableMixin, FilterView):
-    """List view for courses."""
+def course_list(request: HttpRequest):
+    """Custom list view for courses that both filters and sorts the courses."""
 
-    model = Course
-    table_class = CourseTable
-    filterset_class = CourseFilter
-    # Amount of queries per page
-    paginate_by = 15
-    template_name = 'rodatraden/course/course_list.html'
+
+    def prepare_page_path(request: HttpRequest):
+        """Tweaks the path so that it ends with "page=". This is so that the
+        page number later can be appended to complete the path. Makes sure the
+        query string doesn't contain duplicate path parameters."""
+
+        path = request.path
+        full_path = request.get_full_path()
+
+        # We modify the existing query string if it exists.
+        if '?' in full_path:
+            # Isolate the GET-queries.
+            query_string = full_path.split('?')[1]
+            queries = query_string.split('&')
+
+            # Remove any pre-existing page query.
+            queries = [query for query in queries if not 'page=' in query]
+
+            # Append unfinished query.
+            queries.append('page=')
+
+            # Reassemble the string and append it.
+            query_string = '?' + '&'.join(queries)
+            path += query_string
+
+        # Otherwise we append a new one.
+        else:
+            path += '?page='
+    
+        return path
+
+
+    courses_per_page = 15
+
+    filter = CourseFilter(request.GET)
+    paginator = Paginator(filter.qs, courses_per_page)
+    paginator.ELLIPSIS = '…'
+
+    # Default to the first page (1-based index).
+    page_index = request.GET.get('page', 1)
+    page = paginator.get_page(page_index)
+
+    page_numbers = paginator.get_elided_page_range(page_index, on_each_side=2, on_ends=1)
+
+    context = {
+        'filter': filter,
+        'page': page,
+        'page_numbers': page_numbers,
+        'ellipsis': paginator.ELLIPSIS,
+        'unfinished_page_path': prepare_page_path(request)
+    }
+
+    return render(request, 'rodatraden/course/course_list.html', context)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Sort the courses ascending by title.
+        return qs.order_by('title')
 
 
 class CourseDetail(DetailView):

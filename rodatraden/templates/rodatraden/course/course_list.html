@@ -1,8 +1,7 @@
 {% extends 'rodatraden/index.html' %}
 
-{% load render_table from django_tables2 %}
+{% load static %}
 {% load widget_tweaks %}
-{% load bootstrap4 %}
 
 {% block title %}
   Kurser
@@ -22,33 +21,170 @@
 
 {% block content %}
 
-<div class="row course-etc p-3 pt-4 mb-2">
-  <div class="col-lg">
-    {% if filter %}
-      <form action="" method="get" class="form form-inline">
-        {% for field in filter.form %}
-        {% render_field field class+="course-list-filter" %}
-        {% endfor %}
-      </form>
-    {% endif %}
+{% if filter %}
+<form action="" method="get" class="form form-inline course-list-filters">
+  {% for field in filter.form %}
+  {% render_field field class+="course-list-filter" %}
+  {% endfor %}
+</form>
+{% endif %}
+
+<div class="course-list__header">
+  <div class="header-section">
+    <a href="{% url 'course-list' %}?sort_order=-title" class="header-section__title title-link">
+      Kursnamn <span class="fa fa-caret-up"></span>
+    </a>
+    <a href="{% url 'course-list' %}?sort_order=ects" class="header-section__ects ects-link">
+      Poäng <span class="fa"></span>
+    </a>
+    <a href="{% url 'course-list' %}?sort_order=level" class="header-section__level level-link">
+      Nivå <span class="fa"></span>
+    </a>
+    <span class="header-section__category">Kategorier</span>
+  </div>
+  <div class="header-section">
+    <a href="{% url 'course-list' %}?sort_order=ects" class="ects-column ects-link">
+      Poäng <span class="fa"></span>
+    </a>
+    <a href="{% url 'course-list' %}?sort_order=level" class="level-column level-link">
+      Nivå <span class="fa"></span>
+    </a>
+    <span class="categories-column">Kategorier</span>
   </div>
 </div>
 
-{% render_table table %}
+<ul class="courses">
+  {% for course in page %}
+  <li>
+    <div>
+      <div>
+        <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+        <span class="ects-row">{{ course.ects }} hp</span>
+      </div>
+      <ul class="courses__extra">
+        <li class="level-row">
+          <span class=
+                {% if course.level.title == "Grundläggande" %}
+                "badge badge-success"
+                {% else %}
+                "badge badge-warning"
+                {% endif %}
+              data-toggle="tooltip"
+              title="{{ course.level.title }}">
+            {{ course.level.first_letter }}
+          </span>
+        </li>
+        {% for category in course.categories.all %}
+        <li class="category-row">
+          <a href="{{ category.get_absolute_url }}">
+            <span class="badge badge-secondary" data-toggle="tooltip" title="{{ category.title }}">
+              {{ category.abbreviation }}
+            </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="courses__columns">
+      <span class="ects-column">{{ course.ects }}</span>
+      <div class="level-column">
+        <span class=
+              {% if course.level.title == "Grundläggande" %}
+              'badge badge-success'
+              {% else %}
+              'badge badge-warning'
+              {% endif %}
+            data-toggle='tooltip'
+            title='{{ course.level.title }}'>
+          {{ course.level.first_letter }}
+        </span>
+      </div>
+      <ul class="courses__extra categories-column">
+        {% for category in course.categories.all %}
+        <li>
+          <a href="{{ category.get_absolute_url }}">
+            <span class="badge badge-secondary" data-toggle='tooltip' title='{{ category.title }}'>
+              {{ category.abbreviation }}
+            </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+
+<nav role="navigation" aria-label="Pagination Navigation">
+  <ul class="pagination">
+    {% if page.has_previous %}
+    <li class="page-item page-item--previous">
+      <a href="{{ unfinished_page_path }}{{ page.previous_page_number }}"
+         class="page-link"
+         aria-label="Previous page"
+      >
+        &lt <span class="page-hidden-medium">Föregående</span>
+      </a>
+    </li>
+    {% endif %}
+    
+    {% for page_number in page_numbers %}
+    {% if page_number == ellipsis %}
+    <li class="page-item" aria-hidden="true">
+      <span class="page-ellipsis">{{ page_number }}</span>
+    </li>
+    {% elif page_number == page.number %}
+    <li class="page-item active">
+      <a href="{{ unfinished_page_path }}{{ page_number }}"
+         class="page-link"
+         aria-label="Current page, page {{ page_number }}"
+         aria-current="true"
+      >
+        {{ page_number }} 
+      </a>
+    </li>
+    {% else %}
+    <li class="page-item">
+      <a href="{{ unfinished_page_path }}{{ page_number }}"
+         class="page-link"
+         aria-label="Page {{ page_number }}"
+      >
+        {{ page_number }} 
+      </a>
+    </li>
+    {% endif %}
+    {% endfor %}
+
+    {% if page.has_next %}
+    <li class="page-item page-item--next">
+      <a href="{{ unfinished_page_path }}{{ page.next_page_number }}"
+         class="page-link"
+         aria-label="Next page"
+      >
+        <span class="page-hidden-medium">Nästa</span> &gt
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
 
 {% endblock %}
 
 {% block extra_scripts %}
 
-  <script type="text/javascript">
+<script type="text/javascript">
 
-    $(function() {
-      $("form :input").change(function() {
-        $("form:first").submit();
-      });
-      $(".course-list-filter").select2({ width: '20%' });
+  $(function() {
+    $("form :input").change(function() {
+      $("form:first").submit();
     });
+    $(".course-list-filter").select2({ width: 'style' });
+  });
 
-  </script>
+</script>
+
+<script src="{% static 'rodatraden/course_list.js' %}"
+        defer
+></script>
 
 {% endblock %}
