@@ -13,8 +13,8 @@
   <div class='course-table'>
     <div class='course-table__header'>
         <span class='course-row__text'>Kursnamn</span>
-        <span class='course-row__number'>Veckor</span>
-        <span class='course-row__number'>Takt</span>
+        <span class='course-row__right-aligned'>Veckor</span>
+        <span class='course-row__right-aligned'>Takt</span>
     </div>
     
     <ul class='course-table__body'>
@@ -22,15 +22,19 @@
       <li class='course-table__row course-row'>
         <div class='course-row__main'>
           <span class='course-row__text'>
-            <a class='course-row__link' href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
+            <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}"
+               aria-label="Lägg till {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng"
+               title="Lägg till">
               {{ courseoccasion.course.title }}
             </a>
-            <span class='course-row__ects'>{{ courseoccasion.course.ects }} hp</span>
+            <span class='course-row__ects' aria-hidden="true">{{ courseoccasion.course.ects }} hp</span>
           </span>
-          <span class='course-row__number'>{{ courseoccasion.weeks }}</span>
-          <span class='course-row__number'>{{ courseoccasion.pace }}%</span>
-          <a class="course-row__icon" href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}">
-            <i class='fa fa-plus'></i>
+          <span class='course-row__right-aligned'>{{ courseoccasion.weeks }}</span>
+          <span class='course-row__right-aligned'>{{ courseoccasion.pace }}%</span>
+          <a class="course-row__right-aligned"
+             href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}"
+             aria-label="Läs mer om {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng">
+            Läs mer
           </a>
         </div>
         <ul class='course-row__extra'>
@@ -57,8 +61,8 @@
   <div class='course-table'>
     <div class='course-table__header'>
         <span class='course-row__text'>Kursnamn</span>
-        <span class='course-row__number'>Veckor</span>
-        <span class='course-row__number'>Takt</span>
+        <span class='course-row__right-aligned'>Veckor</span>
+        <span class='course-row__right-aligned'>Takt</span>
     </div>
     
     <ul class='course-table__body'>
@@ -66,15 +70,19 @@
       <li class='course-table__row course-row'>
         <div class='course-row__main'>
           <span class='course-row__text'>
-            <a class='course-row__link' href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}">
+            <a href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1"
+               aria-label="Lägg till {{ privatecourse.title }} {{ privatecourse.ects }} högskolepoäng"
+               title="Lägg till">
               {{ privatecourse.title }}
             </a>
             <span class='course-row__ects'>{{ privatecourse.ects }} hp</span>
           </span>
-          <span class='course-row__number'>{{ privatecourse.weeks }}</span>
-          <span class='course-row__number'>{{ privatecourse.pace }}%</span>
-          <a class="course-row__icon" href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1">
-            <i class='fa fa-plus'></i>
+          <span class='course-row__right-aligned'>{{ privatecourse.weeks }}</span>
+          <span class='course-row__right-aligned'>{{ privatecourse.pace }}%</span>
+          <a class="course-row__right-aligned"
+             href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}"
+             aria-label="Läs mer om {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng">
+            Läs mer
           </a>
         </div>
         <ul class='course-row__extra'>

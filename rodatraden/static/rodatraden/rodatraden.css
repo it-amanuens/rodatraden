@@ -133,7 +133,6 @@ a:not(.default):hover{
 
 .course-table {
   --row-padding: 0.25rem;
-  --icon-size: 1.5em;
 }
 
 .course-table__header {
@@ -156,31 +155,21 @@ a:not(.default):hover{
 .course-table__header,
 .course-table__row {
   padding-block: 0.25rem;
-  padding-inline-start: 0.25rem;
+  padding-inline: 0.25rem;
 }
 
 .course-table__header,
 .course-row__main {
   display: grid;
-  grid-template-columns: 1fr 3.5em 3em calc(var(--icon-size) + 0.5rem);
+  grid-template-columns: 1fr 3.5em 3em 4.5rem;
 }
 
 .course-row__ects {
   display: inline-block;
 }
 
-.course-row__number {
+.course-row__right-aligned {
   text-align: end;
-}
-
-.course-row__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  height: var(--icon-size);
-  aspect-ratio: 1;
-  justify-self: end;
 }
 
 .course-row__extra {
