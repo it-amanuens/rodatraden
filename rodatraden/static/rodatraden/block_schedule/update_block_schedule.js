@@ -258,8 +258,9 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
     removeButton.append("a")
       .attr("class", "fa fa-times")
       .attr('href', course => {
+        // Make sure to convert booleans to integers before creating the URL.
         const url = blockRemoveCourseUrl + "?slug=" + course.slug
-          + "&private=" + course.is_priv;
+          + "&private=" + (course.isPrivate ? 1 : 0);
         return url;
     });
 
