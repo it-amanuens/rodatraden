@@ -101,3 +101,92 @@ class CategoryEctsField(forms.MultiValueField):
         data_list[0] = 'data_list[0].id'
         data_list[1] = str(data_list[1])
         return '-'.join(data_list)
+
+
+class StartWeekWidget(forms.MultiWidget):
+    """Widget to work in tandem with StartWeekField.
+
+    The widget is responsible for rendering the HTML elements.
+    """
+
+    def __init__(self,
+                 period_choices: list[tuple],
+                 week_offset_choices: list[tuple],
+                 **kwargs):
+        
+        widgets = (
+            forms.Select(choices=period_choices),
+            forms.Select(choices=week_offset_choices)
+        )
+
+        super().__init__(widgets=widgets, **kwargs)
+
+
+    def decompress(self, value):
+        if value:
+            weeks_in_period = 10
+
+            start_week = int(value)
+            # Period 1 for weeks 0-9, period 2 for weeks 10-19, etc.
+            period_number = start_week // weeks_in_period + 1
+            # The number of weeks after the start of the period.
+            period_start_offset = start_week % weeks_in_period
+            return [period_number, period_start_offset]
+        else:
+            # First period + 0 weeks by default.
+            return [1, 0]
+
+
+class StartWeekField(forms.MultiValueField):
+    """Field to work in tandem with StartWeekWidget.
+
+    Lets the user enter the course's starting week in a more user-friendly way.
+    The user selects two things:
+    1. The starting period from a selection.
+    2. The number of weeks after the start of the period that the course starts.
+
+    This information is converted into a starting week number between 0 and 40.
+    """
+
+    # A choice for a ChoiceField or Select widget is a 2-tuple on the form
+    # (value, human readable name).
+    _period_choices = [(i, f'LP{i}') for i in range(1, 5)]
+    _week_offset_choices = [(i, f'+ {i} veckor') for i in range(10)]
+
+    # The widgets need the choices to be able to list them as option elements
+    # in the selection element.
+    widget = StartWeekWidget(
+        period_choices=_period_choices, 
+        week_offset_choices=_week_offset_choices
+    )
+
+
+    def __init__(self, **kwargs):
+        # The choice of field is not that important since the widget does most
+        # of the work. However if we use IntergerFields then the data given to
+        # compress() will have already been converted to integers.
+        fields = (
+            forms.IntegerField(),
+            forms.IntegerField()
+        )
+
+        super().__init__(
+            fields=fields,
+            **kwargs
+        )
+
+
+    def compress(self, data_list):
+        if data_list:
+            weeks_in_period = 10
+
+            period_number = data_list[0]
+            period_start_offset = data_list[1]
+
+            start_week = ((period_number - 1) * weeks_in_period
+                          + period_start_offset)
+            
+            return start_week
+        else:
+            # First week by default.
+            return 0

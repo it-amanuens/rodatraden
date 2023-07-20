@@ -5,13 +5,17 @@ from .models import (
 )
 
 class CourseFilter(django_filters.FilterSet):
-    """Filter settings for the list of courses."""
+    """Filter settings for the list of courses.
+    
+    The constructor expects request.GET to be the first argument. This sets the
+    parameter self.data which is used to sort the courses based on the GET
+    request parameter 'sort'."""
 
     title = django_filters.ModelChoiceFilter(
         queryset=Course.objects.all().order_by('title'), empty_label='Kursnamn'
     )
     categories = django_filters.ModelChoiceFilter(
-        queryset=Category.objects.all().order_by('title')
+        queryset=Category.objects.all().order_by('title'), empty_label='Kategori'
     )
     level = django_filters.ModelChoiceFilter(
         queryset=Level.objects.all(), empty_label='Nivå'
@@ -28,6 +32,13 @@ class CourseFilter(django_filters.FilterSet):
     class Meta:
         model = Course
         fields = ['title', 'categories', 'profile', 'level', 'department']
+
+
+    @property
+    def qs(self):
+        # Sort by title in ascending order if no sort order is specified.
+        sort_order = self.data.get('sort_order', 'title')
+        return super().qs.order_by(sort_order)
 
 
 class CourseOccasionFilter(django_filters.FilterSet):

@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse
+from django.http import Http404, HttpRequest, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
@@ -43,6 +43,7 @@ from operator import itemgetter
 from rodatraden import validator
 from openpyxl.styles import Alignment, Font
 from django.conf import settings
+from django.core.paginator import Paginator
 
 
 def index(request):
@@ -271,15 +272,67 @@ class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
 # COURSES #
 ###########
 
-class CourseList(SingleTableMixin, FilterView):
-    """List view for courses."""
+def course_list(request: HttpRequest):
+    """Custom list view for courses that both filters and sorts the courses."""
 
-    model = Course
-    table_class = CourseTable
-    filterset_class = CourseFilter
-    # Amount of queries per page
-    paginate_by = 15
-    template_name = 'rodatraden/course/course_list.html'
+
+    def prepare_page_path(request: HttpRequest):
+        """Tweaks the path so that it ends with "page=". This is so that the
+        page number later can be appended to complete the path. Makes sure the
+        query string doesn't contain duplicate path parameters."""
+
+        path = request.path
+        full_path = request.get_full_path()
+
+        # We modify the existing query string if it exists.
+        if '?' in full_path:
+            # Isolate the GET-queries.
+            query_string = full_path.split('?')[1]
+            queries = query_string.split('&')
+
+            # Remove any pre-existing page query.
+            queries = [query for query in queries if not 'page=' in query]
+
+            # Append unfinished query.
+            queries.append('page=')
+
+            # Reassemble the string and append it.
+            query_string = '?' + '&'.join(queries)
+            path += query_string
+
+        # Otherwise we append a new one.
+        else:
+            path += '?page='
+    
+        return path
+
+
+    courses_per_page = 15
+
+    filter = CourseFilter(request.GET)
+    paginator = Paginator(filter.qs, courses_per_page)
+    paginator.ELLIPSIS = '…'
+
+    # Default to the first page (1-based index).
+    page_index = request.GET.get('page', 1)
+    page = paginator.get_page(page_index)
+
+    page_numbers = paginator.get_elided_page_range(page_index, on_each_side=2, on_ends=1)
+
+    context = {
+        'filter': filter,
+        'page': page,
+        'page_numbers': page_numbers,
+        'ellipsis': paginator.ELLIPSIS,
+        'unfinished_page_path': prepare_page_path(request)
+    }
+
+    return render(request, 'rodatraden/course/course_list.html', context)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Sort the courses ascending by title.
+        return qs.order_by('title')
 
 
 class CourseDetail(DetailView):
@@ -575,12 +628,14 @@ class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
     table_class = PrivateCourseTable
     template_name = 'rodatraden/privatecourse/privatecourse_list.html'
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self):
         """Extend get_queryset to filter only private courses for user."""
 
-        self.qs = super().get_queryset()
+        qs = super().get_queryset()
 
-        return self.qs.filter(user__username=self.kwargs['username'])
+        return qs.filter(
+            user__username=self.kwargs['username']
+        ).order_by('title')
 
 
 class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin,
@@ -854,39 +909,57 @@ def block_detail(request, username, slug):
         return render(request, 'rodatraden/block/block_detail.html', context)
 
 @login_required
-def block_course_list(request, username, slug):
+def block_course_list(request: HttpRequest, username: str, slug: str):
     """Custom list view with all courses that can be added a specific year and
     time period range."""
 
-    # Get year and start from get request
-    year = int(request.GET.get('year', ''))
-    start = int(request.GET.get('start', ''))
+    # Get year and start week from GET request.
+    try:
+        year = int(request.GET.get('year'))
+        start = int(request.GET.get('start'))
+    except (TypeError, ValueError):
+        raise Http404("Unspecified year or start week.")
 
-    # Get block id so we don't show courses already in block
+    # The block is used for user validation and to know which courses have
+    # already been added.
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
-    # Only blocks made by same user
+    # Can only add courses to blocks the user owns, unless the user is staff.
     if not request.user.is_staff:
         if (block.user.username != request.user.username):
             return redirect(reverse('index'))
 
-    # Sort by year, start, if not in block and order by title
-    courseoccasions = CourseOccasion.objects.filter(academic_year__year=year,
-            time_period__week__gte=start,
-            time_period__week__lt=start+10).exclude(
-            block__id=block.id).order_by('course__title')
+    # Get course-occasions starting in the given period and not already in the
+    # block, ordered by title.
+    courseoccasions = CourseOccasion.objects.filter(
+        academic_year__year=year,
+        time_period__week__gte=start,
+        time_period__week__lt=start+10
+    ).exclude(
+        # This is a reverse lookup. A course-occasion doesn't have a block, but
+        # a block has course-occasions. If this block includes the
+        # course-occasion then it is excluded.
+        block__id=block.id
+    ).order_by('course__title')
 
-    # All courses defined by user
-    privatecourses = PrivateCourse.objects.filter(user=request.user,
-            start__gte=start, start__lt=start+10).exclude(
-                    block__id=block.id).order_by('title')
+    # Get private course-occasions starting in the given period and not already
+    # in the block, ordered by title.
+    privatecourses = PrivateCourse.objects.filter(
+        user=request.user,
+        year=year,
+        start__gte=start,
+        start__lt=start+10
+    ).exclude(
+        # This is also a reverse lookup just like for course-occasions.
+        block__id=block.id
+    ).order_by('title')
 
     context = {
-            'b_slug': slug,
-            'username': username,
-            'courseoccasions': courseoccasions,
-            'privatecourses': privatecourses,
-            }
+        'b_slug': slug,
+        'username': username,
+        'courseoccasions': courseoccasions,
+        'privatecourses': privatecourses,
+    }
 
     return render(request, 'rodatraden/block/block_course_list.html', context)
 
