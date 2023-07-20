@@ -65,9 +65,9 @@ function updateAcademicYear(academicYearContainer, academicYearsData, shouldStac
       let classList = ['academic-year'];
 
       if (shouldStackTerms) {
-        classList.push('one-column');
+        classList.push('academic-year--one-column');
       } else {
-        classList.push('two-columns');
+        classList.push('academic-year--two-columns');
       }
 
       return classList.join(' ');
@@ -209,11 +209,13 @@ function updateCourseContainer(term) {
  * button to remove the course.
  * 
  * @param {*} courseContainer - D3 selection of all course containers.
- * @param {number} xMax - Distance used to calculating size and position.
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
  */
-function updateCourseBlocks(courseContainer, xMax, scale, margin) {
+function updateCourseBlocks(courseContainer, scale, margin) {
+  // Number of weeks in a term.
+  const termWeekCount = 20;
+
   // Create a D3 update selection by binding all of the courses. We combine the
   // courses' year, starting week and slug to create a unique identifier for
   // each course. This is used as the key when binding the data.
@@ -241,16 +243,23 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
     })
     .attr('class', 'courseoccasion-info')
     .attr('data-id', course => {
-      const url = courseoccasionInfoUrl + "?year=" + course.year
+      const url = courseoccasionInfoUrl + "?year=" + course.academicYear
         + "&slug=" + course.slug;
       return url;
     });
+
+  // Clicking the title opens a modal with info about the course occasion.
+  $(".courseoccasion-info").each(function () {
+    $(this).modalForm({
+      formURL: $(this).data('id')
+    });
+  });
 
   // Only logged in users can remove courses.
   if (isLoggedIn) {
     // Add a button to remove the course.
     let removeButton = newCourse.append("p")
-      .attr("class", "btn btn-link delete-course course-remove-button");
+      .attr("class", "btn course-remove-button");
     
     // Add the icon and url to the button.
     // XXX: The page is refreshed each time a course is deleted. Could this be
@@ -262,14 +271,7 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
         const url = blockRemoveCourseUrl + "?slug=" + course.slug
           + "&private=" + (course.isPrivate ? 1 : 0);
         return url;
-    });
-
-    // Clicking the button removes the course.
-    $(".courseoccasion-info").each(function () {
-      $(this).modalForm({
-        formURL: $(this).data('id')
       });
-    });
   }
 
   // Merge the newly created elements with the existing ones to get all.
@@ -302,11 +304,11 @@ function updateCourseBlocks(courseContainer, xMax, scale, margin) {
       return height + "px";
     })
     .style("width", course => {
-      const width = course.length / xMax * 100 - 0.5;
+      const width = course.length / termWeekCount * 100 - 0.5;
       return width + "%";
     })
     .style("margin-left", course => {
-      const left = course.termStart / xMax * 100 + 0.25;
+      const left = course.termStart / termWeekCount * 100 + 0.25;
       return left + "%";
     })
     .style("margin-top", course => {
@@ -399,7 +401,6 @@ function addFooter(term) {
 export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
   const transitionDuration = 500;
 
-  const xMax = 20;
   const margin = 1;
   const scale = 3;
 
@@ -424,7 +425,7 @@ export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
 
   // Bind data to all courses, update them if needed and create new ones that
   // are missing.
-  updateCourseBlocks(courseContainerSelection, xMax, scale, margin);
+  updateCourseBlocks(courseContainerSelection, scale, margin);
   
   // Add a footer to all new terms.
   addFooter(termSelection);
