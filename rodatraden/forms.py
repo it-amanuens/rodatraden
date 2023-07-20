@@ -10,6 +10,7 @@ from .models import (
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, SaveAndImportBlockMixin
 )
+from rodatraden.rodatraden_modules.forms import StartWeekField
 
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
 
@@ -75,7 +76,7 @@ class ExamForm(CategoryFormMixin, BSModalModelForm):
     class Meta:
         model = Exam
         exclude = ['note']
-        
+
 
 class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
     """Form for private courses."""
@@ -92,8 +93,8 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         self._build_category_fields(categories)
 
         # Get choices given from academic years
-        years = [(x.year, x.year) for x in AcademicYear.objects.all()]
-        self.fields['year'] = forms.ChoiceField(choices=years,
+        year_choices = [(x.year, x.title) for x in AcademicYear.objects.all().order_by('year')]
+        self.fields['year'] = forms.ChoiceField(choices=year_choices,
                 initial=datetime.datetime.now().year)
         # Always save to current user
         self.fields['user'].queryset = User.objects.filter(
@@ -101,11 +102,22 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         )
         self.fields['user'].initial = self.request.user
 
+        self.fields['start'] = StartWeekField()
+
+        self.fields['year'].label = 'Läsår'
+        self.fields['start'].label = 'Start'
+        self.fields['weeks'].label = 'Längd i veckor'
+
+
+
     class Meta:
         model = PrivateCourse
-        fields = ['title', 'ects', 'note', 'year', 'start', 'weeks', 'user']
+        fields = ['title', 'ects', 'year', 'start', 'weeks', 'note', 'user']
         # Hide the user input
-        widgets = {'user': forms.HiddenInput()}
+        widgets = {
+            'note': forms.Textarea(attrs={'rows': 5}),
+            'user': forms.HiddenInput()
+        }
 
 
 class ProfileForm(BSModalModelForm):
