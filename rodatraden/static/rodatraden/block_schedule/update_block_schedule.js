@@ -211,8 +211,12 @@ function updateCourseContainer(term) {
  * @param {*} courseContainer - D3 selection of all course containers.
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
+ * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+ * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
+ * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
  */
-function updateCourseBlocks(courseContainer, scale, margin) {
+function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
+                            courseoccasionInfoUrl, blockRemoveCourseUrl) {
   // Number of weeks in a term.
   const termWeekCount = 20;
 
@@ -323,8 +327,10 @@ function updateCourseBlocks(courseContainer, scale, margin) {
  * owns that schedule.
  * 
  * @param {*} term - D3 selection of all terms.
+ * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+ * @param {string} blockCourseListUrl - URL to get a list of courses to add.
  */
-function addFooter(term) {
+function addFooter(term, isLoggedIn, blockCourseListUrl) {
   // Create a D3 update selection by binding relevant data for the footer. We
   // don't need to use a key here since there's only one footer per term.
   let footerUpdateSelection = term.selectAll(".term-footer")
@@ -397,8 +403,17 @@ function addFooter(term) {
  * 
  * @param {any[]} coursesByTerm
  * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
+ * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+ * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
+ * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
+ * @param {string} blockCourseListUrl - URL to get a list of courses to add.
  */
-export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
+export default function updateBlockSchedule(coursesByTerm,
+                                            shouldStackTerms,
+                                            isLoggedIn,
+                                            courseoccasionInfoUrl,
+                                            blockRemoveCourseUrl,
+                                            blockCourseListUrl) {
   const transitionDuration = 500;
 
   const margin = 1;
@@ -425,8 +440,9 @@ export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
 
   // Bind data to all courses, update them if needed and create new ones that
   // are missing.
-  updateCourseBlocks(courseContainerSelection, scale, margin);
+  updateCourseBlocks(courseContainerSelection, scale, margin, isLoggedIn,
+                     courseoccasionInfoUrl, blockRemoveCourseUrl);
   
   // Add a footer to all new terms.
-  addFooter(termSelection);
+  addFooter(termSelection, isLoggedIn, blockCourseListUrl);
 }

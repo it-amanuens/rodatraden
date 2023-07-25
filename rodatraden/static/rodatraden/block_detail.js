@@ -1,3 +1,5 @@
+import initializeBlockSchedule from './block_schedule/block_schedule_main.js';
+
 /**
  * Setups event listeners for the buttons to update and delete the block-
  * schedule.
@@ -133,6 +135,22 @@ function main() {
       let label = e.target.nextElementSibling;
       label.innerText = fileName;
     }
+  );
+  
+  // Variables from data parameters in a script tag.
+  const dataElement = document.getElementById('string-data');
+  const startYear = parseInt(dataElement.dataset.startYear);
+  const isLoggedIn = dataElement.dataset.isLoggedIn === 'True';
+  const courseoccasionInfoUrl = dataElement.dataset.courseoccasionInfoUrl;
+  const blockRemoveCourseUrl = dataElement.dataset.blockRemoveCourseUrl;
+  const blockCourseListUrl = dataElement.dataset.blockCourseListUrl;
+
+  initializeBlockSchedule(
+    startYear,
+    isLoggedIn,
+    courseoccasionInfoUrl,
+    blockRemoveCourseUrl,
+    blockCourseListUrl
   );
 }
 
