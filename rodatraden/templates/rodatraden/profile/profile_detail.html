@@ -150,3 +150,9 @@
 </div>
 
 {% endblock %}
+
+{% block extra_scripts %}
+
+{{ blocks|json_script:"blocks-data" }}
+
+{% endblock %}
