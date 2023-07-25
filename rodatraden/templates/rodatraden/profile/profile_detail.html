@@ -1,5 +1,7 @@
 {% extends 'rodatraden/profile/profile_list.html' %}
 
+{% load static %}
+
 {% block title %}{{ profile.title }}{% endblock %}
 
 {% block menu %}
@@ -50,17 +52,10 @@
   
   <div class="col-lg-7 p-3 text-center">
     <div class="row pr-3">
-      <div>
-        <p class="profile-detail-title">Kärnkurser - {{ profile.title }}</p>
-        <img 
-        {% if profile.schedule %}
-          src="{{ profile.schedule.url }}" 
-        {% else %} 
-          src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ profile.abbreviation }}" 
-        {% endif %}
-          alt="{{ profile.title }}" class="img-thumbnail">
-        </img>
+      <div id="block-schedule" class="block-schedule block-schedule--profile">
+        <div id="academic-year-container"></div>
       </div>
+
       <div class="text-left mt-3">
         <p>
           I blockschemat visas profilens Nyckelkurser, dvs de kurser som utgör
@@ -153,6 +148,15 @@
 
 {% block extra_scripts %}
 
+<!-- Data that can be used in scripts -->
 {{ blocks|json_script:"blocks-data" }}
+<script id='string-data'
+        data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
+></script>
+
+<!-- Main script for this page. -->
+<script src="{% static 'rodatraden/profile_detail.js' %}"
+        type='module'
+></script>
 
 {% endblock %}

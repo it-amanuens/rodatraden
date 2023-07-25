@@ -1,14 +1,12 @@
 import AcademicYear from "./academic_year.js";
 
 /**
-   * Calculates the height needed to contain alla courses in the term.
-   */
-function getCourseContainerHeight(coursesSameAcademicYear) {
-  // TEMP: The margin and scale have been copied here to make it work.
-  // XXX: IS this the margin of the course container or the course?
-  const margin = 1;
-  const scale = 3;
-
+ * Calculates the height needed to contain alla courses in the term.
+ * 
+ * @param {number} scale - Scale used to calculating size and position.
+ * @param {number} margin - Margin used to calculating size and position.
+ */
+function getCourseContainerHeight(coursesSameAcademicYear, margin, scale) {
   const containerHeight = coursesSameAcademicYear.reduce(
     (containerHeight, course) => {
       // Calculate the distance from the top of the term to the bottom of the
@@ -87,17 +85,19 @@ export function updateAcademicYear(academicYearContainer, academicYearsData, sho
  * 
  * @param {*} academicYear - D3 selection of all academic years.
  * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
+ * @param {number} scale - Scale used to calculating size and position.
+ * @param {number} margin - Margin used to calculating size and position.
  * @returns D3 selection of all terms.
  */
-export function updateTerm(academicYear, shouldStackTerms) {
+export function updateTerm(academicYear, shouldStackTerms, margin, scale) {
   // Create a D3 update selection by binding data for two terms based on the
   // data previously bound to the academic year. We don't need to use a key
   // here since the terms will never be out of order. We therefore let the
   // index be the default key.
   let termUpdateSelection = academicYear.selectAll(".term")
     .data(academicYear => {
-      const fallHeight = getCourseContainerHeight(academicYear.fall.courses);
-      const springHeight = getCourseContainerHeight(academicYear.spring.courses);
+      const fallHeight = getCourseContainerHeight(academicYear.fall.courses, margin, scale);
+      const springHeight = getCourseContainerHeight(academicYear.spring.courses, margin, scale);
 
       let fallTerms = academicYear.fall;
       let springTerms = academicYear.spring;

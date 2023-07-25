@@ -179,7 +179,7 @@ function main() {
   );
 
   const courseOccasions = loadCoursesFromElement();
-  
+
   // The block schedule renderer will populate this container with elements.
   const academicYearContainer = document.getElementById('academic-year-container');
 
@@ -194,6 +194,10 @@ function main() {
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
 
+  // Margin and scale affects the rendered blocks appearance.
+  const margin = 1;
+  const scale = 3;
+
   // Create a block schedule which renders it automatically in the specified
   // container.
   const blockSchedule = new BlockSchedule(
@@ -204,7 +208,9 @@ function main() {
     isLoggedIn,
     courseoccasionInfoUrl,
     blockRemoveCourseUrl,
-    blockCourseListUrl
+    blockCourseListUrl,
+    margin,
+    scale
   );
 
   // Setup the button to add more years to the block-schedule.

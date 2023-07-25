@@ -11,6 +11,8 @@ export default class BlockSchedule {
    * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
    * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
    * @param {string} blockCourseListUrl - URL to get a list of courses to add.
+   * @param {number} scale - Scale used to calculating size and position.
+   * @param {number} margin - Margin used to calculating size and position.
    */
   constructor(startYear,
               courses,
@@ -19,7 +21,9 @@ export default class BlockSchedule {
               isLoggedIn,
               courseoccasionInfoUrl,
               blockRemoveCourseUrl,
-              blockCourseListUrl) {
+              blockCourseListUrl,
+              margin,
+              scale) {
     this.#coursesData = new BlockScheduleData(startYear, courses, shouldStackTerms);
 
     this.#academicYearContainer = academicYearContainer;
@@ -28,6 +32,9 @@ export default class BlockSchedule {
     this.#courseoccasionInfoUrl = courseoccasionInfoUrl;
     this.#blockRemoveCourseUrl = blockRemoveCourseUrl;
     this.#blockCourseListUrl = blockCourseListUrl;
+
+    this.#margin = margin;
+    this.#scale = scale;
 
     // Create the block-schedule.
     this.#update();
@@ -85,6 +92,11 @@ export default class BlockSchedule {
   /** @type {string} */
   #blockCourseListUrl;
 
+  /** @type {number} */
+  #margin = 1;
+  /** @type {number} */
+  #scale = 3;
+
   /**
    * Updates block-schedule DOM elements based on the global course data. This
    * function should be called every time data is changed, for example when
@@ -93,9 +105,6 @@ export default class BlockSchedule {
    */
   #update() {
     const transitionDuration = 500;
-
-    const margin = 1;
-    const scale = 3;
 
     // Start by removing old academic years, adding new and empty ones while
     // binding all with up-to-date data.
@@ -109,7 +118,9 @@ export default class BlockSchedule {
     // Bind data to all terms and create new and empty terms if needed.
     const termSelection = renderer.updateTerm(
       academicYearSelection,
-      this.#shouldStackTerms
+      this.#shouldStackTerms,
+      this.#margin,
+      this.#scale
     );
 
     // Add term and period headers to all new terms.
@@ -124,8 +135,8 @@ export default class BlockSchedule {
     // are missing.
     renderer.updateCourseBlocks(
       courseContainerSelection,
-      scale,
-      margin,
+      this.#scale,
+      this.#margin,
       this.#isLoggedIn,
       this.#courseoccasionInfoUrl,
       this.#blockRemoveCourseUrl
