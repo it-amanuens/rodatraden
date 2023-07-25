@@ -87,10 +87,13 @@ export default class BlockScheduleData {
   /**
    * @param {number} startYear - Start year specified by the user when creating the block-schedule.
    * @param {any[]} courses - List of courses formatted as JSON.
+   * @param {boolean} shouldSplitCourses - True if courses that overlap terms should be split into two course-blocks.
    */
-  constructor(startYear, courses) {
+  constructor(startYear, courses, shouldSplitCourses) {
     this.#startYear = startYear;
     this.#courses = courses;
+
+    this.update(shouldSplitCourses);
   }
 
   /**

@@ -1,5 +1,5 @@
 import CourseOccasion from "./block_schedule/course_occasion.js";
-import initializeBlockSchedule from './block_schedule/block_schedule_main.js';
+import BlockSchedule from './block_schedule/block_schedule.js';
 
 /**
  * Setups event listeners for the buttons to update and delete the block-
@@ -147,6 +147,17 @@ function loadCoursesFromElement() {
 }
 
 /**
+ * Determines if the window is narrow or not.
+ * 
+ * @returns True if the window is too narrow to fit the terms on the same row.
+ */
+function isNarrowWindow() {
+  // TEMP: Arbitrarily chosen pixel value.
+  const windowWidthThreshold = 800;
+  return window.innerWidth < windowWidthThreshold;
+}
+
+/**
  * Main function for this script.
  */
 function main() {
@@ -166,31 +177,42 @@ function main() {
       label.innerText = fileName;
     }
   );
-  
-  // Courses loaded from the content of an external script tag.
-  const courses = loadCoursesFromElement();
 
+  const courseOccasions = loadCoursesFromElement();
+  
   // The block schedule renderer will populate this container with elements.
   const academicYearContainer = document.getElementById('academic-year-container');
-  console.log(academicYearContainer)
 
-  // Variables from data parameters in a script tag.
-  const dataElement = document.getElementById('string-data');
-  const startYear = parseInt(dataElement.dataset.startYear);
-  const isLoggedIn = dataElement.dataset.isLoggedIn === 'True';
-  const courseoccasionInfoUrl = dataElement.dataset.courseoccasionInfoUrl;
-  const blockRemoveCourseUrl = dataElement.dataset.blockRemoveCourseUrl;
-  const blockCourseListUrl = dataElement.dataset.blockCourseListUrl;
+  // Make sure that terms are rendered correctly from start.
+  const shouldStackTerms = isNarrowWindow();
 
-  initializeBlockSchedule(
-    academicYearContainer,
-    courses,
+  // Get variables from data parameters in a script tag.
+  const stringDataset = document.getElementById('string-data').dataset;
+  const startYear = parseInt(stringDataset.startYear);
+  const isLoggedIn = stringDataset.isLoggedIn === 'True';
+  const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
+  const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
+  const blockCourseListUrl = stringDataset.blockCourseListUrl;
+
+  // Create a block schedule which renders it automatically in the specified
+  // container.
+  const blockSchedule = new BlockSchedule(
     startYear,
+    courseOccasions,
+    academicYearContainer,
+    shouldStackTerms,
     isLoggedIn,
     courseoccasionInfoUrl,
     blockRemoveCourseUrl,
     blockCourseListUrl
   );
+
+  // Setup the button to add more years to the block-schedule.
+  blockSchedule.setupAddYearButton('block-schedule-add-year');
+
+  // When the window resizes from narrow to wide or vice versa, update the data
+  // and redraw the block-schdule.
+  blockSchedule.addResizeEventListener(isNarrowWindow);
 }
 
 // Run main function when the script is loaded.
