@@ -398,7 +398,7 @@ class Course(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
     
-    coreBelonging = models.ManyToManyField(Track, blank=True,
+    core_belonging = models.ManyToManyField(Track, blank=True,
             related_name='core_track', verbose_name='Är kärnkurs i')
 
     __original_title = None

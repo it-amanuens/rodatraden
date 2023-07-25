@@ -512,9 +512,9 @@ class ProfileDetail(DetailView):
         context['tracks'] = self.object.track_set.all()
 
         # Courses related to the profile (profile courses and core courses.)
-        relatedCoursesQuery = (Q(tracks__profile__id=self.object.id)
-            | Q(coreBelonging__profile__id=self.object.id))
-        context['relatedCourses'] = Course.objects.filter(relatedCoursesQuery).distinct().order_by('title')
+        related_courses_query = (Q(tracks__profile__id=self.object.id)
+            | Q(core_belonging__profile__id=self.object.id))
+        context['related_courses'] = Course.objects.filter(related_courses_query).distinct().order_by('title')
         context['profile_id'] = self.object.id
 
         return context

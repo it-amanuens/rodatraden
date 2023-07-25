@@ -89,12 +89,12 @@
 
     <p class="profile-detail-title">Valbara kurser inom profilen</p>
     <ul class="profile-detail-list">
-      {% for course in relatedCourses %}
+      {% for course in related_courses %}
       <li>
         <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
 
         <span>
-          {% for track in course.coreBelonging.all %}
+          {% for track in course.core_belonging.all %}
           {% if track.profile.id == profile_id %}
           <span class="badge badge-success">Kärnkurs</span>
           {% endif %}

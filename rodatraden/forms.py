@@ -53,7 +53,7 @@ class CourseForm(CategoryFormMixin, BSModalModelForm):
         self.fields['ects'].widget.attrs.update({'min':0})
 
         # Add which tracks label this this course as a core course.
-        self.fields['coreBelonging'].widget.attrs.update({'class' :
+        self.fields['core_belonging'].widget.attrs.update({'class' :
             'select2-mult-choice'})
 
     class Meta:
