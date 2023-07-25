@@ -10,17 +10,20 @@ let shouldStackTerms = isNarrowWindow();
  * onclick eventlistener. Clicking on it adds an additional year to the
  * schedule.
  * 
+ * @param {HTMLElement} academicYearContainer - Container for all the academic years. Each year has headers, a set of courses and a footer.
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
  * @param {string} blockCourseListUrl - URL to get a list of courses to add.
  */
-function setupAddYearButton(isLoggedIn, courseoccasionInfoUrl,
-                            blockRemoveCourseUrl, blockCourseListUrl) {
+function setupAddYearButton(academicYearContainer, isLoggedIn,
+                            courseoccasionInfoUrl, blockRemoveCourseUrl,
+                            blockCourseListUrl) {
   const button = document.getElementById('block-schedule-add-year');
   button.addEventListener('click', () => {
     coursesData.addAcademicYear();
     updateBlockSchedule(
+      academicYearContainer,
       coursesData.academicYears,
       shouldStackTerms,
       isLoggedIn,
@@ -45,24 +48,29 @@ function isNarrowWindow() {
 /**
  * Initializes a single block schedule.
  * 
+ * @param {HTMLElement} academicYearContainer - Container for all the academic years. Each year has headers, a set of courses and a footer.
+ * @param {any[]} courses - List of courses formatted as JSON.
  * @param {number} startYear - Start year defined when the block was created.
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
  * @param {string} blockCourseListUrl - URL to get a list of courses to add.
  */
-export default function initializeBlockSchedule(startYear,
+export default function initializeBlockSchedule(academicYearContainer,
+                                                courses,
+                                                startYear,
                                                 isLoggedIn,
                                                 courseoccasionInfoUrl,
                                                 blockRemoveCourseUrl,
                                                 blockCourseListUrl) {
-  coursesData = new BlockScheduleData(startYear);
+  coursesData = new BlockScheduleData(startYear, courses);
 
   // Initialize the course data for the first time.
   coursesData.update(shouldStackTerms);
 
   // Create the block-schedule.
   updateBlockSchedule(
+    academicYearContainer,
     coursesData.academicYears,
     shouldStackTerms,
     isLoggedIn,
@@ -73,6 +81,7 @@ export default function initializeBlockSchedule(startYear,
 
   // Setup the button to add more years to the block-schedule.
   setupAddYearButton(
+    academicYearContainer,
     isLoggedIn,
     courseoccasionInfoUrl,
     blockRemoveCourseUrl,
@@ -88,6 +97,7 @@ export default function initializeBlockSchedule(startYear,
     if (shouldStackTerms !== didStackTerms) {
       coursesData.update(shouldStackTerms);
       updateBlockSchedule(
+        academicYearContainer,
         coursesData.academicYears,
         shouldStackTerms,
         isLoggedIn,

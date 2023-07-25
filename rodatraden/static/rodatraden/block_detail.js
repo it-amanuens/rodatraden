@@ -1,3 +1,4 @@
+import CourseOccasion from "./block_schedule/course_occasion.js";
 import initializeBlockSchedule from './block_schedule/block_schedule_main.js';
 
 /**
@@ -117,6 +118,35 @@ function createCategorySumChart() {
 }
 
 /**
+ * Gets all private and non-private courses in the block-schedule from external
+ * script tags and return them as a single collection.
+ * 
+ * @returns All courses, private and non-private in no particular order.
+ */
+function loadCoursesFromElement() {
+  /** @type {CourseOccasion[]} */
+  let courses = [];
+
+  const coursesAsJSON = JSON.parse(
+    document.getElementById('course-occasions-data').textContent
+  );
+  const privateCoursesAsJSON = JSON.parse(
+    document.getElementById('private-courses-data').textContent
+  );
+
+  for (const course of coursesAsJSON) {
+    const isPrivate = false;
+    courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  }
+  for (const course of privateCoursesAsJSON) {
+    const isPrivate = true;
+    courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  }
+
+  return courses;
+}
+
+/**
  * Main function for this script.
  */
 function main() {
@@ -137,6 +167,13 @@ function main() {
     }
   );
   
+  // Courses loaded from the content of an external script tag.
+  const courses = loadCoursesFromElement();
+
+  // The block schedule renderer will populate this container with elements.
+  const academicYearContainer = document.getElementById('academic-year-container');
+  console.log(academicYearContainer)
+
   // Variables from data parameters in a script tag.
   const dataElement = document.getElementById('string-data');
   const startYear = parseInt(dataElement.dataset.startYear);
@@ -146,6 +183,8 @@ function main() {
   const blockCourseListUrl = dataElement.dataset.blockCourseListUrl;
 
   initializeBlockSchedule(
+    academicYearContainer,
+    courses,
     startYear,
     isLoggedIn,
     courseoccasionInfoUrl,

@@ -2,34 +2,6 @@ import CourseOccasion from "./course_occasion.js";
 import AcademicYear from "./academic_year.js";
 
 /**
- * Gets all private and non-private courses in the block-schedule from external
- * script tags and return them as a single collection.
- * 
- * @returns All courses, private and non-private in no particular order.
- */
-function loadCoursesFromElement() {
-  let courses = [];
-
-  const coursesAsJSON = JSON.parse(
-    document.getElementById('course-occasions-data').textContent
-  );
-  const privateCoursesAsJSON = JSON.parse(
-    document.getElementById('private-courses-data').textContent
-  );
-
-  for (const course of coursesAsJSON) {
-    const isPrivate = false;
-    courses.push(CourseOccasion.fromJSON(course, isPrivate));
-  }
-  for (const course of privateCoursesAsJSON) {
-    const isPrivate = true;
-    courses.push(CourseOccasion.fromJSON(course, isPrivate));
-  }
-
-  return courses;
-}
-
-/**
  * Groups courses by their academic year using a Map.
  * 
  * @param {CourseOccasion[]} courses
@@ -114,9 +86,11 @@ function groupCoursesByTerm(coursesByYear, shouldSplitCourses) {
 export default class BlockScheduleData {
   /**
    * @param {number} startYear - Start year specified by the user when creating the block-schedule.
+   * @param {any[]} courses - List of courses formatted as JSON.
    */
-  constructor(startYear) {
+  constructor(startYear, courses) {
     this.#startYear = startYear;
+    this.#courses = courses;
   }
 
   /**
@@ -126,8 +100,7 @@ export default class BlockScheduleData {
    * @param {boolean} shouldSplitCourses - True if courses that overlap terms should be split into two course-blocks.
    */
   update(shouldSplitCourses) {
-    let courses = loadCoursesFromElement();
-    let coursesByYear = groupCoursesByYear(courses);
+    let coursesByYear = groupCoursesByYear(this.#courses);
 
     // Add missing years.
     addFirstFiveYearsIfMissing(coursesByYear, this.#startYear);
@@ -169,6 +142,8 @@ export default class BlockScheduleData {
 
   /** @type {number} */
   #startYear;
+  /** @type {CourseOccasion[]} */
+  #courses;
   /** @type {AcademicYear[]} */
   #academicYears = [];
 }

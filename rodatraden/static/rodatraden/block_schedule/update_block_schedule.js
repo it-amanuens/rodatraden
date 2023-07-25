@@ -401,6 +401,7 @@ function addFooter(term, isLoggedIn, blockCourseListUrl) {
  * adding/removing an academic year or course. The DOM elements are then
  * updated accordingly.
  * 
+ * @param {HTMLElement} academicYearContainer - Container for all the academic years. Each year has headers, a set of courses and a footer.
  * @param {any[]} coursesByTerm
  * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
@@ -408,7 +409,8 @@ function addFooter(term, isLoggedIn, blockCourseListUrl) {
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
  * @param {string} blockCourseListUrl - URL to get a list of courses to add.
  */
-export default function updateBlockSchedule(coursesByTerm,
+export default function updateBlockSchedule(academicYearContainer,
+                                            coursesByTerm,
                                             shouldStackTerms,
                                             isLoggedIn,
                                             courseoccasionInfoUrl,
@@ -419,9 +421,8 @@ export default function updateBlockSchedule(coursesByTerm,
   const margin = 1;
   const scale = 3;
 
-  // Container for all the academic years. Each year has headers, a set of
-  // courses and a footer.
-  const academicYearContainer = d3.select('#academic-year-container');
+  // Convert the container to a D3 selection.
+  academicYearContainer = d3.select(academicYearContainer);
 
   // Start by removing old academic years, adding new and empty ones while
   // binding all with up-to-date data.
