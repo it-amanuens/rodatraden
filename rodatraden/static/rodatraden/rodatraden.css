@@ -377,10 +377,14 @@ a:not(.default):hover{
 
 /* Block schedule styling when displayed on a profile detail page */
 
+/* Make sure the block schedule doesn't shrink. */
+.profile-block-schedule-container {
+  width: 100%;
+}
+
 /* Shrink the schedule to fit the profile detail page */
 .block-schedule--profile {
   font-size: 0.8125rem;
-  flex-grow: 1;
 }
 
 /* Hide the first two academic years. */

@@ -2,9 +2,9 @@ import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
 
 /**
- * A barebones representation of a block, only including elective courses.
+ * A barebones representation of a block schedule, only including elective courses.
  */
-class ProfileBlock {
+class BarebonesBlockSchedule {
   /**
    * @param {string} title
    * @param {number} startYear - Start year as defined when creating the block.
@@ -25,36 +25,36 @@ class ProfileBlock {
 }
 
 /**
- * Gets all blocks related to the profile from an external script tag and
- * return them as a single collection.
+ * Gets all block schedules related to the profile from an external script tag
+ * and return them as a single collection.
  * 
- * @returns All blocks in no particular order.
+ * @returns All block schdeules in no particular order.
  */
-function loadBlocksFromElement() {
-  /** @type {ProfileBlock[]} */
-  let blocks = [];
+function loadSchedulesFromElement() {
+  /** @type {BarebonesBlockSchedule[]} */
+  let schedules = [];
 
-  const blocksAsJSON = JSON.parse(
+  const schedulesAsJSON = JSON.parse(
     document.getElementById('blocks-data').textContent
   );
 
-  for (const block of blocksAsJSON) {
+  for (const schedule of schedulesAsJSON) {
     /** @type {string} */
-    const title = block['title'];
+    const title = schedule['title'];
     /** @type {number} */
-    const startYear = block['startYear'];
+    const startYear = schedule['startYear'];
     /** @type {CourseOccasion[]} */
     let electiveCourses = [];
 
-    for (const course of block['electiveCourseOccasions']) {
+    for (const course of schedule['electiveCourseOccasions']) {
       const isPrivate = false;
       electiveCourses.push(CourseOccasion.fromJSON(course, isPrivate));
     }
 
-    blocks.push(new ProfileBlock(title, startYear, electiveCourses));
+    schedules.push(new BarebonesBlockSchedule(title, startYear, electiveCourses));
   }
 
-  return blocks;
+  return schedules;
 }
 
 /**
@@ -62,9 +62,9 @@ function loadBlocksFromElement() {
  * 
  * This block will have a pace of 100% during the first three periods.
  * @param {number} startYear
- * @param {ProfileBlock[]} blocks
+ * @param {BarebonesBlockSchedule[]} schedules
  */
-function addBaseBlockPlaceholder(blocks) {
+function addBaseBlockPlaceholder(schedules) {
   const title = 'Baskurser';
   const slug = '';
   const ects = 45;
@@ -72,10 +72,10 @@ function addBaseBlockPlaceholder(blocks) {
   const weeks = 30;
   const isPrivate = false;
 
-  for (let block of blocks) {
-    const academicYear = block.startYear + 2;
+  for (let schedule of schedules) {
+    const academicYear = schedule.startYear + 2;
 
-    block.electiveCourses.push(new CourseOccasion(
+    schedule.electiveCourses.push(new CourseOccasion(
       title,
       slug,
       ects,
@@ -84,6 +84,83 @@ function addBaseBlockPlaceholder(blocks) {
       weeks,
       isPrivate
     ));
+  }
+}
+
+/**
+ * Creates containers for the block schedules using a template tag and adds
+ * unique Ids to each.
+ * 
+ * @param {number} scheduleCount - The number of block scshedules to make room for.
+ * @returns An array of Ids for each academic year container needed for rendering.
+ */
+function instantiateTemplates(scheduleCount) {
+  const scheduleContainer = document.getElementById('block-schedule-container');
+
+  // The template to be reused.
+  /** @type {HTMLTemplateElement} */
+  const template = document.getElementById('block-schedule-template');
+
+  /** @type {number[]} */
+  let containerIds = [];
+
+  for (let i = 0; i < scheduleCount; ++i) {
+    /** @type {DocumentFragment} */
+    const templateInstance = template.content.cloneNode(true);
+    const yearContainer = templateInstance.getElementById('academic-year-container');
+
+    // Create, apply and append ID.
+    const newId = yearContainer.id + `-${i}`;
+    yearContainer.id = newId;
+    containerIds.push(newId);
+
+    scheduleContainer.appendChild(templateInstance);
+  }
+
+  return containerIds;
+}
+
+function renderSchedules(schedules, containerIds) {
+  // We want the whole academic year together on a single row.
+  const shouldStackTerms = false;
+
+  // Get variables from data parameters in a script tag.
+  const stringDataset = document.getElementById('string-data').dataset;
+  const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
+
+  // The user is set to logged out to make sure the schedule is read-only.
+  const isLoggedIn = false;
+
+  // These will be unused since the user is logged out.
+  const blockRemoveCourseUrl = null;
+  const blockCourseListUrl = null;
+
+  // Margin and scale affects the rendered blocks appearance.
+  const margin = 0.5;
+  const scale = 1.5;
+
+  for (let i = 0; i < schedules.length; ++i) {
+    const startYear = schedules[i].startYear;
+    const courseOccasions = schedules[i].electiveCourses;
+    const containerId = containerIds[i];
+
+    // The block schedule renderer will populate this container.
+    const academicYearContainer = document.getElementById(containerId);
+  
+    // Create a block schedule which renders it automatically in the specified
+    // container.
+    new BlockSchedule(
+      startYear,
+      courseOccasions,
+      academicYearContainer,
+      shouldStackTerms,
+      isLoggedIn,
+      courseoccasionInfoUrl,
+      blockRemoveCourseUrl,
+      blockCourseListUrl,
+      margin,
+      scale
+    );
   }
 }
 
@@ -121,13 +198,13 @@ function adjustTermHeaders() {
   for (const schedule of blockSchedules) {
     const termHeaders = schedule.getElementsByClassName('term-header');
 
-    for (let i = 0; i < termHeaders.length; ++i) {
-      const termPrefix = i % 2 ? 'VT' : 'HT';
+    for (let termIndex = 0; termIndex < termHeaders.length; ++termIndex) {
+      const termPrefix = termIndex % 2 ? 'VT' : 'HT';
       // one-based academic year index. The division by two is needed since
       // we iterate over two terms per year.
-      const academicYear = Math.floor(i / 2 + 1);
+      const academicYear = Math.floor(termIndex / 2 + 1);
       
-      termHeaders[i].textContent = `${termPrefix} år ${academicYear}`;
+      termHeaders[termIndex].textContent = `${termPrefix} år ${academicYear}`;
     }
   }
 }
@@ -138,51 +215,15 @@ function adjustTermHeaders() {
 function main() {
   
   // Courses loaded from the content of an external script tag.
-  const blocks = loadBlocksFromElement();
+  const schedules = loadSchedulesFromElement();
 
   // add placeholder block for courses in the base block.
-  addBaseBlockPlaceholder(blocks);
+  addBaseBlockPlaceholder(schedules);
 
-  // TEMP ---------------------------------------------------------------------------------------------
-  const courseOccasions = blocks[0].electiveCourses;
-  const startYear = blocks[0].startYear;
+  // Use a template tag to create all containers needed for rendering.
+  const containerIds = instantiateTemplates(schedules.length);
 
-  // The block schedule renderer will populate this container with elements.
-  const academicYearContainer = document.getElementById('academic-year-container');
-
-  // We want the whole academic year together on a single row.
-  const shouldStackTerms = false;
-
-  // Get variables from data parameters in a script tag.
-  const stringDataset = document.getElementById('string-data').dataset;
-  const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
-
-  // The user is set to logged out to make sure the schedule is read-only.
-  const isLoggedIn = false;
-
-  // These will be unused since the user is logged out.
-  const blockRemoveCourseUrl = null;
-  const blockCourseListUrl = null;
-
-  // Margin and scale affects the rendered blocks appearance.
-  const margin = 0.5;
-  const scale = 1.5;
-
-  // Create a block schedule which renders it automatically in the specified
-  // container.
-  const blockSchedule = new BlockSchedule(
-    startYear,
-    courseOccasions,
-    academicYearContainer,
-    shouldStackTerms,
-    isLoggedIn,
-    courseoccasionInfoUrl,
-    blockRemoveCourseUrl,
-    blockCourseListUrl,
-    margin,
-    scale
-  );
-
+  renderSchedules(schedules, containerIds);
   adjustPlaceholderBlocks();
   adjustTermHeaders();
 }
