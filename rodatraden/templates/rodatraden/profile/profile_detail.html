@@ -45,52 +45,48 @@
     {% endif %}
        alt="{{ profile.title }}" class="img-thumbnail mt-5">
     </img>
-    </div>
   </div>
 </div>
 <div class="row px-3">
   
   <div class="col-lg-7 p-3">
-    <div class="row pr-3">
-      <ul id="tab-container" class="profile-tab-container"></ul>
-      <div id="block-schedule-container" class="profile-block-schedule-container"></div>
+    <p class="profile-detail-title">Kärnkurser</p>
+    <ul id="tab-container" class="profile-tab-container"></ul>
+    <div id="block-schedule-container" class="profile-block-schedule-container"></div>
 
-      <template id="tab-template">
-        <li class="profile-tab"><a id="tab"></a></li>
-      </template>
+    <template id="tab-template">
+      <li class="profile-tab"><a id="tab"></a></li>
+    </template>
 
-      <template id="block-schedule-template">
-        <div class="block-schedule block-schedule--profile">
-          <div id="academic-year-container" class="academic-year-container"></div>
-        </div>
-      </template>
-
-      <div class="text-left mt-3">
-        <p>
-          I blockschemat visas profilens Nyckelkurser, dvs de kurser som utgör
-          profilens grundstomme. Utöver dessa finns Tillvalskurser som ger
-          ytterligare fördjupning inom olika områden.
-        </p>
-        <p>
-          Nyckelkurserna är inte obligatoriska men det rekommenderas starkt att
-          ha med dessa som grund i ditt blockschema. Välj sedan för dig
-          intressanta kurser från listan Tillvalskurser för att skapa det
-          blockschema som passar dig bäst, alla kurser i listan passar bra för
-          en Beräkningsfysiker. Det går även bra att välja kurser från en annan
-          profil.
-        </p>
-        <p>
-          Var noga med att ditt blockschema uppfyller alla kategorier i din
-          examen, dvs att du har valt tillräckligt med profilkurser, allmänna
-          ingenjörskurser, projektkurser och hållbarhetskurser.
-        </p>
+    <template id="block-schedule-template">
+      <div class="block-schedule block-schedule--profile">
+        <div id="academic-year-container" class="academic-year-container"></div>
       </div>
+    </template>
+
+    <div class="text-left mt-3">
+      <p>
+        I blockschemat visas profilens <em>Kärnkurser</em>, dvs de kurser som
+        utgör profilens grundstomme. I listan finns dessutom kurser som ger
+        ytterligare fördjupning och breddning inom profilens områden.
+        Kärnkurserna är markerade i listan.
+      </p>
+      <p>
+        Kärnkurserna är inte obligatoriska men det rekommenderas starkt att
+        ha med dessa som grund i ditt blockschema. Utöver kärnkurserna väljer
+        du kurser från listan som är intressanta för dig och ger det
+        blockschema som passar dig bäst. Det går även bra att välja kurser
+        från en annan profil.
+      </p>
+      <p>
+        <strong>Var noga med att ditt blockschema uppfyller alla kategorier i din
+        examen, dvs att du har valt tillräckligt med profilkurser, allmänna
+        ingenjörskurser, projektkurser och hållbarhetskurser.</strong>
+      </p>
     </div>
-
-    
   </div>
-  <div class="col-lg-5 p-3">
 
+  <div class="col-lg-5 p-3">
     <p class="profile-detail-title">Valbara kurser inom profilen</p>
     <ul class="profile-detail-list">
       {% for labeled_course in labeled_courses %}
