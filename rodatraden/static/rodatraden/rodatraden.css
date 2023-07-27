@@ -424,12 +424,17 @@ a:not(.default):hover{
   background-color: hsl(0, 0%, 95%);
 }
 
+/* Round of the outer edges so the tabs look more connected. */
 .profile-tab:first-child {
   border-top-left-radius: 0.5rem;
 }
-
 .profile-tab:last-child {
   border-top-right-radius: 0.5rem;
+}
+
+/* Only show tabs when there are more than one. */
+.profile-tab:first-child:last-child {
+  display: none;
 }
 
 .profile-tab:not(:last-child) {
