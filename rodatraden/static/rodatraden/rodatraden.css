@@ -421,7 +421,7 @@ a:not(.default):hover{
 }
 
 .profile-tab:not(.selected) {
-  background-color: hsl(0, 0%, 95%);
+  background-color: hsl(0, 0%, 93%);
 }
 
 /* Round of the outer edges so the tabs look more connected. */
@@ -444,6 +444,9 @@ a:not(.default):hover{
 .profile-block-schedule-container {
   /* Make sure the block schedule doesn't shrink. */
   width: 100%;
+
+  /* Without position relative the z-index for the tabs doesn't work. */
+  position: relative;
 
   border: 1px solid var(--border-color);
   border-radius: 0.5rem;
