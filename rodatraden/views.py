@@ -529,10 +529,28 @@ class ProfileDetail(DetailView):
         context = super().get_context_data(**kwargs)
         context['tracks'] = self.object.track_set.all()
 
-        # Courses related to the profile (profile courses and core courses).
-        related_courses_query = (Q(tracks__profile__id=self.object.id)
-            | Q(core_belonging__profile__id=self.object.id))
-        context['related_courses'] = Course.objects.filter(related_courses_query).distinct().order_by('title')
+        # Queries to be used below.
+        included_courses_query = Q(tracks__profile__id=self.object.id)
+        core_courses_query = Q(core_belonging__profile__id=self.object.id)
+        related_courses_query = (included_courses_query | core_courses_query)
+
+        # Courses related to the profile (included courses and core courses).
+        included_courses = Course.objects.filter(included_courses_query)
+        core_courses = Course.objects.filter(core_courses_query)
+        related_courses = Course.objects.filter(related_courses_query).distinct().order_by('title')
+
+        profile_category = Category.objects.get(title='Profilkurs')
+
+        # Attach profile and core labels to each course.
+        labeled_courses = []
+        for course in related_courses:
+            labeled_courses.append({
+                'course': course,
+                'is_profile': profile_category in course.categories.all(),
+                'is_core': course in core_courses
+            })
+
+        context['labeled_courses'] = labeled_courses
         context['profile_id'] = self.object.id
 
         # Get public blocks related to the profile.

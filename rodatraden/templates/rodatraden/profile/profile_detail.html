@@ -50,13 +50,18 @@
 </div>
 <div class="row px-3">
   
-  <div class="col-lg-7 p-3 text-center">
+  <div class="col-lg-7 p-3">
     <div class="row pr-3">
+      <ul id="tab-container" class="profile-tab-container"></ul>
       <div id="block-schedule-container" class="profile-block-schedule-container"></div>
+
+      <template id="tab-template">
+        <li class="profile-tab"><a id="tab"></a></li>
+      </template>
 
       <template id="block-schedule-template">
         <div class="block-schedule block-schedule--profile">
-          <div id="academic-year-container"></div>
+          <div id="academic-year-container" class="academic-year-container"></div>
         </div>
       </template>
 
@@ -88,22 +93,18 @@
 
     <p class="profile-detail-title">Valbara kurser inom profilen</p>
     <ul class="profile-detail-list">
-      {% for course in related_courses %}
+      {% for labeled_course in labeled_courses %}
       <li>
-        <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+        <a href="{{ labeled_course.course.get_absolute_url }}">{{ labeled_course.course.title }}</a>
 
         <span>
-          {% for track in course.core_belonging.all %}
-          {% if track.profile.id == profile_id %}
+          {% if labeled_course.is_core %}
           <span class="badge badge-success">Kärnkurs</span>
           {% endif %}
-          {% endfor %}
 
-          {% for category in course.categories.all %}
-          {% if category.title == 'Profilkurs' %}
+          {% if labeled_course.is_profile %}
           <span class="badge badge-secondary">Profilkurs</span>
           {% endif %}
-          {% endfor %}
         </span>
       </li>
       {% endfor %}

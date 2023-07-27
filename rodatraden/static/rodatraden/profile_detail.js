@@ -65,7 +65,7 @@ function loadSchedulesFromElement() {
  * @param {BarebonesBlockSchedule[]} schedules
  */
 function addBaseBlockPlaceholder(schedules) {
-  const title = 'Baskurser';
+  const title = 'Baskurser åk 3';
   const slug = '';
   const ects = 45;
   const start = 0;
@@ -94,7 +94,7 @@ function addBaseBlockPlaceholder(schedules) {
  * @param {number} scheduleCount - The number of block scshedules to make room for.
  * @returns An array of Ids for each academic year container needed for rendering.
  */
-function instantiateTemplates(scheduleCount) {
+function instantiateScheduleContainers(scheduleCount) {
   const scheduleContainer = document.getElementById('block-schedule-container');
 
   // The template to be reused.
@@ -114,10 +114,71 @@ function instantiateTemplates(scheduleCount) {
     yearContainer.id = newId;
     containerIds.push(newId);
 
+    // Hid all but the first schedule.
+    if (i !== 0) {
+      yearContainer.parentElement.classList.add('visually-hidden')
+    }
+
     scheduleContainer.appendChild(templateInstance);
   }
 
   return containerIds;
+}
+
+function instantiateScheduleTabs(schedules, containerIds) {
+  const tabContainer = document.getElementById('tab-container');
+
+  // The template to be reused.
+  /** @type {HTMLTemplateElement} */
+  const template = document.getElementById('tab-template');
+
+  for (let i = 0; i < containerIds.length; ++i) {
+    /** @type {DocumentFragment} */
+    const templateInstance = template.content.cloneNode(true);
+    const anchor = templateInstance.querySelector('a');
+
+    // Create a unique id for the tab.
+    const newId = anchor.id + `-${i}`;
+    anchor.id = newId;
+
+    // Link to a container. This is not used though since the default behaviour
+    // is overridden.
+    anchor.href = `#${containerIds[i]}`;
+
+    // Insert the schedule title.
+    anchor.innerText = schedules[i].title;
+
+    // Make the first tab selected initially.
+    if (i === 0) {
+      anchor.parentElement.classList.add('selected');
+    }
+
+    // Override onclick for anchor to show the desired schedule.
+    anchor.addEventListener('click', event => {
+      // Don't scroll to the href location.
+      event.preventDefault();
+
+      const allTabs = document.getElementsByClassName('profile-tab');
+      const selectedTab = event.target.parentElement;
+
+      const allSchedules = document.getElementsByClassName('block-schedule');
+      const selectedschedule = document.getElementById(containerIds[i]).parentElement;
+      
+      // Make the clicked tab selected.
+      for (let tab of allTabs) {
+        tab.classList.remove('selected');
+      }
+      selectedTab.classList.add('selected');
+
+      // Show the selected schedule.
+      for (let schedule of allSchedules) {
+        schedule.classList.add('visually-hidden');
+      }
+      selectedschedule.classList.remove('visually-hidden');
+    });
+
+    tabContainer.appendChild(templateInstance);
+  }
 }
 
 function renderSchedules(schedules, containerIds) {
@@ -204,7 +265,7 @@ function adjustTermHeaders() {
       // we iterate over two terms per year.
       const academicYear = Math.floor(termIndex / 2 + 1);
       
-      termHeaders[termIndex].textContent = `${termPrefix} år ${academicYear}`;
+      termHeaders[termIndex].textContent = `${termPrefix} åk ${academicYear}`;
     }
   }
 }
@@ -221,7 +282,10 @@ function main() {
   addBaseBlockPlaceholder(schedules);
 
   // Use a template tag to create all containers needed for rendering.
-  const containerIds = instantiateTemplates(schedules.length);
+  const containerIds = instantiateScheduleContainers(schedules.length);
+  
+  // Create a tab for each schedule.
+  instantiateScheduleTabs(schedules, containerIds);
 
   renderSchedules(schedules, containerIds);
   adjustPlaceholderBlocks();

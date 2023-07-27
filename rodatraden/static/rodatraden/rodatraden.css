@@ -8,6 +8,20 @@
   --gray:         hsl(0, 0%, 40%);
   --gray-light:   hsl(0, 0%, 50%);
   --gray-lighter: hsl(0, 0%, 87%);
+
+  --background-color: white;
+  --border-color: hsl(0, 0%, 90%);
+}
+
+/* Accessibility-friendly way of hiding an element. */
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 #hideAll {
@@ -377,13 +391,68 @@ a:not(.default):hover{
 
 /* Block schedule styling when displayed on a profile detail page */
 
-/* Make sure the block schedule doesn't shrink. */
-.profile-block-schedule-container {
-  width: 100%;
+/* Remove list styling for the tabs */
+.profile-tab-container {
+  display: flex;
+
+  padding: 0;
+  margin: 0;
+  
+  list-style: none;
 }
 
-/* Shrink the schedule to fit the profile detail page */
+.profile-tab {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-bottom: 0;
+  
+  background-color: var(--background-color);
+  font-weight: bold;
+
+  /* Negative margin as thick as the border means that they will hide it if the
+   * z-index is higher. */
+  margin-bottom: -1px;
+}
+
+/* Put the selected button at the top so that it covers the border and
+ * integrates visually with the block schedule container. */
+.profile-tab.selected {
+  z-index: 2;
+}
+
+.profile-tab:not(.selected) {
+  background-color: hsl(0, 0%, 95%);
+}
+
+.profile-tab:first-child {
+  border-top-left-radius: 0.5rem;
+}
+
+.profile-tab:last-child {
+  border-top-right-radius: 0.5rem;
+}
+
+.profile-tab:not(:last-child) {
+  border-right: 0;
+}
+
+.profile-block-schedule-container {
+  /* Make sure the block schedule doesn't shrink. */
+  width: 100%;
+
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  /* Connect the border with the tabs. */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 .block-schedule--profile {
+  /* Give some space between the border and the schedule. Use a margin to
+  benefit from collapsing margins. */
+  margin: var(--schedule-margin);
+
+  /* Shrink the schedule to fit the profile detail page */
   font-size: 0.8125rem;
 }
 
@@ -445,7 +514,7 @@ a:not(.default):hover{
   justify-content: space-between;
 
   padding: 0.5rem;
-  border-block-start: 1px solid rgba(0, 0, 0, 0.1);
+  border-block-start: 1px solid var(--border-color);
 }
 
 .courses__columns {
@@ -635,7 +704,7 @@ a:not(.default):hover{
 
 .profile-detail-list li {
   padding: 0.25rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1)
+  border-top: 1px solid var(--border-color);
 }
 
 .profile-detail-list a {
