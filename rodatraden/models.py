@@ -226,10 +226,6 @@ class Profile(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
-    # Core courses
-    schedule = models.ImageField(upload_to='profiles/schedules/', blank=True, null=True,
-            verbose_name='Blockschema')
-
     __original_title = None
 
     def __init__(self, *args, **kwargs):
