@@ -1,12 +1,12 @@
-/**
-   * Calculates the height needed to contain alla courses in the term.
-   */
-function getCourseContainerHeight(coursesSameAcademicYear) {
-  // TEMP: The margin and scale have been copied here to make it work.
-  // XXX: IS this the margin of the course container or the course?
-  const margin = 1;
-  const scale = 3;
+import AcademicYear from "./academic_year.js";
 
+/**
+ * Calculates the height needed to contain alla courses in the term.
+ * 
+ * @param {number} scale - Scale used to calculating size and position.
+ * @param {number} margin - Margin used to calculating size and position.
+ */
+function getCourseContainerHeight(coursesSameAcademicYear, margin, scale) {
   const containerHeight = coursesSameAcademicYear.reduce(
     (containerHeight, course) => {
       // Calculate the distance from the top of the term to the bottom of the
@@ -26,13 +26,16 @@ function getCourseContainerHeight(coursesSameAcademicYear) {
  * contain any DOM elements but all years will have up-to-date data bound to
  * them.
  * 
- * @param {*} academicYearContainer - D3 selection of a container for academic years.
- * @param {any[]} academicYearsData
+ * @param {HTMLElement} academicYearContainer - D3 selection of a container for academic years.
+ * @param {AcademicYear[]} academicYearsData
  * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
  * @param {number} transitionDuration - Transition duration in milliseconds.
  * @returns D3 selection of all academic years.
  */
-function updateAcademicYear(academicYearContainer, academicYearsData, shouldStackTerms, transitionDuration) {
+export function updateAcademicYear(academicYearContainer, academicYearsData, shouldStackTerms, transitionDuration) {
+  // Convert the container to a D3 selection.
+  academicYearContainer = d3.select(academicYearContainer);
+
   // Create a D3 update selection by binding each array in the containers bound
   // data to an academic year, previously existing or not. The parameter "year"
   // is used as the key so that existing years gets correctly put in the update
@@ -82,17 +85,19 @@ function updateAcademicYear(academicYearContainer, academicYearsData, shouldStac
  * 
  * @param {*} academicYear - D3 selection of all academic years.
  * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
+ * @param {number} scale - Scale used to calculating size and position.
+ * @param {number} margin - Margin used to calculating size and position.
  * @returns D3 selection of all terms.
  */
-function updateTerm(academicYear, shouldStackTerms) {
+export function updateTerm(academicYear, shouldStackTerms, margin, scale) {
   // Create a D3 update selection by binding data for two terms based on the
   // data previously bound to the academic year. We don't need to use a key
   // here since the terms will never be out of order. We therefore let the
   // index be the default key.
   let termUpdateSelection = academicYear.selectAll(".term")
     .data(academicYear => {
-      const fallHeight = getCourseContainerHeight(academicYear.fall.courses);
-      const springHeight = getCourseContainerHeight(academicYear.spring.courses);
+      const fallHeight = getCourseContainerHeight(academicYear.fall.courses, margin, scale);
+      const springHeight = getCourseContainerHeight(academicYear.spring.courses, margin, scale);
 
       let fallTerms = academicYear.fall;
       let springTerms = academicYear.spring;
@@ -124,7 +129,7 @@ function updateTerm(academicYear, shouldStackTerms) {
  * 
  * @param {*} term - D3 selection of all terms.
  */
-function addTermHeader(term) {
+export function addTermHeader(term) {
   // Create a D3 update selection by binding the term title. We don't need to
   // use a key here since there's only one header per term.
   let termHeaderUpdateSelection = term.selectAll(".term-header")
@@ -142,7 +147,7 @@ function addTermHeader(term) {
  * 
  * @param {*} term - D3 selection of all terms.
  */
-function addPeriodHeaders(term) {
+export function addPeriodHeaders(term) {
   // Create a D3 update selection by binding relevant data for the two periods.
   // We don't need to use a key here since there's only one period container
   // per term.
@@ -181,7 +186,7 @@ function addPeriodHeaders(term) {
  * @param {*} term - D3 selection of all terms.
  * @returns D3 selection of all course containers.
  */
-function updateCourseContainer(term) {
+export function updateCourseContainer(term) {
   // Create a D3 update selection by binding term data that includes courses to
   // the container. We don't need to use a key here since there's only one
   // course container per term.
@@ -211,8 +216,12 @@ function updateCourseContainer(term) {
  * @param {*} courseContainer - D3 selection of all course containers.
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
+ * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+ * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
+ * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
  */
-function updateCourseBlocks(courseContainer, scale, margin) {
+export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
+                            courseoccasionInfoUrl, blockRemoveCourseUrl) {
   // Number of weeks in a term.
   const termWeekCount = 20;
 
@@ -323,8 +332,10 @@ function updateCourseBlocks(courseContainer, scale, margin) {
  * owns that schedule.
  * 
  * @param {*} term - D3 selection of all terms.
+ * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+ * @param {string} blockCourseListUrl - URL to get a list of courses to add.
  */
-function addFooter(term) {
+export function addFooter(term, isLoggedIn, blockCourseListUrl) {
   // Create a D3 update selection by binding relevant data for the footer. We
   // don't need to use a key here since there's only one footer per term.
   let footerUpdateSelection = term.selectAll(".term-footer")
@@ -387,46 +398,4 @@ function addFooter(term) {
       .append("div")
       .attr("class", "term-footer-filler");
   }
-}
-
-/**
- * Updates block-schedule DOM elements based on the global course data. This
- * function should be called every time data is changed, for example when
- * adding/removing an academic year or course. The DOM elements are then
- * updated accordingly.
- * 
- * @param {any[]} coursesByTerm
- * @param {boolean} shouldStackTerms - True if terms should be stacked vertically.
- */
-export default function updateBlockSchedule(coursesByTerm, shouldStackTerms) {
-  const transitionDuration = 500;
-
-  const margin = 1;
-  const scale = 3;
-
-  // Container for all the academic years. Each year has headers, a set of
-  // courses and a footer.
-  const academicYearContainer = d3.select('#academic-year-container');
-
-  // Start by removing old academic years, adding new and empty ones while
-  // binding all with up-to-date data.
-  let academicYearSelection = updateAcademicYear(academicYearContainer, coursesByTerm, shouldStackTerms, transitionDuration);
-  
-  // Bind data to all terms and create new and empty terms if needed.
-  let termSelection = updateTerm(academicYearSelection, shouldStackTerms);
-  
-  // Add term and period headers to all new terms.
-  addTermHeader(termSelection);
-  addPeriodHeaders(termSelection);
-  
-  // Bind data to all course containers and create new and empty terms if
-  // needed.
-  let courseContainerSelection = updateCourseContainer(termSelection);
-
-  // Bind data to all courses, update them if needed and create new ones that
-  // are missing.
-  updateCourseBlocks(courseContainerSelection, scale, margin);
-  
-  // Add a footer to all new terms.
-  addFooter(termSelection);
 }

@@ -44,6 +44,30 @@ from rodatraden import validator
 from openpyxl.styles import Alignment, Font
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.db.models import Q
+
+
+def get_public_elective_course_occasions(block: Block):
+    """Get public elective courses, that is courses not in the base block.
+    Course occasions outside the base block start in year 3, period 4.
+    """
+
+    third_year = block.start_year + 2
+    fourth_period_start_week = 30
+
+    third_year_elective_course_occasions = block.courseoccasions.filter(
+        academic_year__year=third_year,
+        time_period__week__gte=fourth_period_start_week
+    )
+
+    course_occasions_last_two_years = block.courseoccasions.filter(
+        academic_year__year__gt=third_year
+    )
+
+    elective_course_occasions = (third_year_elective_course_occasions
+                                    | course_occasions_last_two_years)
+
+    return elective_course_occasions
 
 
 def index(request):
@@ -329,11 +353,6 @@ def course_list(request: HttpRequest):
 
     return render(request, 'rodatraden/course/course_list.html', context)
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        # Sort the courses ascending by title.
-        return qs.order_by('title')
-
 
 class CourseDetail(DetailView):
     """Detail view for courses."""
@@ -509,6 +528,48 @@ class ProfileDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tracks'] = self.object.track_set.all()
+
+        # Queries to be used below.
+        included_courses_query = Q(tracks__profile__id=self.object.id)
+        core_courses_query = Q(core_belonging__profile__id=self.object.id)
+        related_courses_query = (included_courses_query | core_courses_query)
+
+        # Courses related to the profile (included courses and core courses).
+        included_courses = Course.objects.filter(included_courses_query)
+        core_courses = Course.objects.filter(core_courses_query)
+        related_courses = Course.objects.filter(related_courses_query).distinct().order_by('title')
+
+        profile_category = Category.objects.get(title='Profilkurs')
+
+        # Attach profile and core labels to each course.
+        labeled_courses = []
+        for course in related_courses:
+            labeled_courses.append({
+                'course': course,
+                'is_profile': profile_category in course.categories.all(),
+                'is_core': course in core_courses
+            })
+
+        context['labeled_courses'] = labeled_courses
+        context['profile_id'] = self.object.id
+
+        # Get public blocks related to the profile.
+        blocks = Block.objects.filter(track__profile__id=self.object.id,
+                                           private=False)
+
+        # Put partial block info for related blocks in a JSON format so that it
+        # is usable in JavaScript. This will be used to render all the block
+        # schedules of a profile.
+        blocks_json = []
+        for block in blocks:
+            elective_course_occasions = get_public_elective_course_occasions(block)
+
+            blocks_json.append({
+                'title': block.title,
+                'startYear': block.start_year,
+                'electiveCourseOccasions': [occasion.as_json() for occasion in elective_course_occasions]
+            })
+        context['blocks'] = blocks_json
 
         return context
 

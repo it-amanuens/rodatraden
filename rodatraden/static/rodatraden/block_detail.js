@@ -1,3 +1,6 @@
+import CourseOccasion from "./block_schedule/course_occasion.js";
+import BlockSchedule from './block_schedule/block_schedule.js';
+
 /**
  * Setups event listeners for the buttons to update and delete the block-
  * schedule.
@@ -115,6 +118,46 @@ function createCategorySumChart() {
 }
 
 /**
+ * Gets all private and non-private courses in the block-schedule from external
+ * script tags and return them as a single collection.
+ * 
+ * @returns All courses, private and non-private in no particular order.
+ */
+function loadCoursesFromElement() {
+  /** @type {CourseOccasion[]} */
+  let courses = [];
+
+  const coursesAsJSON = JSON.parse(
+    document.getElementById('course-occasions-data').textContent
+  );
+  const privateCoursesAsJSON = JSON.parse(
+    document.getElementById('private-courses-data').textContent
+  );
+
+  for (const course of coursesAsJSON) {
+    const isPrivate = false;
+    courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  }
+  for (const course of privateCoursesAsJSON) {
+    const isPrivate = true;
+    courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  }
+
+  return courses;
+}
+
+/**
+ * Determines if the window is narrow or not.
+ * 
+ * @returns True if the window is too narrow to fit the terms on the same row.
+ */
+function isNarrowWindow() {
+  // TEMP: Arbitrarily chosen pixel value.
+  const windowWidthThreshold = 800;
+  return window.innerWidth < windowWidthThreshold;
+}
+
+/**
  * Main function for this script.
  */
 function main() {
@@ -134,6 +177,48 @@ function main() {
       label.innerText = fileName;
     }
   );
+
+  const courseOccasions = loadCoursesFromElement();
+
+  // The block schedule renderer will populate this container with elements.
+  const academicYearContainer = document.getElementById('academic-year-container');
+
+  // Make sure that terms are rendered correctly from start.
+  const shouldStackTerms = isNarrowWindow();
+
+  // Get variables from data parameters in a script tag.
+  const stringDataset = document.getElementById('string-data').dataset;
+  const startYear = parseInt(stringDataset.startYear);
+  const isLoggedIn = stringDataset.isLoggedIn === 'True';
+  const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
+  const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
+  const blockCourseListUrl = stringDataset.blockCourseListUrl;
+
+  // Margin and scale affects the rendered blocks appearance.
+  const margin = 1;
+  const scale = 3;
+
+  // Create a block schedule which renders it automatically in the specified
+  // container.
+  const blockSchedule = new BlockSchedule(
+    startYear,
+    courseOccasions,
+    academicYearContainer,
+    shouldStackTerms,
+    isLoggedIn,
+    courseoccasionInfoUrl,
+    blockRemoveCourseUrl,
+    blockCourseListUrl,
+    margin,
+    scale
+  );
+
+  // Setup the button to add more years to the block-schedule.
+  blockSchedule.setupAddYearButton('block-schedule-add-year');
+
+  // When the window resizes from narrow to wide or vice versa, update the data
+  // and redraw the block-schdule.
+  blockSchedule.addResizeEventListener(isNarrowWindow);
 }
 
 // Run main function when the script is loaded.

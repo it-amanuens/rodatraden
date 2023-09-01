@@ -127,20 +127,9 @@
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
   ></script>
 
-  <!---->
+  <!-- Main script for this page. -->
   <script src="{% static 'rodatraden/block_detail.js' %}"
-          defer
-  ></script>
-
-  <!-- Script responsible for rendering the block-schedule and the rest of the
-  information on this page -->
-  <script src="{% static 'rodatraden/block_schedule/block_schedule_main.js' %}"
           type='module'
-          data-start-year="{{ start_year }}"
-          data-is-logged-in="{{ logged_in }}"
-          data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
-          data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
-          data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
   ></script>
 
 {% endblock %}
