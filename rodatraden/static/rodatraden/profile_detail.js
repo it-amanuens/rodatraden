@@ -8,12 +8,12 @@ class BarebonesBlockSchedule {
   /**
    * @param {string} title
    * @param {number} startYear - Start year as defined when creating the block.
-   * @param {CourseOccasion[]} electiveCourses - Courses from year 3, period 4 an onward. 
+   * @param {CourseOccasion[]} courseOccasions
    */
-  constructor(title, startYear, electiveCourses) {
+  constructor(title, startYear, courseOccasions) {
     this.title = title;
     this.startYear = startYear;
-    this.electiveCourses = electiveCourses;
+    this.courseOccasions = courseOccasions;
   }
 
   /** @type {string[]} */
@@ -21,16 +21,18 @@ class BarebonesBlockSchedule {
   /** @type {number[]} */
   startYear;
   /** @type {CourseOccasion[]} */
-  electiveCourses;
+  courseOccasions;
 }
 
 /**
  * Gets all block schedules related to the profile from an external script tag
  * and return them as a single collection.
  * 
+ * @param {boolean} isBaseBlock - True if the profile is the base block.
+ * 
  * @returns All block schdeules in no particular order.
  */
-function loadSchedulesFromElement() {
+function loadSchedulesFromElement(isBaseBlock) {
   /** @type {BarebonesBlockSchedule[]} */
   let schedules = [];
 
@@ -44,14 +46,22 @@ function loadSchedulesFromElement() {
     /** @type {number} */
     const startYear = schedule['startYear'];
     /** @type {CourseOccasion[]} */
+    let allCourses = [];
+    /** @type {CourseOccasion[]} */
     let electiveCourses = [];
+
+    for (const course of schedule['courseOccasions']) {
+      const isPrivate = false;
+      allCourses.push(CourseOccasion.fromJSON(course, isPrivate));
+    }
 
     for (const course of schedule['electiveCourseOccasions']) {
       const isPrivate = false;
       electiveCourses.push(CourseOccasion.fromJSON(course, isPrivate));
     }
 
-    schedules.push(new BarebonesBlockSchedule(title, startYear, electiveCourses));
+    const courses = isBaseBlock ? allCourses : electiveCourses;
+    schedules.push(new BarebonesBlockSchedule(title, startYear, courses));
   }
 
   return schedules;
@@ -75,7 +85,7 @@ function addBaseBlockPlaceholder(schedules) {
   for (let schedule of schedules) {
     const academicYear = schedule.startYear + 2;
 
-    schedule.electiveCourses.push(new CourseOccasion(
+    schedule.courseOccasions.push(new CourseOccasion(
       title,
       slug,
       ects,
@@ -114,7 +124,7 @@ function instantiateScheduleContainers(scheduleCount) {
     yearContainer.id = newId;
     containerIds.push(newId);
 
-    // Hid all but the first schedule.
+    // Hide all but the first schedule.
     if (i !== 0) {
       yearContainer.parentElement.classList.add('visually-hidden')
     }
@@ -181,13 +191,9 @@ function instantiateScheduleTabs(schedules, containerIds) {
   }
 }
 
-function renderSchedules(schedules, containerIds) {
+function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
   // We want the whole academic year together on a single row.
   const shouldStackTerms = false;
-
-  // Get variables from data parameters in a script tag.
-  const stringDataset = document.getElementById('string-data').dataset;
-  const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
 
   // The user is set to logged out to make sure the schedule is read-only.
   const isLoggedIn = false;
@@ -202,7 +208,7 @@ function renderSchedules(schedules, containerIds) {
 
   for (let i = 0; i < schedules.length; ++i) {
     const startYear = schedules[i].startYear;
-    const courseOccasions = schedules[i].electiveCourses;
+    const courseOccasions = schedules[i].courseOccasions;
     const containerId = containerIds[i];
 
     // The block schedule renderer will populate this container.
@@ -274,21 +280,31 @@ function adjustTermHeaders() {
  * Main function for this script.
  */
 function main() {
-  
-  // Courses loaded from the content of an external script tag.
-  const schedules = loadSchedulesFromElement();
+  // Get variables from data parameters in a script tag.
+  const stringDataset = document.getElementById('string-data').dataset;
+  const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
+  const profileTitle = stringDataset.profileTitle;
+  const isBaseBlock = profileTitle === 'Basblock';
 
-  // add placeholder block for courses in the base block.
-  addBaseBlockPlaceholder(schedules);
+  // Courses loaded from the content of an external script tag.
+  const schedules = loadSchedulesFromElement(isBaseBlock);
+
+  if (!isBaseBlock) {
+    // add placeholder block for courses in the base block.
+    addBaseBlockPlaceholder(schedules);
+  }
 
   // Use a template tag to create all containers needed for rendering.
   const containerIds = instantiateScheduleContainers(schedules.length);
-  
+
   // Create a tab for each schedule.
   instantiateScheduleTabs(schedules, containerIds);
 
-  renderSchedules(schedules, containerIds);
-  adjustPlaceholderBlocks();
+  renderSchedules(schedules, courseoccasionInfoUrl, containerIds);
+
+  if (!isBaseBlock) {
+    adjustPlaceholderBlocks();
+  }
   adjustTermHeaders();
 }
 

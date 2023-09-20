@@ -567,6 +567,7 @@ class ProfileDetail(DetailView):
             blocks_json.append({
                 'title': block.title,
                 'startYear': block.start_year,
+                'courseOccasions': [course.as_json() for course in block.courseoccasions.all()],
                 'electiveCourseOccasions': [occasion.as_json() for occasion in elective_course_occasions]
             })
         context['blocks'] = blocks_json

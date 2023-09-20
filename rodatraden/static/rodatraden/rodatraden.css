@@ -464,8 +464,13 @@ a:not(.default):hover{
   font-size: 0.8125rem;
 }
 
+/* Only show the first three academic years. */
+.block-schedule--only-base .academic-year:nth-child(n + 4) {
+  display: none;
+}
+
 /* Hide the first two academic years. */
-.block-schedule--profile .academic-year:nth-child(-n + 2) {
+.block-schedule--only-elective .academic-year:nth-child(-n + 2) {
   display: none;
 }
 
