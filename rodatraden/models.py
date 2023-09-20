@@ -228,6 +228,10 @@ class Profile(models.Model):
 
     __original_title = None
 
+    # This field is only true for one profile, the base block.
+    # XXX: A better solution would be to create a specific base block model.
+    is_base_block = models.BooleanField(default=False, verbose_name='Är basblock')
+
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""
 

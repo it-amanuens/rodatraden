@@ -562,13 +562,18 @@ class ProfileDetail(DetailView):
         # schedules of a profile.
         blocks_json = []
         for block in blocks:
-            elective_course_occasions = get_public_elective_course_occasions(block)
+            if self.object.is_base_block:
+                course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
+            else:
+                elective_course_occasions = get_public_elective_course_occasions(block)
+                course_occasions_json = [occasion.as_json() for occasion in elective_course_occasions]
 
             blocks_json.append({
                 'title': block.title,
                 'startYear': block.start_year,
-                'electiveCourseOccasions': [occasion.as_json() for occasion in elective_course_occasions]
+                'courseOccasions': course_occasions_json
             })
+
         context['blocks'] = blocks_json
 
         return context
