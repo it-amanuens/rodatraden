@@ -46,22 +46,14 @@ function loadSchedulesFromElement(isBaseBlock) {
     /** @type {number} */
     const startYear = schedule['startYear'];
     /** @type {CourseOccasion[]} */
-    let allCourses = [];
-    /** @type {CourseOccasion[]} */
-    let electiveCourses = [];
+    let courseOccasions = [];
 
     for (const course of schedule['courseOccasions']) {
       const isPrivate = false;
-      allCourses.push(CourseOccasion.fromJSON(course, isPrivate));
+      courseOccasions.push(CourseOccasion.fromJSON(course, isPrivate));
     }
 
-    for (const course of schedule['electiveCourseOccasions']) {
-      const isPrivate = false;
-      electiveCourses.push(CourseOccasion.fromJSON(course, isPrivate));
-    }
-
-    const courses = isBaseBlock ? allCourses : electiveCourses;
-    schedules.push(new BarebonesBlockSchedule(title, startYear, courses));
+    schedules.push(new BarebonesBlockSchedule(title, startYear, courseOccasions));
   }
 
   return schedules;
@@ -298,8 +290,7 @@ function main() {
   // Get variables from data parameters in a script tag.
   const stringDataset = document.getElementById('string-data').dataset;
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
-  const profileTitle = stringDataset.profileTitle;
-  const isBaseBlock = profileTitle === 'Basblock';
+  const isBaseBlock = stringDataset.isBaseBlock === 'True';
 
   // Courses loaded from the content of an external script tag.
   const schedules = loadSchedulesFromElement(isBaseBlock);

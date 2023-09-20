@@ -54,7 +54,7 @@
   </template>
 
   <template id="block-schedule-template">
-    {% if profile.title == 'Basblock' %}
+    {% if profile.is_base_block %}
     <div class="block-schedule block-schedule--profile block-schedule--only-base">
     {% else %}
     <div class="block-schedule block-schedule--profile block-schedule--only-elective">
@@ -63,13 +63,12 @@
     </div>
   </template>
 
-  {% if profile.title == 'Basblock' %}
-    <div class="col p-3">
-      <ul id="tab-container" class="profile-tab-container"></ul>
-      <div id="block-schedule-container" class="profile-block-schedule-container"></div>
-    </div>
+  {% if profile.is_base_block %}
+  <div class="col p-3">
+    <ul id="tab-container" class="profile-tab-container"></ul>
+    <div id="block-schedule-container" class="profile-block-schedule-container"></div>
+  </div>
   {% else %}
-  
   <div class="col-lg-7 p-3">
     <p class="profile-detail-title">Kärnkurser</p>
     <ul id="tab-container" class="profile-tab-container"></ul>
@@ -165,7 +164,7 @@
 {{ blocks|json_script:"blocks-data" }}
 <script id='string-data'
         data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
-        data-profile-title="{{ profile.title }}"
+        data-is-base-block="{{ profile.is_base_block }}"
 ></script>
 
 <!-- Main script for this page. -->
