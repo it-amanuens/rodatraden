@@ -191,6 +191,17 @@ function instantiateScheduleTabs(schedules, containerIds) {
   }
 }
 
+/**
+ * Determines if the window is narrow or not.
+ * 
+ * @returns True if the window is too narrow to fit the terms on the same row.
+ */
+function isNarrowWindow() {
+  // TEMP: Arbitrarily chosen pixel value.
+  const windowWidthThreshold = 600;
+  return window.innerWidth < windowWidthThreshold;
+}
+
 function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
   // We want the whole academic year together on a single row.
   const shouldStackTerms = false;
@@ -216,7 +227,7 @@ function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
   
     // Create a block schedule which renders it automatically in the specified
     // container.
-    new BlockSchedule(
+    const schedule = new BlockSchedule(
       startYear,
       courseOccasions,
       academicYearContainer,
@@ -228,6 +239,10 @@ function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
       margin,
       scale
     );
+
+    // When the window resizes from narrow to wide or vice versa, update the data
+    // and redraw the block-schdule.
+    schedule.addResizeEventListener(isNarrowWindow);
   }
 }
 
