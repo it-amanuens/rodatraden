@@ -1,10 +1,35 @@
 import AcademicYear from "./academic_year.js";
+import CourseOccasion from "./course_occasion.js";
+
+/**
+ * Calculates the height needed for 100% pace to be used as a min height. This
+ * is used to visualize that 100% pace is the expected pace when the schedule
+ * isn't yet filled with courses.
+ * 
+ * @param {number} scale - Scale used to calculating size and position.
+ * @param {number} margin - Margin used to calculating size and position.
+ * @returns Height needed contain courses with a combined pace of 100%.
+ */
+function getCourseContainerMinHeight(scale, margin) {
+  // A 10 week long course worth 15 ects is an example of studies at 100% pace.
+  const ects = 15;
+  const weeks = 10;
+  // Course occasion instantiated simply for its height. The other parameters
+  // are null to cause trouble if this instance is used for other purposes.
+  const fullPaceCourseOccasion = new CourseOccasion(
+    null, null, ects, null, null, weeks, null
+  );
+  const containerHeight = fullPaceCourseOccasion.speed;
+
+  return containerHeight * scale + 2 * margin;
+}
 
 /**
  * Calculates the height needed to contain alla courses in the term.
  * 
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
+ * @returns Height needed contain all given courses.
  */
 function getCourseContainerHeight(coursesSameAcademicYear, margin, scale) {
   const containerHeight = coursesSameAcademicYear.reduce(
@@ -17,7 +42,6 @@ function getCourseContainerHeight(coursesSameAcademicYear, margin, scale) {
     0
   );
 
-  // XXX: This adjustment should be done by the rendering code instead.
   return containerHeight * scale + 2 * margin;
 }
 
@@ -184,9 +208,11 @@ export function addPeriodHeaders(term) {
  * Adds containers for courses to new terms.
  * 
  * @param {*} term - D3 selection of all terms.
+ * @param {number} scale - Scale used to calculating size and position.
+ * @param {number} margin - Margin used to calculating size and position.
  * @returns D3 selection of all course containers.
  */
-export function updateCourseContainer(term) {
+export function updateCourseContainer(term, scale, margin) {
   // Create a D3 update selection by binding term data that includes courses to
   // the container. We don't need to use a key here since there's only one
   // course container per term.
@@ -205,6 +231,7 @@ export function updateCourseContainer(term) {
       const height = term.containerHeight;
       return height + "px";
     })
+    .style("min-height", getCourseContainerMinHeight(scale, margin) + "px");
 
   return courseContainer;
 }
