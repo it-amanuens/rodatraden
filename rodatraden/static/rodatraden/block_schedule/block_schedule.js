@@ -129,7 +129,11 @@ export default class BlockSchedule {
 
     // Bind data to all course containers and create new and empty terms if
     // needed.
-    const courseContainerSelection = renderer.updateCourseContainer(termSelection);
+    const courseContainerSelection = renderer.updateCourseContainer(
+      termSelection,
+      this.#scale,
+      this.#margin
+    );
 
     // Bind data to all courses, update them if needed and create new ones that
     // are missing.
