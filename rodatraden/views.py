@@ -687,11 +687,12 @@ class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin,
 ###################
 
 class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
-        SingleTableView):
+        ListView):
     """List view for private courses."""
 
     model = PrivateCourse
-    table_class = PrivateCourseTable
+    # TODO: Remove PrivateCourseTable class definition
+    #table_class = PrivateCourseTable
     template_name = 'rodatraden/privatecourse/privatecourse_list.html'
 
     def get_queryset(self):

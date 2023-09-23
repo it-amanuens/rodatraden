@@ -512,7 +512,10 @@ a:not(.default):hover{
 
 .header-section__ects,
 .header-section__level,
-.header-section__category {
+.header-section__category,
+.header-section__year,
+.header-section__start,
+.header-section__weeks {
   display: none;
 }
 
@@ -567,7 +570,10 @@ a:not(.default):hover{
 
 .ects-row,
 .level-row,
-.category-row {
+.category-row,
+.year-row,
+.start-row,
+.weeks-row {
   display: none;
 }
 
@@ -588,6 +594,20 @@ a:not(.default):hover{
   width: 6rem;
 }
 
+.year-column {
+  width: 2.75rem;
+  margin-right: 5rem;
+}
+
+.start-column {
+  width: 7.5rem;
+  margin-right: 5rem;
+}
+
+.weeks-column {
+  width: 3rem;
+}
+
 @media (width < 52rem) {
   .header-section__ects,
   .ects-row {
@@ -601,24 +621,43 @@ a:not(.default):hover{
 
 @media (width < 46rem) {
   .header-section__level,
-  .level-row {
+  .level-row,
+  .header-section__year,
+  .year-row {
     display: block;
   }
 
   .courses__columns .level-column,
-  .level-column {
+  .level-column,
+  .courses__columns .year-column,
+  .year-column {
     display: none;
   }
 }
 
 @media (width < 40rem) {
   .header-section__category,
-  .category-row {
+  .category-row,
+  .header-section__start,
+  .start-row {
     display: block;
   }
 
-  .course-list__header > :last-child,
-  .categories-column {
+  .course-list__course-header > :last-child,
+  .categories-column,
+  .start-column {
+    display: none;
+  }
+}
+
+@media (width < 34rem) {
+  .header-section__weeks,
+  .weeks-row {
+    display: block;
+  }
+
+  .course-list__private-course-header > :last-child,
+  .weeks-column {
     display: none;
   }
 }

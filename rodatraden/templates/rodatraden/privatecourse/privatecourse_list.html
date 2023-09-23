@@ -20,7 +20,83 @@ Egna kurstillfällen
 
 {% block content %}
 
-{% render_table table %}
+<div class="course-list__header course-list__private-course-header">
+  <div class="header-section">
+    <a href="" class="header-section__title title-link">
+      Kursnamn <span class="fa fa-caret-up"></span>
+    </a>
+    <a href="" class="header-section__ects ects-link">
+      Poäng <span class="fa"></span>
+    </a>
+    <a href="" class="header-section__year year-link">
+      Läsår <span class="fa"></span>
+    </a>
+    <a href="" class="header-section__start start-link">
+      Start <span class="fa"></span>
+    </a>
+    <a href="" class="header-section__weeks weeks-link">
+      Längd <span class="fa"></span>
+    </a>
+  </div>
+  <div class="header-section">
+    <a href="" class="ects-column ects-link">
+      Poäng <span class="fa"></span>
+    </a>
+    <a href="" class="year-column year-link">
+      Läsår <span class="fa"></span>
+    </a>
+    <a href="" class="start-column start-link">
+      Start <span class="fa"></span>
+    </a>
+    <a href="" class="weeks-column weeks-link">
+      Längd <span class="fa"></span>
+    </a>
+  </div>
+</div>
+
+<ul class="courses">
+  {% for course in privatecourse_list %}
+  <li>
+    <div>
+      <div>
+        <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+        <span class="ects-row">{{ course.ects }} hp</span>
+      </div>
+      <ul class="courses__extra">
+        <li class="year-row">
+          <span class="badge badge-secondary"
+              data-toggle="tooltip"
+              title="Läsår">
+            {{ course.year_string }}
+          </span>
+        </li>
+        <li class="start-row">
+          <span class="badge badge-secondary"
+              data-toggle="tooltip"
+              title="Start">
+            {{ course.start_string }}
+          </span>
+        </li>
+        <li class="weeks-row">
+          <span class="badge badge-secondary"
+              data-toggle="tooltip"
+              title="Längd">
+            {{ course.weeks }} veckor
+          </span>
+        </li>
+      </ul>
+    </div>
+    <div class="courses__columns">
+      <span class="ects-column">{{ course.ects }}</span>
+      <span class="year-column">{{ course.year_string }}</span>
+      <span class="start-column">{{ course.start_string }}</span>
+      <span class="weeks-column">{{ course.weeks }}</span>
+      
+      
+    </div>
+  </li>
+  {% endfor %}
+</ul>
 
 {% endblock %}
 
