@@ -29,35 +29,52 @@
 </form>
 {% endif %}
 
-<div class="rt-table rt-table--course-list">
+<div class="rt-table
+            rt-table--course-list">
   <div class="rt-table-header-container">
-    <div class="rt-table-header rt-table-header--list-mode">
+    <div class="rt-table-header
+                rt-table-header--list-mode">
       <a href="{% url 'course-list' %}?sort_order=-title"
-          class="rt-table-header__item rt-table-header__item--title title-link">
+          class="rt-table-header__item
+                 rt-table-header__item--title
+                 title-link">
         Kursnamn <span class="fa fa-caret-up"></span>
       </a>
       <a href="{% url 'course-list' %}?sort_order=ects"
-          class="rt-table-header__item rt-table-header__item--ects ects-link">
+          class="rt-table-header__item
+                 rt-table-header__item--ects
+                 ects-link">
         Poäng <span class="fa"></span>
       </a>
       <a href="{% url 'course-list' %}?sort_order=level"
-          class="rt-table-header__item rt-table-header__item--level level-link">
+          class="rt-table-header__item
+                 rt-table-header__item--level
+                 level-link">
         Nivå <span class="fa"></span>
       </a>
-      <span class="rt-table-header__item rt-table-header__item--category">
+      <span class="rt-table-header__item
+             rt-table-header__item--category">
         Kategorier
       </span>
     </div>
-    <div class="rt-table-header rt-table-header--table-mode">
+    <div class="rt-table-header
+                rt-table-header--table-mode">
       <a href="{% url 'course-list' %}?sort_order=ects"
-          class="rt-table__item--table-mode rt-table__item--table-mode--ects ects-link">
+          class="rt-table__item--table-mode
+                 rt-table__item--table-mode--ects
+                 ects-link">
         Poäng <span class="fa"></span>
       </a>
       <a href="{% url 'course-list' %}?sort_order=level"
-          class="rt-table__item--table-mode rt-table__item--table-mode--level level-link">
+          class="rt-table__item--table-mode
+                 rt-table__item--table-mode--level
+                 level-link">
         Nivå <span class="fa"></span>
       </a>
-      <span class="rt-table__item--table-mode rt-table__item--table-mode--categories">Kategorier</span>
+      <span class="rt-table__item--table-mode
+             rt-table__item--table-mode--categories">
+        Kategorier
+      </span>
     </div>
   </div>
 
@@ -67,12 +84,14 @@
       <div class="rt-table-row__main-section">
         <div>
           <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
-          <span class="rt-table__item--list-mode rt-table__item--list-mode--ects">
+          <span class="rt-table__item--list-mode
+                       rt-table__item--list-mode--ects">
             {{ course.ects }} hp
           </span>
         </div>
         <ul class="rt-table__badge-list">
-          <li class="rt-table__item--list-mode rt-table__item--list-mode--level">
+          <li class="rt-table__item--list-mode
+                     rt-table__item--list-mode--level">
             <span class=
                   {% if course.level.title == "Grundläggande" %}
                   "badge badge-success"
@@ -85,7 +104,8 @@
             </span>
           </li>
           {% for category in course.categories.all %}
-          <li class="rt-table__item--list-mode rt-table__item--list-mode--category">
+          <li class="rt-table__item--list-mode
+                     rt-table__item--list-mode--category">
             <a href="{{ category.get_absolute_url }}">
               <span class="badge badge-secondary" data-toggle="tooltip" title="{{ category.title }}">
                 {{ category.abbreviation }}
@@ -96,8 +116,10 @@
         </ul>
       </div>
       <div class="rt-table-row__columns">
-        <span class="rt-table__item--table-mode rt-table__item--table-mode--ects">{{ course.ects }}</span>
-        <div class="rt-table__item--table-mode rt-table__item--table-mode--level">
+        <span class="rt-table__item--table-mode
+                     rt-table__item--table-mode--ects">{{ course.ects }}</span>
+        <div class="rt-table__item--table-mode
+                    rt-table__item--table-mode--level">
           <span class=
                 {% if course.level.title == "Grundläggande" %}
                 'badge badge-success'
@@ -109,7 +131,8 @@
             {{ course.level.first_letter }}
           </span>
         </div>
-        <ul class="rt-table__badge-list rt-table__item--table-mode--categories">
+        <ul class="rt-table__badge-list
+                   rt-table__item--table-mode--categories">
           {% for category in course.categories.all %}
           <li>
             <a href="{{ category.get_absolute_url }}">
