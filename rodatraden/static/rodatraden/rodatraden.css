@@ -593,56 +593,87 @@ a:not(.default):hover{
   display: none;
 }
 
+/* Media queries specific to the custom table on the course list page */
+
 @media (width < 52rem) {
-  .rt-table-header__item--ects,
-  .rt-table__item--list-mode--ects {
+  .rt-table--course-list .rt-table-header__item--ects,
+  .rt-table--course-list .rt-table__item--list-mode--ects {
     display: inline-block;
   }
 
-  .rt-table__item--table-mode--ects {
+  .rt-table--course-list .rt-table__item--table-mode--ects {
     display: none;
   }
 }
 
 @media (width < 46rem) {
-  .rt-table-header__item--level,
-  .rt-table-header__item--year,
-  .rt-table__item--list-mode--level,
-  .rt-table__item--list-mode--year {
+  .rt-table--course-list .rt-table-header__item--level,
+  .rt-table--course-list .rt-table__item--list-mode--level {
     display: block;
   }
 
-  .rt-table-row__columns .rt-table__item--table-mode--level,
-  .rt-table-row__columns .rt-table__item--table-mode--year,
-  .rt-table__item--table-mode--level,
-  .rt-table__item--table-mode--year {
+  .rt-table--course-list .rt-table-row__columns .rt-table__item--table-mode--level,
+  .rt-table--course-list .rt-table__item--table-mode--level {
     display: none;
   }
 }
 
 @media (width < 40rem) {
-  .rt-table-header__item--category,
-  .rt-table-header__item--start,
-  .rt-table__item--list-mode--category,
-  .rt-table__item--list-mode--start {
+  .rt-table--course-list .rt-table-header__item--category,
+  .rt-table--course-list .rt-table__item--list-mode--category {
     display: block;
   }
 
   .rt-table--course-list .rt-table-header--table-mode,
-  .rt-table__item--table-mode--categories,
-  .rt-table__item--table-mode--start {
+  .rt-table--course-list .rt-table__item--table-mode--categories {
     display: none;
   }
 }
 
-@media (width < 34rem) {
-  .rt-table-header__item--weeks,
-  .rt-table__item--list-mode--weeks {
+/* Media queries specific to the custom table on the private course list page */
+
+@media (width < 60rem) {
+  .rt-table--private-course-list .rt-table-header__item--ects,
+  .rt-table--private-course-list .rt-table__item--list-mode--ects {
+    display: inline-block;
+  }
+
+  .rt-table--private-course-list .rt-table__item--table-mode--ects {
+    display: none;
+  }
+}
+
+@media (width < 56rem) {
+  .rt-table--private-course-list .rt-table-header__item--year,
+  .rt-table--private-course-list .rt-table__item--list-mode--year {
+    display: block;
+  }
+
+  .rt-table--private-course-list .rt-table-row__columns .rt-table__item--table-mode--year,
+  .rt-table--private-course-list .rt-table__item--table-mode--year {
+    display: none;
+  }
+}
+
+@media (width < 49rem) {
+  .rt-table--private-course-list .rt-table-header__item--start,
+  .rt-table--private-course-list .rt-table__item--list-mode--start {
+    display: block;
+  }
+
+  .rt-table--private-course-list .rt-table__item--table-mode--start {
+    display: none;
+  }
+}
+
+@media (width < 38rem) {
+  .rt-table--private-course-list .rt-table-header__item--weeks,
+  .rt-table--private-course-list .rt-table__item--list-mode--weeks {
     display: block;
   }
 
   .rt-table--private-course-list .rt-table-header--table-mode,
-  .rt-table__item--table-mode--weeks {
+  .rt-table--private-course-list .rt-table__item--table-mode--weeks {
     display: none;
   }
 }
