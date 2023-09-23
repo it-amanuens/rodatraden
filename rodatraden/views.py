@@ -691,8 +691,6 @@ class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
     """List view for private courses."""
 
     model = PrivateCourse
-    # TODO: Remove PrivateCourseTable class definition
-    #table_class = PrivateCourseTable
     template_name = 'rodatraden/privatecourse/privatecourse_list.html'
 
     def get_queryset(self):

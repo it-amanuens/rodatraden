@@ -95,30 +95,6 @@ class ExamTable(tables.Table):
         fields = ('title', 'ects', 'created_at', 'updated_at')
 
 
-class PrivateCourseTable(tables.Table):
-    """Table for private courses"""
-
-    # Need to fetch url from private course model
-    title = tables.Column(linkify=lambda record: record.get_absolute_url())
-
-    # The start week is presented differently.
-    start = tables.TemplateColumn(
-        template_code='{{ record.start_string }}',
-        verbose_name='Start'
-    )
-
-    # Editing buttons
-    edit = tables.TemplateColumn(
-            template_name='rodatraden/tables/privatecourse_edit.html', 
-            verbose_name="")
-
-    class Meta:
-        model = PrivateCourse
-        # Style template
-        template_name = 'django_tables2/bootstrap4.html'
-        fields = ('title', 'ects', 'year', 'start', 'weeks')
-
-
 class ReportTable(tables.Table):
     """Table for reports"""
     
