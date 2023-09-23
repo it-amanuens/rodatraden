@@ -20,83 +20,89 @@ Egna kurstillfällen
 
 {% block content %}
 
-<div class="course-list__header course-list__private-course-header">
-  <div class="header-section">
-    <a href="" class="header-section__title title-link">
-      Kursnamn <span class="fa fa-caret-up"></span>
-    </a>
-    <a href="" class="header-section__ects ects-link">
-      Poäng <span class="fa"></span>
-    </a>
-    <a href="" class="header-section__year year-link">
-      Läsår <span class="fa"></span>
-    </a>
-    <a href="" class="header-section__start start-link">
-      Start <span class="fa"></span>
-    </a>
-    <a href="" class="header-section__weeks weeks-link">
-      Längd <span class="fa"></span>
-    </a>
+<div class="rt-table rt-table--private-course-list">
+  <div class="rt-table-header-container">
+    <div class="rt-table-header rt-table-header--list-mode">
+      <a href="" class="rt-table-header--title title-link">
+        Kursnamn <span class="fa fa-caret-up"></span>
+      </a>
+      <a href=""
+          class="rt-table-header__item rt-table-header__item--ects ects-link">
+        Poäng <span class="fa"></span>
+      </a>
+      <a href=""
+          class="rt-table-header__item rt-table-header__item--year year-link">
+        Läsår <span class="fa"></span>
+      </a>
+      <a href=""
+          class="rt-table-header__item rt-table-header__item--start start-link">
+        Start <span class="fa"></span>
+      </a>
+      <a href=""
+          class="rt-table-header__item rt-table-header__item--weeks weeks-link">
+        Längd <span class="fa"></span>
+      </a>
+    </div>
+    <div class="rt-table-header rt-table-header--table-mode">
+      <a href="" class="rt-table__item--table-mode rt-table__item--table-mode--ects ects-link">
+        Poäng <span class="fa"></span>
+      </a>
+      <a href="" class="rt-table__item--table-mode rt-table__item--table-mode--year year-link">
+        Läsår <span class="fa"></span>
+      </a>
+      <a href="" class="rt-table__item--table-mode rt-table__item--table-mode--start start-link">
+        Start <span class="fa"></span>
+      </a>
+      <a href="" class="rt-table__item--table-mode rt-table__item--table-mode--weeks weeks-link">
+        Längd <span class="fa"></span>
+      </a>
+    </div>
   </div>
-  <div class="header-section">
-    <a href="" class="ects-column ects-link">
-      Poäng <span class="fa"></span>
-    </a>
-    <a href="" class="year-column year-link">
-      Läsår <span class="fa"></span>
-    </a>
-    <a href="" class="start-column start-link">
-      Start <span class="fa"></span>
-    </a>
-    <a href="" class="weeks-column weeks-link">
-      Längd <span class="fa"></span>
-    </a>
-  </div>
-</div>
 
-<ul class="courses">
-  {% for course in privatecourse_list %}
-  <li>
-    <div>
+  <ul class="rt-table-body">
+    {% for course in privatecourse_list %}
+    <li class="rt-table-row">
       <div>
-        <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
-        <span class="ects-row">{{ course.ects }} hp</span>
+        <div>
+          <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+          <span class="rt-table__item--list-mode rt-table__item--list-mode--ects">{{ course.ects }} hp</span>
+        </div>
+        <ul class="rt-table__badge-list">
+          <li class="rt-table__item--list-mode rt-table__item--list-mode--year">
+            <span class="badge badge-secondary"
+                data-toggle="tooltip"
+                title="Läsår">
+              {{ course.year_string }}
+            </span>
+          </li>
+          <li class="rt-table__item--list-mode rt-table__item--list-mode--start">
+            <span class="badge badge-secondary"
+                data-toggle="tooltip"
+                title="Start">
+              {{ course.start_string }}
+            </span>
+          </li>
+          <li class="rt-table__item--list-mode rt-table__item--list-mode--weeks">
+            <span class="badge badge-secondary"
+                data-toggle="tooltip"
+                title="Längd">
+              {{ course.weeks }} veckor
+            </span>
+          </li>
+        </ul>
       </div>
-      <ul class="courses__extra">
-        <li class="year-row">
-          <span class="badge badge-secondary"
-              data-toggle="tooltip"
-              title="Läsår">
-            {{ course.year_string }}
-          </span>
-        </li>
-        <li class="start-row">
-          <span class="badge badge-secondary"
-              data-toggle="tooltip"
-              title="Start">
-            {{ course.start_string }}
-          </span>
-        </li>
-        <li class="weeks-row">
-          <span class="badge badge-secondary"
-              data-toggle="tooltip"
-              title="Längd">
-            {{ course.weeks }} veckor
-          </span>
-        </li>
-      </ul>
-    </div>
-    <div class="courses__columns">
-      <span class="ects-column">{{ course.ects }}</span>
-      <span class="year-column">{{ course.year_string }}</span>
-      <span class="start-column">{{ course.start_string }}</span>
-      <span class="weeks-column">{{ course.weeks }}</span>
-      
-      
-    </div>
-  </li>
-  {% endfor %}
-</ul>
+      <div class="rt-table-row__columns">
+        <span class="rt-table__item--table-mode rt-table__item--table-mode--ects">{{ course.ects }}</span>
+        <span class="rt-table__item--table-mode rt-table__item--table-mode--year">{{ course.year_string }}</span>
+        <span class="rt-table__item--table-mode rt-table__item--table-mode--start">{{ course.start_string }}</span>
+        <span class="rt-table__item--table-mode rt-table__item--table-mode--weeks">{{ course.weeks }}</span>
+        
+        
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
 
 {% endblock %}
 
