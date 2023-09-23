@@ -1,5 +1,5 @@
 import BlockScheduleData from './block_schedule_data.js';
-import * as renderer from './block_schedule_renderer.js'
+import * as renderer from './block_schedule_renderer.js';
 
 export default class BlockSchedule {
   /**

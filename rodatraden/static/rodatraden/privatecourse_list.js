@@ -11,7 +11,9 @@ import {
 function updateSortingLinks() {
   const titleLinks = document.getElementsByClassName('title-link');
   const ectsLinks = document.getElementsByClassName('ects-link');
-  const levelLinks = document.getElementsByClassName('level-link');
+  const yearLinks = document.getElementsByClassName('year-link');
+  const startLinks = document.getElementsByClassName('start-link');
+  const weeksLinks = document.getElementsByClassName('weeks-link');
 
   const queryString = window.location.search;
 
@@ -19,23 +21,27 @@ function updateSortingLinks() {
   if (!queryString) return;
 
   const parameters = parseQueryString(queryString);
-  // Make sure that the user lands on the first page after sorting the courses.
-  parameters.delete('page');
   // Create a set of parameters for each sorting category.
   let titleParameters = structuredClone(parameters);
   let ectsParameters = structuredClone(parameters);
-  let levelParameters = structuredClone(parameters);
+  let yearParameters = structuredClone(parameters);
+  let startParameters = structuredClone(parameters);
+  let weeksParameters = structuredClone(parameters);
   
   // Set all sorting to ascending order as a start. Then only the incorrect one
   // need to be changed.
   setSortOrder(titleParameters, 'title', true);
   setSortOrder(ectsParameters, 'ects', true);
-  setSortOrder(levelParameters, 'level', true);
+  setSortOrder(yearParameters, 'year', true);
+  setSortOrder(startParameters, 'start', true);
+  setSortOrder(weeksParameters, 'weeks', true);
 
   // Remove caret icons. The correct one will be added later.
   removeCaret(titleLinks);
   removeCaret(ectsLinks);
-  removeCaret(levelLinks);
+  removeCaret(yearLinks);
+  removeCaret(startLinks);
+  removeCaret(weeksLinks);
 
   const currentSortOrder = getSortOrder(parameters);
 
@@ -53,9 +59,17 @@ function updateSortingLinks() {
         setSortOrder(ectsParameters, 'ects', !isAscending);
         addCaret(ectsLinks, isAscending);
         break;
-      case 'level':
-        setSortOrder(levelParameters, 'level', !isAscending);
-        addCaret(levelLinks, isAscending);
+      case 'year':
+        setSortOrder(yearParameters, 'year', !isAscending);
+        addCaret(yearLinks, isAscending);
+      break;
+      case 'start':
+        setSortOrder(startParameters, 'start', !isAscending);
+        addCaret(startLinks, isAscending);
+      break;
+      case 'weeks':
+        setSortOrder(weeksParameters, 'weeks', !isAscending);
+        addCaret(weeksLinks, isAscending);
         break;
     }
   } else {
@@ -68,40 +82,9 @@ function updateSortingLinks() {
   // Update all href attributes with the new URLs.
   applySortURL(titleLinks, titleParameters);
   applySortURL(ectsLinks, ectsParameters);
-  applySortURL(levelLinks, levelParameters);
-}
-
-/**
- * Adds a class to list items that are next to an ellipsis while also being two
- * elements away from the active page number. The class hides elements on
- * narrow screens, reducing overflow.
- * 
- * E.g., If the pagination holds 1, …, 3, 4, 5, 6, 7, … and 13, then the class
- * is applied to 3 and 7.
- */
-function makePaginationResponsive() {
-  // Middle starting point.
-  const activeListItem = document.querySelector('.page-item.active');
-
-  // Search left.
-  const leftCandidate = activeListItem?.previousElementSibling?.previousElementSibling;
-  {
-    const potentialEllipsis = leftCandidate?.previousElementSibling;
-    const isEllipsis = potentialEllipsis?.firstElementChild?.innerText === '…';
-    if (isEllipsis) {
-      leftCandidate.classList.add('page-hidden-narrow');
-    }
-  }
-
-  // Search right.
-  const rightCandidate = activeListItem?.nextElementSibling?.nextElementSibling;
-  {
-    const potentialEllipsis = rightCandidate?.nextElementSibling;
-    const isEllipsis = potentialEllipsis?.firstElementChild?.innerText === '…';
-    if (isEllipsis) {
-      rightCandidate.classList.add('page-hidden-narrow');
-    }
-  }
+  applySortURL(yearLinks, yearParameters);
+  applySortURL(startLinks, startParameters);
+  applySortURL(weeksLinks, weeksParameters);
 }
 
 /**
@@ -109,7 +92,6 @@ function makePaginationResponsive() {
  */
 function main() {
   updateSortingLinks();
-  makePaginationResponsive();
 }
 
 // Run main function when the script is loaded.

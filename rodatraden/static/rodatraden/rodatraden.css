@@ -578,7 +578,7 @@ a:not(.default):hover{
 }
 
 .rt-table__item--table-mode--year {
-  width: 2.75rem;
+  width: 3.5rem;
 }
 
 .rt-table__item--table-mode--start {
@@ -586,7 +586,9 @@ a:not(.default):hover{
 }
 
 .rt-table__item--table-mode--weeks {
-  width: 3rem;
+  width: 4.5rem;
+
+  text-align: end;
 }
 
 .rt-table__item--list-mode {
@@ -643,7 +645,7 @@ a:not(.default):hover{
   }
 }
 
-@media (width < 56rem) {
+@media (width < 58rem) {
   .rt-table--private-course-list .rt-table-header__item--year,
   .rt-table--private-course-list .rt-table__item--list-mode--year {
     display: block;
@@ -655,7 +657,7 @@ a:not(.default):hover{
   }
 }
 
-@media (width < 49rem) {
+@media (width < 50rem) {
   .rt-table--private-course-list .rt-table-header__item--start,
   .rt-table--private-course-list .rt-table__item--list-mode--start {
     display: block;
@@ -666,7 +668,7 @@ a:not(.default):hover{
   }
 }
 
-@media (width < 38rem) {
+@media (width < 37rem) {
   .rt-table--private-course-list .rt-table-header__item--weeks,
   .rt-table--private-course-list .rt-table__item--list-mode--weeks {
     display: block;

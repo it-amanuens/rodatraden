@@ -700,9 +700,11 @@ class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
 
         qs = super().get_queryset()
 
+        sort_order = self.request.GET.get('sort_order', 'title')
+
         return qs.filter(
             user__username=self.kwargs['username']
-        ).order_by('title')
+        ).order_by(sort_order)
 
 
 class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin,

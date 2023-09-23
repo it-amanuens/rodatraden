@@ -1,5 +1,6 @@
 {% extends 'rodatraden/index.html' %}
 
+{% load static %}
 {% load render_table from django_tables2 %}
 {% load widget_tweaks %}
 {% load bootstrap4 %}
@@ -25,30 +26,30 @@ Egna kurstillfällen
   <div class="rt-table-header-container">
     <div class="rt-table-header
                 rt-table-header--list-mode">
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=-title"
           class="rt-table-header--title
                  title-link">
         Kursnamn <span class="fa fa-caret-up"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=ects"
           class="rt-table-header__item
                  rt-table-header__item--ects
                  ects-link">
         Poäng <span class="fa"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=year"
           class="rt-table-header__item
                  rt-table-header__item--year
                  year-link">
         Läsår <span class="fa"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=start"
           class="rt-table-header__item
                  rt-table-header__item--start
                  start-link">
         Start <span class="fa"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=weeks"
           class="rt-table-header__item
                  rt-table-header__item--weeks
                  weeks-link">
@@ -57,25 +58,25 @@ Egna kurstillfällen
     </div>
     <div class="rt-table-header
                 rt-table-header--table-mode">
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=ects"
           class="rt-table__item--table-mode
                  rt-table__item--table-mode--ects
                  ects-link">
         Poäng <span class="fa"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=year"
           class="rt-table__item--table-mode
                  rt-table__item--table-mode--year
                  year-link">
         Läsår <span class="fa"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=start"
           class="rt-table__item--table-mode
                  rt-table__item--table-mode--start
                  start-link">
         Start <span class="fa"></span>
       </a>
-      <a href=""
+      <a href="{% url 'privatecourse-list' user.username %}?sort_order=weeks"
           class="rt-table__item--table-mode
                  rt-table__item--table-mode--weeks
                  weeks-link">
@@ -162,4 +163,9 @@ Egna kurstillfällen
     });
   });
 </script>
+
+<script src="{% static 'rodatraden/privatecourse_list.js' %}"
+        type='module'
+></script>
+
 {% endblock %}
