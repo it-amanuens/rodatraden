@@ -21,8 +21,7 @@ from .models import (
     PrivateCourse, ISPTemplate
 )
 from .tables import (
-    CourseTable, CourseOccasionTable, ExamTable, ReportTable,
-    PrivateCourseTable
+    CourseOccasionTable, ExamTable, ReportTable
 )
 from .filters import CourseFilter, CourseOccasionFilter
 from .forms import (
