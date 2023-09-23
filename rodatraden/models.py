@@ -776,6 +776,14 @@ class PrivateCourse(models.Model):
         spring_year_string = str(self.year + 1)[2:]
         return f'{fall_year_string}/{spring_year_string}'
 
+    @property
+    def weeks_string(self):
+        """Example: If weeks = 2 then '2 veckor' is returned, and if weeks = 1
+        then '1 vecka' is returned."""
+
+        postfix = 'vecka' if self.weeks == 1 else 'veckor'
+        return f'{self.weeks} {postfix}'
+
 
     def category_ects(self, category_sum):
         """Get the ects sum per category.
