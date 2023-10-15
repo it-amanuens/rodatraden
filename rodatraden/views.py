@@ -342,12 +342,40 @@ def course_list(request: HttpRequest):
 
     page_numbers = paginator.get_elided_page_range(page_index, on_each_side=2, on_ends=1)
 
+    # Header information needed by the template that the course list template
+    # extends.
+    table_header_items = [
+        {
+            'name': 'title',
+            'verbose_name': 'Kursnamn',
+            'is_sortable': True
+        },
+        {
+            'name': 'ects',
+            'verbose_name': 'Poäng',
+            'is_sortable': True
+        },
+        {
+            'name': 'level',
+            'verbose_name': 'Nivå',
+            'is_sortable': True
+        },
+        {
+            'name': 'categories',
+            'verbose_name': 'Kategorier',
+            'is_sortable': False
+        }
+    ]
+
     context = {
         'filter': filter,
-        'page': page,
+        # The page is renamed because the parent template expects a list of
+        # courses named 'courses'.
+        'courses': page,
         'page_numbers': page_numbers,
         'ellipsis': paginator.ELLIPSIS,
-        'unfinished_page_path': prepare_page_path(request)
+        'unfinished_page_path': prepare_page_path(request),
+        'table_header_items': table_header_items
     }
 
     return render(request, 'rodatraden/course/course_list.html', context)
@@ -691,6 +719,8 @@ class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
 
     model = PrivateCourse
     template_name = 'rodatraden/privatecourse/privatecourse_list.html'
+    # The parent template expects a list of courses named 'courses'.
+    context_object_name = 'courses'
 
     def get_queryset(self):
         """Extend get_queryset to filter only private courses for user."""
@@ -702,6 +732,42 @@ class PrivateCourseList(CorrectUserPermissionMixin, LoginRequiredMixin,
         return qs.filter(
             user__username=self.kwargs['username']
         ).order_by(sort_order)
+
+
+    def get_context_data(self):
+        # Header information needed by the template that the course list template
+        # extends.
+        table_header_items = [
+            {
+                'name': 'title',
+                'verbose_name': 'Kursnamn',
+                'is_sortable': True
+            },
+            {
+                'name': 'ects',
+                'verbose_name': 'Poäng',
+                'is_sortable': True
+            },
+            {
+                'name': 'year',
+                'verbose_name': 'Läsår',
+                'is_sortable': True
+            },
+            {
+                'name': 'start',
+                'verbose_name': 'Start',
+                'is_sortable': True
+            },
+            {
+                'name': 'weeks',
+                'verbose_name': 'Veckor',
+                'is_sortable': True
+            }
+        ]
+
+        context = super().get_context_data()
+        context['table_header_items'] = table_header_items
+        return context
 
 
 class PrivateCourseDetail(CorrectUserPermissionMixin, LoginRequiredMixin,

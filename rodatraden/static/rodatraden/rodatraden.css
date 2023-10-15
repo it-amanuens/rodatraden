@@ -511,14 +511,6 @@ a:not(.default):hover{
   flex-grow: 1;
 }
 
-.rt-table-header__item {
-  display: none;
-}
-
-.rt-table-header__item--title {
-  display: block;
-}
-
 .rt-table-body {
   padding: 0;
   margin: 0;
@@ -595,10 +587,13 @@ a:not(.default):hover{
   display: none;
 }
 
+.rt-table__item--list-mode--title {
+  display: block;
+}
+
 /* Media queries specific to the custom table on the course list page */
 
 @media (width < 52rem) {
-  .rt-table--course-list .rt-table-header__item--ects,
   .rt-table--course-list .rt-table__item--list-mode--ects {
     display: inline-block;
   }
@@ -609,7 +604,6 @@ a:not(.default):hover{
 }
 
 @media (width < 46rem) {
-  .rt-table--course-list .rt-table-header__item--level,
   .rt-table--course-list .rt-table__item--list-mode--level {
     display: block;
   }
@@ -621,8 +615,7 @@ a:not(.default):hover{
 }
 
 @media (width < 40rem) {
-  .rt-table--course-list .rt-table-header__item--category,
-  .rt-table--course-list .rt-table__item--list-mode--category {
+  .rt-table--course-list .rt-table__item--list-mode--categories {
     display: block;
   }
 
@@ -635,7 +628,6 @@ a:not(.default):hover{
 /* Media queries specific to the custom table on the private course list page */
 
 @media (width < 60rem) {
-  .rt-table--private-course-list .rt-table-header__item--ects,
   .rt-table--private-course-list .rt-table__item--list-mode--ects {
     display: inline-block;
   }
@@ -646,7 +638,6 @@ a:not(.default):hover{
 }
 
 @media (width < 58rem) {
-  .rt-table--private-course-list .rt-table-header__item--year,
   .rt-table--private-course-list .rt-table__item--list-mode--year {
     display: block;
   }
@@ -658,7 +649,6 @@ a:not(.default):hover{
 }
 
 @media (width < 50rem) {
-  .rt-table--private-course-list .rt-table-header__item--start,
   .rt-table--private-course-list .rt-table__item--list-mode--start {
     display: block;
   }
@@ -669,7 +659,6 @@ a:not(.default):hover{
 }
 
 @media (width < 37rem) {
-  .rt-table--private-course-list .rt-table-header__item--weeks,
   .rt-table--private-course-list .rt-table__item--list-mode--weeks {
     display: block;
   }

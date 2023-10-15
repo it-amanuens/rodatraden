@@ -1,13 +1,13 @@
-{% extends 'rodatraden/index.html' %}
+{% extends 'rodatraden/rt_table/table.html' %}
 
 {% load static %}
-{% load render_table from django_tables2 %}
 {% load widget_tweaks %}
-{% load bootstrap4 %}
+
 
 {% block title %}
 Egna kurstillfällen
 {% endblock %}
+
 
 {% block menu %}
 <a class="btn btn-gone add-privatecourse"
@@ -17,136 +17,60 @@ Egna kurstillfällen
 </a> 
 {% endblock %}
 
+
 {% block page_title %}Egna kurstillfällen{% endblock %}
 
-{% block content %}
 
-<div class="rt-table
-            rt-table--private-course-list">
-  <div class="rt-table-header-container">
-    <div class="rt-table-header
-                rt-table-header--list-mode">
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=-title"
-          class="rt-table-header--title
-                 title-link">
-        Kursnamn <span class="fa fa-caret-up"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=ects"
-          class="rt-table-header__item
-                 rt-table-header__item--ects
-                 ects-link">
-        Poäng <span class="fa"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=year"
-          class="rt-table-header__item
-                 rt-table-header__item--year
-                 year-link">
-        Läsår <span class="fa"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=start"
-          class="rt-table-header__item
-                 rt-table-header__item--start
-                 start-link">
-        Start <span class="fa"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=weeks"
-          class="rt-table-header__item
-                 rt-table-header__item--weeks
-                 weeks-link">
-        Veckor <span class="fa"></span>
-      </a>
-    </div>
-    <div class="rt-table-header
-                rt-table-header--table-mode">
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=ects"
-          class="rt-table__item--table-mode
-                 rt-table__item--table-mode--ects
-                 ects-link">
-        Poäng <span class="fa"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=year"
-          class="rt-table__item--table-mode
-                 rt-table__item--table-mode--year
-                 year-link">
-        Läsår <span class="fa"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=start"
-          class="rt-table__item--table-mode
-                 rt-table__item--table-mode--start
-                 start-link">
-        Start <span class="fa"></span>
-      </a>
-      <a href="{% url 'privatecourse-list' user.username %}?sort_order=weeks"
-          class="rt-table__item--table-mode
-                 rt-table__item--table-mode--weeks
-                 weeks-link">
-        Veckor <span class="fa"></span>
-      </a>
-    </div>
-  </div>
+{% block rt_table_class_name %}private-course-list{% endblock %}
 
-  <ul class="rt-table-body">
-    {% for course in privatecourse_list %}
-    <li class="rt-table-row">
-      <div>
-        <div>
-          <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
-          <span class="rt-table__item--list-mode
-                       rt-table__item--list-mode--ects">
-            {{ course.ects }} hp
-          </span>
-        </div>
-        <ul class="rt-table__badge-list">
-          <li class="rt-table__item--list-mode
-                     rt-table__item--list-mode--year">
-            <span class="badge badge-secondary"
-                data-toggle="tooltip"
-                title="Läsår">
-              {{ course.year_string }}
-            </span>
-          </li>
-          <li class="rt-table__item--list-mode
-                     rt-table__item--list-mode--start">
-            <span class="badge badge-secondary"
-                data-toggle="tooltip"
-                title="Start">
-              {{ course.start_string }}
-            </span>
-          </li>
-          <li class="rt-table__item--list-mode
-                     rt-table__item--list-mode--weeks">
-            <span class="badge badge-secondary"
-                data-toggle="tooltip"
-                title="Längd">
-              {{ course.weeks_string }}
-            </span>
-          </li>
-        </ul>
-      </div>
-      <div class="rt-table-row__columns">
-        <span class="rt-table__item--table-mode
-                     rt-table__item--table-mode--ects">
-          {{ course.ects }}
-        </span>
-        <span class="rt-table__item--table-mode
-                     rt-table__item--table-mode--year">
-          {{ course.year_string }}
-        </span>
-        <span class="rt-table__item--table-mode
-                     rt-table__item--table-mode--start">
-          {{ course.start_string }}
-        </span>
-        <span class="rt-table__item--table-mode
-                     rt-table__item--table-mode--weeks">
-          {{ course.weeks }}
-        </span>
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
-</div>
 
+{% block rt_table_badge_list %}
+<li class="rt-table__item--list-mode
+           rt-table__item--list-mode--year">
+  <span class="badge badge-secondary"
+      data-toggle="tooltip"
+      title="Läsår">
+    {{ course.year_string }}
+  </span>
+</li>
+<li class="rt-table__item--list-mode
+           rt-table__item--list-mode--start">
+  <span class="badge badge-secondary"
+      data-toggle="tooltip"
+      title="Start">
+    {{ course.start_string }}
+  </span>
+</li>
+<li class="rt-table__item--list-mode
+           rt-table__item--list-mode--weeks">
+  <span class="badge badge-secondary"
+      data-toggle="tooltip"
+      title="Längd">
+    {{ course.weeks_string }}
+  </span>
+</li>
 {% endblock %}
+
+
+{% block rt_table_row_columns %}
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--ects">
+  {{ course.ects }}
+</span>
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--year">
+  {{ course.year_string }}
+</span>
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--start">
+  {{ course.start_string }}
+</span>
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--weeks">
+  {{ course.weeks }}
+</span>
+{% endblock %}
+
 
 {% block extra_scripts %}
 <script type="text/javascript">
