@@ -118,10 +118,12 @@ class SaveAndImportBlockMixin(object):
             if not 'import_from' in self.fields:
                 return instance
 
-            imported_block: Block = self.cleaned_data['import_from']
+            imported_blocks: list[Block] = self.cleaned_data['import_from']
             # Skip if no import block
-            if not imported_block:
+            if not imported_blocks:
                 return instance
+            
+            imported_block = imported_blocks[0]
 
             # Get all courseoccasions from selected block
             courseoccasions = imported_block.courseoccasions.all().order_by(

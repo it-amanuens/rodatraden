@@ -163,8 +163,15 @@ class CourseOccasionForm(BSModalModelForm):
 class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
     """Form for blocks."""
 
-    import_from = forms.ModelChoiceField(queryset=None, required=False,
+    import_from = forms.ModelMultipleChoiceField(queryset=None, required=False,
             label="Importera från blockschema")
+    # Add class to import field to get a user-friendly drop-down list.
+    import_from.widget.attrs.update({'class': 'select2-mult-choice'})
+
+    # Specify the field order so that the import field isn't at the bottom. The
+    # fields not specified here will be appended in the order they are defined
+    # in the model.
+    field_order = ['title', 'description', 'start_year', 'import_from']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
