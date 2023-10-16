@@ -164,7 +164,7 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
     """Form for blocks."""
 
     import_from = forms.ModelMultipleChoiceField(queryset=None, required=False,
-            label="Importera från blockschema")
+            label="Importera från blockschema(n)")
     # Add class to import field to get a user-friendly drop-down list.
     import_from.widget.attrs.update({'class': 'select2-mult-choice'})
 

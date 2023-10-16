@@ -95,11 +95,41 @@ class CategoryFormMixin(object):
 
 
 class SaveAndImportBlockMixin(object):
-    """Save a block and import courses from a selected block.
-    
-    Takes the year difference between the two blocks and adjusts for the new
-    block.
-    """
+    """Save a block and import courses from a selected block."""
+
+    def import_course_occasions(self, start_year: int, imported_block: Block):
+        """Create course occasions from imported block.
+
+        Takes the year difference between the two blocks and adjusts for the new
+        block.
+        """
+
+        # Get all courseoccasions from selected block
+        course_occasions = imported_block.courseoccasions.all().order_by(
+            'academic_year__year', 'time_period__week'
+        )
+
+        # Difference in years from new block to the import block
+        year_diff = int(start_year) - imported_block.start_year
+
+        # Create new courseoccasions
+        new_course_occasions: list[CourseOccasion] = []
+        for course_occasion in course_occasions:
+            new_year = course_occasion.academic_year.year + year_diff
+            # Get the new course occasion. Just skip if something bad happens,
+            # like if it doesn't exist for the new year.
+            try:
+                new_course_occasion = CourseOccasion.objects.get(
+                    course = course_occasion.course,
+                    academic_year__year = new_year,
+                    time_period__week = course_occasion.time_period.week
+                )
+                new_course_occasions.append(new_course_occasion)
+            except:
+                pass
+
+        return new_course_occasions
+
 
     def save(self, commit=True):
         """Overwrite save to save not only the block, but also to insert the
@@ -112,52 +142,41 @@ class SaveAndImportBlockMixin(object):
         # respository. 
         # https://github.com/trco/django-bootstrap-modal-forms/issues/14
         if not is_ajax(self.request):
-            instance = super().save(commit=commit)
+            block_schedule: Block = super().save(commit=commit)
 
             # Skip if field not set
             if not 'import_from' in self.fields:
-                return instance
+                return block_schedule
 
-            imported_blocks: list[Block] = self.cleaned_data['import_from']
+            imported_schedules: list[Block] = self.cleaned_data['import_from']
             # Skip if no import block
-            if not imported_blocks:
-                return instance
+            if not imported_schedules:
+                return block_schedule
             
-            imported_block = imported_blocks[0]
+            start_year = self.cleaned_data['start_year']
+            
+            # Import all course occasions. Duplicates are removed later.
+            new_course_occasions: list[CourseOccasion] = []
+            for imported_schedule in imported_schedules:
+                course_occasions_from_block = self.import_course_occasions(
+                    start_year, imported_schedule
+                )
+                new_course_occasions.extend(course_occasions_from_block)
 
-            # Get all courseoccasions from selected block
-            courseoccasions = imported_block.courseoccasions.all().order_by(
-                'academic_year__year', 'time_period__week'
-            )
+            # Remove duplicates. This is necessary since the same course
+            # occasion can be in multiple blocks.
+            new_course_occasions = list(set(new_course_occasions))
 
-            # Difference in years from new block to the import block
-            year_diff = (int(self.cleaned_data['start_year'])
-                         - imported_block.start_year)
-
-            # Main insertion loop
-            for courseocc in courseoccasions:
-                # Get the new courseoccasion
-                # Just skip if something bad happens
+            for course_occasion in new_course_occasions:
                 try:
-                    new_courseocc = CourseOccasion.objects.get(
-                        course=courseocc.course,
-                        academic_year__year=(
-                            courseocc.academic_year.year+year_diff
-                        ),
-                        time_period__week=courseocc.time_period.week
-                    )
-                except:
-                    pass
-
-                try:
-                    instance.courseoccasions.add(new_courseocc)
+                    block_schedule.courseoccasions.add(course_occasion)
                 except:
                     pass
 
         else:
-            instance = super().save(commit=False)
+            block_schedule = super().save(commit=False)
 
-        return instance
+        return block_schedule
 
 
 class CorrectUserPermissionMixin:
