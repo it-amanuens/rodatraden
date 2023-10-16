@@ -174,11 +174,14 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
         
         # Use can import form all public blocks published in a track and all
         # their own blocks for copying.
-        self.fields['import_from'].queryset = Block.objects.filter(
+        public_blocks = Block.objects.filter(
             private=False
         ).exclude(
             track__isnull=True
-        ) | Block.objects.filter(user=self.request.user)
+        )
+        private_blocks = Block.objects.filter(user=self.request.user)
+        all_blocks = public_blocks | private_blocks
+        self.fields['import_from'].queryset = all_blocks.order_by('title')
 
         self.fields['start_year'] = forms.ChoiceField(choices=years,
                 initial=datetime.datetime.now().year)
