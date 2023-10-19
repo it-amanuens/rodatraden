@@ -1,12 +1,13 @@
-{% extends 'rodatraden/index.html' %}
+{% extends 'rodatraden/rt_table/table.html' %}
 
-{% load render_table from django_tables2 %}
+{% load static %}
 {% load widget_tweaks %}
-{% load bootstrap4 %}
+
 
 {% block title %}
 Egna kurstillfällen
 {% endblock %}
+
 
 {% block menu %}
 <a class="btn btn-gone add-privatecourse"
@@ -16,13 +17,60 @@ Egna kurstillfällen
 </a> 
 {% endblock %}
 
+
 {% block page_title %}Egna kurstillfällen{% endblock %}
 
-{% block content %}
 
-{% render_table table %}
+{% block rt_table_class_name %}private-course-list{% endblock %}
 
+
+{% block rt_table_badge_list %}
+<li class="rt-table__item--list-mode
+           rt-table__item--list-mode--year">
+  <span class="badge badge-secondary"
+      data-toggle="tooltip"
+      title="Läsår">
+    {{ course.year_string }}
+  </span>
+</li>
+<li class="rt-table__item--list-mode
+           rt-table__item--list-mode--start">
+  <span class="badge badge-secondary"
+      data-toggle="tooltip"
+      title="Start">
+    {{ course.start_string }}
+  </span>
+</li>
+<li class="rt-table__item--list-mode
+           rt-table__item--list-mode--weeks">
+  <span class="badge badge-secondary"
+      data-toggle="tooltip"
+      title="Längd">
+    {{ course.weeks_string }}
+  </span>
+</li>
 {% endblock %}
+
+
+{% block rt_table_row_columns %}
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--ects">
+  {{ course.ects }}
+</span>
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--year">
+  {{ course.year_string }}
+</span>
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--start">
+  {{ course.start_string }}
+</span>
+<span class="rt-table__item--table-mode
+             rt-table__item--table-mode--weeks">
+  {{ course.weeks }}
+</span>
+{% endblock %}
+
 
 {% block extra_scripts %}
 <script type="text/javascript">
@@ -39,4 +87,9 @@ Egna kurstillfällen
     });
   });
 </script>
+
+<script src="{% static 'rodatraden/privatecourse_list.js' %}"
+        type='module'
+></script>
+
 {% endblock %}

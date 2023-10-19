@@ -1,0 +1,66 @@
+{% extends 'rodatraden/index.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+
+{% block content %}
+
+{% block rt_table_filter %}{% endblock %}
+
+<div class="rt-table
+            rt-table--{% block rt_table_class_name %}{% endblock %}">
+  <div class="rt-table-header-container">
+    {% include 'rodatraden/rt_table/header.html' with mode='list' %}
+    {% include 'rodatraden/rt_table/header.html' with mode='table' %}
+  </div>
+
+  <ul class="rt-table-body">
+    {% for course in courses %}
+    <li class="rt-table-row">
+      <div>
+        <div>
+          <a href="{{ course.get_absolute_url }}">{{ course.title }}</a>
+          <span class="rt-table__item--list-mode
+                       rt-table__item--list-mode--ects">
+            {{ course.ects }} hp
+          </span>
+        </div>
+        <ul class="rt-table__badge-list">
+          {% block rt_table_badge_list %}{% endblock %}
+        </ul>
+      </div>
+      <div class="rt-table-row__columns">
+        {% block rt_table_row_columns %}{% endblock %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% block rt_table_pagination %}{% endblock %}
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script type="text/javascript">
+  $(function () {
+    /* Open modal for creation form */
+    $(".add-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+    $(".update-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+    $(".delete-privatecourse").each(function () {
+      $(this).modalForm({formURL: $(this).data('id')});
+    });
+  });
+</script>
+
+<script src="{% static 'rodatraden/privatecourse_list.js' %}"
+        type='module'
+></script>
+
+{% endblock %}

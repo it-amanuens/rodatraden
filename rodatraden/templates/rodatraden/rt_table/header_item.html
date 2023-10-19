@@ -1,0 +1,26 @@
+{% if forloop.first and mode == 'table' %}
+{% comment %}
+The first item does not have a table mode since it doesn't resize. We
+therefore ignore the first table mode iteration.
+{% endcomment %}
+{% else %}
+
+{% if item.is_sortable %}
+{# Reverse the sorting order for the first item by adding the "-". #}
+<a href="?sort_order={% if forloop.first %}-{% endif %}{{ item.name }}"
+    class="rt-table__item--{{ mode }}-mode
+           rt-table__item--{{ mode }}-mode--{{ item.name }}
+           {{ item.name }}-link">
+  {{ item.verbose_name }}
+
+  {# Only add a caret for the first item. #}
+  <span class="fa {% if forloop.first %}fa-caret-up{% endif %}"></span>
+</a>
+{% else %}
+<span class="rt-table__item--{{ mode }}-mode
+             rt-table__item--{{ mode }}-mode--{{ item.name }}">
+  {{ item.verbose_name }}
+</span>
+{% endif %}
+
+{% endif %}

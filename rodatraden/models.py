@@ -768,6 +768,21 @@ class PrivateCourse(models.Model):
             postfix = 'vecka' if period_start_offset == 1 else 'veckor'
             result += f' - {period_start_offset} {postfix} in'
         return result
+    
+    @property
+    def year_string(self):
+        """Example: If year = 2019 then '19/20' is returned."""
+        fall_year_string = str(self.year)[2:]
+        spring_year_string = str(self.year + 1)[2:]
+        return f'{fall_year_string}/{spring_year_string}'
+
+    @property
+    def weeks_string(self):
+        """Example: If weeks = 2 then '2 veckor' is returned, and if weeks = 1
+        then '1 vecka' is returned."""
+
+        postfix = 'vecka' if self.weeks == 1 else 'veckor'
+        return f'{self.weeks} {postfix}'
 
 
     def category_ects(self, category_sum):
