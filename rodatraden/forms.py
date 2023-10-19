@@ -163,8 +163,15 @@ class CourseOccasionForm(BSModalModelForm):
 class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
     """Form for blocks."""
 
-    import_from = forms.ModelChoiceField(queryset=None, required=False,
-            label="Importera från blockschema")
+    import_from = forms.ModelMultipleChoiceField(queryset=None, required=False,
+            label="Importera från blockschema(n)")
+    # Add class to import field to get a user-friendly drop-down list.
+    import_from.widget.attrs.update({'class': 'select2-mult-choice'})
+
+    # Specify the field order so that the import field isn't at the bottom. The
+    # fields not specified here will be appended in the order they are defined
+    # in the model.
+    field_order = ['title', 'description', 'start_year', 'import_from']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -174,11 +181,14 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
         
         # Use can import form all public blocks published in a track and all
         # their own blocks for copying.
-        self.fields['import_from'].queryset = Block.objects.filter(
+        public_blocks = Block.objects.filter(
             private=False
         ).exclude(
             track__isnull=True
-        ) | Block.objects.filter(user=self.request.user)
+        )
+        private_blocks = Block.objects.filter(user=self.request.user)
+        all_blocks = public_blocks | private_blocks
+        self.fields['import_from'].queryset = all_blocks.order_by('title')
 
         self.fields['start_year'] = forms.ChoiceField(choices=years,
                 initial=datetime.datetime.now().year)
