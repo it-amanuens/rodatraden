@@ -13,6 +13,11 @@
   data-toggle="tooltip" title="Blockscheman">
   <span class="fa fa-list"></span>
 </a>
+<a class="btn btn-gone import-block"
+  data-id="{% url 'block-import-list' this_block.user this_block.slug %}"
+  data-toggle="tooltip" title="Importera blockschema">
+  <span class="fa fa-share-square"></span>
+</a>
 <a class="btn btn-gone update-block"
   data-id="{% url 'block-update' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Ändra">

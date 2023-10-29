@@ -206,6 +206,13 @@ a:not(.default):hover{
   margin-inline: -1rem;
 }
 
+/* Custom modal */
+.rt-modal-table__header--block-schedule-list,
+.rt-modal-table__row__main--block-schedule-list {
+  display: grid;
+  grid-template-columns: 1fr 11em;
+}
+
 /* Block stuff */
 
 .block-schedule {

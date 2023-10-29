@@ -180,7 +180,7 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
         years.sort()
         
         # Use can import form all public blocks published in a track and all
-        # their own blocks for copying.
+        # their own blocks.
         public_blocks = Block.objects.filter(
             private=False
         ).exclude(

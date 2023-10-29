@@ -1,0 +1,40 @@
+{% load l10n %}
+{% load widget_tweaks %}
+
+<div class="modal-header">
+  <h3 class="modal-title">Importera blockschema</h3>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body">
+
+  <div class='course-table'>
+    <div class='course-table__header rt-modal-table__header--block-schedule-list'>
+        <span class='course-row__text'>Blockschema</span>
+        <span class='course-row__text'>Ägare</span>
+    </div>
+    
+    <ul class='course-table__body'>
+      {% for block in block_list %}
+      <li class='course-table__row course-row'>
+        <div class='rt-modal-table__row__main--block-schedule-list'>
+          <span class='course-row__text'>
+            <a href="importera?username={{ block.user.username }}&slug={{ block.slug }}"
+               aria-label="Importera kurser från {{ block.title }}"
+               title="Lägg till">
+              {{ block.title }}
+            </a>
+          </span>
+          <span class='course-row__text'>{{ block.user.username }}</span>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-default" data-dismiss="modal">Stäng</button>
+</div>

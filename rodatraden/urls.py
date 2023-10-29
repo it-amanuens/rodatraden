@@ -78,6 +78,12 @@ urlpatterns = [
          views.BlockDelete.as_view(), name='block-delete'),
     path('blockscheman/<str:username>/<slug:slug>/andra/',
          views.BlockUpdate.as_view(), name='block-update'),
+
+    path('blockscheman/<str:username>/<slug:slug>/blocklista/',
+         views.BlockImportList.as_view(), name='block-import-list'),
+    path('blockscheman/<str:username>/<slug:slug>/importera/',
+         views.import_block, name='block-import-block'),
+
     path('blockscheman/<str:username>/<slug:slug>/kurslista/',
          views.block_course_list, name='block-course-list'),
     path('blockscheman/<str:username>/<slug:b_slug>/laggatill/',
