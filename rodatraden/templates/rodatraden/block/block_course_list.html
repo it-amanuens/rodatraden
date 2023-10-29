@@ -10,18 +10,19 @@
 
 <div class="modal-body">
 
-  <div class='course-table'>
-    <div class='course-table__header'>
-        <span class='course-row__text'>Kursnamn</span>
-        <span class='course-row__right-aligned'>Veckor</span>
-        <span class='course-row__right-aligned'>Takt</span>
+  <div class='rt-modal-table'>
+    <div class='rt-modal-table__header
+                rt-modal-table__header--course-list'>
+        <span>Kursnamn</span>
+        <span class='rt-column--number'>Veckor</span>
+        <span class='rt-column--number'>Takt</span>
     </div>
     
-    <ul class='course-table__body'>
+    <ul class='rt-modal-table__body'>
       {% for courseoccasion in courseoccasions %}
-      <li class='course-table__row course-row'>
+      <li class='rt-modal-table__row'>
         <div class='course-row__main'>
-          <span class='course-row__text'>
+          <span>
             <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}"
                aria-label="Lägg till {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng"
                title="Lägg till">
@@ -29,27 +30,25 @@
             </a>
             <span class='course-row__ects' aria-hidden="true">{{ courseoccasion.course.ects }} hp</span>
           </span>
-          <span class='course-row__right-aligned'>{{ courseoccasion.weeks }}</span>
-          <span class='course-row__right-aligned'>{{ courseoccasion.pace }}%</span>
-          <a class="course-row__right-aligned"
+          <span class='rt-column--number'>{{ courseoccasion.weeks }}</span>
+          <span class='rt-column--number'>{{ courseoccasion.pace }}%</span>
+          <a class="rt-column--last"
              href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}"
              aria-label="Läs mer om {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng">
             Läs mer
           </a>
         </div>
-        <ul class='course-row__extra'>
-          {% if courseoccasion.start_weeks_into_period %}
-          <li class='course-row__extra__item'>
-            Startar {{ courseoccasion.start_weeks_into_period }} 
-            {% if courseoccasion.start_weeks_into_period == 1 %}
-            vecka
-            {% else %}
-            veckor
-            {% endif %}
-            in
-          </li>
+        {% if courseoccasion.start_weeks_into_period %}
+        <p class='course-row__extra'>
+          Startar {{ courseoccasion.start_weeks_into_period }} 
+          {% if courseoccasion.start_weeks_into_period == 1 %}
+          vecka
+          {% else %}
+          veckor
           {% endif %}
-        </ul>
+          in
+        </p>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>
@@ -58,18 +57,19 @@
   <hr class='modal-divider'>
   <h2>Egna kurser</h2>
 
-  <div class='course-table'>
-    <div class='course-table__header'>
-        <span class='course-row__text'>Kursnamn</span>
-        <span class='course-row__right-aligned'>Veckor</span>
-        <span class='course-row__right-aligned'>Takt</span>
+  <div class='rt-modal-table'>
+    <div class='rt-modal-table__header
+                rt-modal-table__header--course-list'>
+        <span>Kursnamn</span>
+        <span class='rt-column--number'>Veckor</span>
+        <span class='rt-column--number'>Takt</span>
     </div>
     
-    <ul class='course-table__body'>
+    <ul class='rt-modal-table__body'>
       {% for privatecourse in privatecourses %}
-      <li class='course-table__row course-row'>
+      <li class='rt-modal-table__row'>
         <div class='course-row__main'>
-          <span class='course-row__text'>
+          <span>
             <a href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1"
                aria-label="Lägg till {{ privatecourse.title }} {{ privatecourse.ects }} högskolepoäng"
                title="Lägg till">
@@ -77,27 +77,25 @@
             </a>
             <span class='course-row__ects'>{{ privatecourse.ects }} hp</span>
           </span>
-          <span class='course-row__right-aligned'>{{ privatecourse.weeks }}</span>
-          <span class='course-row__right-aligned'>{{ privatecourse.pace }}%</span>
-          <a class="course-row__right-aligned"
+          <span class='rt-column--number'>{{ privatecourse.weeks }}</span>
+          <span class='rt-column--number'>{{ privatecourse.pace }}%</span>
+          <a class="rt-column--last"
              href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}"
              aria-label="Läs mer om {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng">
             Läs mer
           </a>
         </div>
-        <ul class='course-row__extra'>
-          {% if privatecourse.start_weeks_into_period %}
-          <li class='course-row__extra__item'>
-            Startar {{ privatecourse.start_weeks_into_period }} 
-            {% if privatecourse.start_weeks_into_period == 1 %}
-            vecka
-            {% else %}
-            veckor
-            {% endif %}
-            in
-          </li>
+        {% if privatecourse.start_weeks_into_period %}
+        <p class='course-row__extra'>
+          Startar {{ privatecourse.start_weeks_into_period }} 
+          {% if privatecourse.start_weeks_into_period == 1 %}
+          vecka
+          {% else %}
+          veckor
           {% endif %}
-        </ul>
+          in
+        </p>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

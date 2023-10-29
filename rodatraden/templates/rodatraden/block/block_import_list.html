@@ -10,25 +10,23 @@
 
 <div class="modal-body">
 
-  <div class='course-table'>
-    <div class='course-table__header rt-modal-table__header--block-schedule-list'>
-        <span class='course-row__text'>Blockschema</span>
-        <span class='course-row__text'>Ägare</span>
+  <div class='rt-modal-table'>
+    <div class='rt-modal-table__header
+                rt-modal-table__header--block-schedule-list'>
+        <span>Blockschema</span>
+        <span>Ägare</span>
     </div>
     
-    <ul class='course-table__body'>
+    <ul class='rt-modal-table__body'>
       {% for block in block_list %}
-      <li class='course-table__row course-row'>
-        <div class='rt-modal-table__row__main--block-schedule-list'>
-          <span class='course-row__text'>
-            <a href="importera?username={{ block.user.username }}&slug={{ block.slug }}"
-               aria-label="Importera kurser från {{ block.title }}"
-               title="Lägg till">
-              {{ block.title }}
-            </a>
-          </span>
-          <span class='course-row__text'>{{ block.user.username }}</span>
-        </div>
+      <li class='rt-modal-table__row
+                 rt-modal-table__row--block-schedule-list'>
+        <a href="importera?username={{ block.user.username }}&slug={{ block.slug }}"
+            aria-label="Importera kurser från {{ block.title }}"
+            title="Lägg till">
+          {{ block.title }}
+        </a>
+        <span>{{ block.user.username }}</span>
       </li>
       {% endfor %}
     </ul>
