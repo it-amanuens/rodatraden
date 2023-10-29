@@ -1,107 +1,18 @@
-{% load l10n %}
-{% load widget_tweaks %}
+{% extends 'rodatraden/rt_modal/modal.html' %}
 
-<div class="modal-header">
-  <h3 class="modal-title">Kurstillfällen denna period</h3>
-  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-</div>
 
-<div class="modal-body">
+{% block rt_modal_title %}
+Kurstillfällen denna period
+{% endblock %}
 
-  <div class='rt-modal-table'>
-    <div class='rt-modal-table__header
-                rt-modal-table__header--course-list'>
-        <span>Kursnamn</span>
-        <span class='rt-column--number'>Veckor</span>
-        <span class='rt-column--number'>Takt</span>
-    </div>
-    
-    <ul class='rt-modal-table__body'>
-      {% for courseoccasion in courseoccasions %}
-      <li class='rt-modal-table__row'>
-        <div class='course-row__main'>
-          <span>
-            <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}"
-               aria-label="Lägg till {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng"
-               title="Lägg till">
-              {{ courseoccasion.course.title }}
-            </a>
-            <span class='course-row__ects' aria-hidden="true">{{ courseoccasion.course.ects }} hp</span>
-          </span>
-          <span class='rt-column--number'>{{ courseoccasion.weeks }}</span>
-          <span class='rt-column--number'>{{ courseoccasion.pace }}%</span>
-          <a class="rt-column--last"
-             href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}"
-             aria-label="Läs mer om {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng">
-            Läs mer
-          </a>
-        </div>
-        {% if courseoccasion.start_weeks_into_period %}
-        <p class='course-row__extra'>
-          Startar {{ courseoccasion.start_weeks_into_period }} 
-          {% if courseoccasion.start_weeks_into_period == 1 %}
-          vecka
-          {% else %}
-          veckor
-          {% endif %}
-          in
-        </p>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
 
-  <hr class='modal-divider'>
-  <h2>Egna kurser</h2>
+{% block rt_modal_body %}
 
-  <div class='rt-modal-table'>
-    <div class='rt-modal-table__header
-                rt-modal-table__header--course-list'>
-        <span>Kursnamn</span>
-        <span class='rt-column--number'>Veckor</span>
-        <span class='rt-column--number'>Takt</span>
-    </div>
-    
-    <ul class='rt-modal-table__body'>
-      {% for privatecourse in privatecourses %}
-      <li class='rt-modal-table__row'>
-        <div class='course-row__main'>
-          <span>
-            <a href="{% url 'block-add-course' username b_slug %}?slug={{ privatecourse.slug}}&private=1"
-               aria-label="Lägg till {{ privatecourse.title }} {{ privatecourse.ects }} högskolepoäng"
-               title="Lägg till">
-              {{ privatecourse.title }}
-            </a>
-            <span class='course-row__ects'>{{ privatecourse.ects }} hp</span>
-          </span>
-          <span class='rt-column--number'>{{ privatecourse.weeks }}</span>
-          <span class='rt-column--number'>{{ privatecourse.pace }}%</span>
-          <a class="rt-column--last"
-             href="{% url 'privatecourse-detail' privatecourse.user.username privatecourse.slug %}"
-             aria-label="Läs mer om {{ courseoccasion.course.title }} {{ courseoccasion.course.ects }} högskolepoäng">
-            Läs mer
-          </a>
-        </div>
-        {% if privatecourse.start_weeks_into_period %}
-        <p class='course-row__extra'>
-          Startar {{ privatecourse.start_weeks_into_period }} 
-          {% if privatecourse.start_weeks_into_period == 1 %}
-          vecka
-          {% else %}
-          veckor
-          {% endif %}
-          in
-        </p>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
+{% include 'rodatraden/rt_modal/course_list_modal_table.html' %}
 
-<div class="modal-footer">
-  <button type="button" class="btn btn-default" data-dismiss="modal">Stäng</button>
-</div>
+<hr class='modal-divider'>
+<h2>Egna kurser</h2>
+
+{% include 'rodatraden/rt_modal/course_list_modal_table.html' with courseoccasions=privatecourses is_private=True %}
+
+{% endblock %}

@@ -1,0 +1,22 @@
+<div class='rt-modal-table'>
+  <div class='rt-modal-table__header
+              rt-modal-table__header--course-list'>
+      <span>Kursnamn</span>
+      <span class='rt-column--number'>Veckor</span>
+      <span class='rt-column--number'>Takt</span>
+  </div>
+
+  <ul class='rt-modal-table__body'>
+    {% for courseoccasion in courseoccasions %}
+    
+    {% comment %} For regular course occasions, information like the title is
+    accessed via the nested "course" field.  {% endcomment %}
+    {% if is_private %}
+    {% include 'rodatraden/rt_modal/course_list_table_row.html' with course=courseoccasion %}
+    {% else %}
+    {% include 'rodatraden/rt_modal/course_list_table_row.html' with course=courseoccasion.course %}
+    {% endif %}
+
+    {% endfor %}
+  </ul>
+</div>

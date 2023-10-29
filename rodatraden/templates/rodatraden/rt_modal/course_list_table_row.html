@@ -1,0 +1,34 @@
+<li class='rt-modal-table__row'>
+  <div class='course-row__main'>
+    <span>
+      <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}{% if is_private %}&private=1{% endif %}"
+          aria-label="Lägg till {{ course.title }} {{ course.ects }} högskolepoäng"
+          title="Lägg till">
+        {{ course.title }}
+      </a>
+      <span class='course-row__ects' aria-hidden="true">{{ course.ects }} hp</span>
+    </span>
+    <span class='rt-column--number'>{{ courseoccasion.weeks }}</span>
+    <span class='rt-column--number'>{{ courseoccasion.pace }}%</span>
+    <a class="rt-column--last"
+        {% if is_private %}
+        href="{% url 'privatecourse-detail' courseoccasion.user.username courseoccasion.slug %}"
+        {% else %}
+        href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}"
+        {% endif %}
+        aria-label="Läs mer om {{ course.title }} {{ course.ects }} högskolepoäng">
+      Läs mer
+    </a>
+  </div>
+  {% if courseoccasion.start_weeks_into_period %}
+  <p class='course-row__extra'>
+    Startar {{ courseoccasion.start_weeks_into_period }} 
+    {% if courseoccasion.start_weeks_into_period == 1 %}
+    vecka
+    {% else %}
+    veckor
+    {% endif %}
+    in
+  </p>
+  {% endif %}
+</li>

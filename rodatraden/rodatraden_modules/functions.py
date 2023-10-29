@@ -18,34 +18,34 @@ def is_ajax(request):
 
 
 def import_course_occasions(start_year: int, imported_block: Block):
-        """Create course occasions from imported block.
+    """Create course occasions from imported block.
 
-        Takes the year difference between the two blocks and adjusts for the new
-        block.
-        """
+    Takes the year difference between the two blocks and adjusts for the new
+    block.
+    """
 
-        # Get all courseoccasions from selected block
-        course_occasions = imported_block.courseoccasions.all().order_by(
-            'academic_year__year', 'time_period__week'
-        )
+    # Get all courseoccasions from selected block
+    course_occasions = imported_block.courseoccasions.all().order_by(
+        'academic_year__year', 'time_period__week'
+    )
 
-        # Difference in years from new block to the import block
-        year_diff = int(start_year) - imported_block.start_year
+    # Difference in years from new block to the import block
+    year_diff = int(start_year) - imported_block.start_year
 
-        # Create new courseoccasions
-        new_course_occasions: list[CourseOccasion] = []
-        for course_occasion in course_occasions:
-            new_year = course_occasion.academic_year.year + year_diff
-            # Get the new course occasion. Just skip if something bad happens,
-            # like if it doesn't exist for the new year.
-            try:
-                new_course_occasion = CourseOccasion.objects.get(
-                    course = course_occasion.course,
-                    academic_year__year = new_year,
-                    time_period__week = course_occasion.time_period.week
-                )
-                new_course_occasions.append(new_course_occasion)
-            except:
-                pass
+    # Create new courseoccasions
+    new_course_occasions: list[CourseOccasion] = []
+    for course_occasion in course_occasions:
+        new_year = course_occasion.academic_year.year + year_diff
+        # Get the new course occasion. Just skip if something bad happens,
+        # like if it doesn't exist for the new year.
+        try:
+            new_course_occasion = CourseOccasion.objects.get(
+                course = course_occasion.course,
+                academic_year__year = new_year,
+                time_period__week = course_occasion.time_period.week
+            )
+            new_course_occasions.append(new_course_occasion)
+        except:
+            pass
 
-        return new_course_occasions
+    return new_course_occasions
