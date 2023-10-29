@@ -197,11 +197,11 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
         # Non-staff can't add track blocks
         if not self.request.user.is_staff:
             del self.fields['track']
+            
 
-        # If the block already exists, ignore import
-        if self.instance.pk:
-            del self.fields['import_from']
-        else:  # Set the default exam as latest (probably only TF)
+        # If the block is being created, set the default exam as latest
+        # (probably only TF)
+        if not self.instance.pk:
             self.fields['exam'].initial = Exam.objects.first()
             
 
