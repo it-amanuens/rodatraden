@@ -831,9 +831,9 @@ class Block(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     courseoccasions = models.ManyToManyField(CourseOccasion, blank=True)
     privatecourses = models.ManyToManyField(PrivateCourse)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE, null=True,
+    track = models.ForeignKey(Track, on_delete=models.SET_NULL, null=True,
             blank=True, verbose_name='Spår')
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, 
+    exam = models.ForeignKey(Exam, on_delete=models.PROTECT, 
             verbose_name='Examen')
     slug = models.SlugField(max_length=100, unique=False, editable=False)
 
