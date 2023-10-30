@@ -3,10 +3,14 @@ import BlockSchedule from './block_schedule/block_schedule.js';
 
 /**
  * Setups event listeners for the buttons to update and delete the block-
- * schedule.
+ * schedule, as well as import from other schedules.
  */
-function setupUpdateAndDeleteButtons() {
+function setupMenuButtons() {
   $(".update-block").each(function () {
+    $(this).modalForm({formURL: $(this).data('id')});
+  });
+
+  $(".import-block").each(function () {
     $(this).modalForm({formURL: $(this).data('id')});
   });
 
@@ -162,7 +166,7 @@ function isNarrowWindow() {
  */
 function main() {
   // Setup the three sections and most buttons.
-  setupUpdateAndDeleteButtons();
+  setupMenuButtons();
   setupSections();
   
   // Create the chart showing ECTS sums for each category.

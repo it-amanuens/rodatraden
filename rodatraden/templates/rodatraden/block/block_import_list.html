@@ -1,0 +1,31 @@
+{% extends 'rodatraden/rt_modal/modal.html' %}
+
+
+{% block rt_modal_title %}
+Importera blockschema
+{% endblock %}
+
+
+{% block rt_modal_body %}
+<div class='rt-modal-table'>
+  <div class='rt-modal-table__header
+              rt-modal-table__header--block-schedule-list'>
+      <span>Blockschema</span>
+      <span>Ägare</span>
+  </div>
+  
+  <ul class='rt-modal-table__body'>
+    {% for block in block_list %}
+    <li class='rt-modal-table__row
+                rt-modal-table__row--block-schedule-list'>
+      <a href="importera?username={{ block.user.username }}&slug={{ block.slug }}"
+          aria-label="Importera kurser från {{ block.title }}"
+          title="Lägg till">
+        {{ block.title }}
+      </a>
+      <span>{{ block.user.username }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

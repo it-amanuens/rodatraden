@@ -143,36 +143,46 @@ a:not(.default):hover{
   background-color: var(--main-color);
 }
 
-/* Block-schedule course-list modal */
+/* Generic properties */
 
-.course-table {
-  --row-padding: 0.25rem;
+.rt-column--number,
+.rt-column--last {
+  text-align: end;
 }
 
-.course-table__header {
+/* Custom modal table */
+
+.rt-modal-table__header {
+  display: grid;
+
   font-weight: bold;
 }
 
-/* Reset list style  */
-.course-table__body,
-.course-row__extra {
+.rt-modal-table__body {
+  /* Reset list style  */
   margin: 0;
   padding: 0;
-
   list-style: none;
 }
 
-.course-table__row {
+.rt-modal-table__header,
+.rt-modal-table__row {
+  padding: 0.25rem;
+}
+
+.rt-modal-table__row {
   border-top: 1px solid rgba(0,0,0,.1);
 }
 
-.course-table__header,
-.course-table__row {
-  padding-block: 0.25rem;
-  padding-inline: 0.25rem;
+.modal-divider {
+  /* Bootstrap modals have a 1rem padding. To get the divider all the way out
+  to the edge the margin of the divider need to be the same but negative. */
+  margin-inline: -1rem;
 }
 
-.course-table__header,
+/* Tweaks for the course list modal */
+
+.rt-modal-table__header--course-list,
 .course-row__main {
   display: grid;
   grid-template-columns: 1fr 3.5em 3em 4.5rem;
@@ -182,28 +192,19 @@ a:not(.default):hover{
   display: inline-block;
 }
 
-.course-row__right-aligned {
-  text-align: end;
-}
-
 .course-row__extra {
-  display: flex;
-
   margin-inline-start: 0.5rem;
 
   font-size: small;
   color: var(--gray);
 }
 
-.course-row__extra__item:not(:first-child)::before {
-  content: "\2022";
-  margin-inline: 0.25rem;
-}
+/* Tweaks for the block schedule list modal */
 
-.modal-divider {
-  /* Bootstrap modals have a 1rem padding. To get the divider all the way out
-  to the edge the margin of the divider need to be the same but negative. */
-  margin-inline: -1rem;
+.rt-modal-table__header--block-schedule-list,
+.rt-modal-table__row--block-schedule-list {
+  display: grid;
+  grid-template-columns: 1fr 11em;
 }
 
 /* Block stuff */

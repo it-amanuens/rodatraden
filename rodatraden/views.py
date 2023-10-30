@@ -30,7 +30,7 @@ from .forms import (
         DeleteUserForm
 )
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
-from .rodatraden_modules.functions import is_ajax
+from .rodatraden_modules.functions import import_course_occasions, is_ajax
 
 import openpyxl
 import os
@@ -1040,6 +1040,63 @@ def block_detail(request, username, slug):
 
         return render(request, 'rodatraden/block/block_detail.html', context)
 
+
+class BlockImportList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
+    """List view for blocks that courses can be imported from."""
+
+    model = Block
+    template_name = 'rodatraden/block/block_import_list.html'
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset()
+
+        # Use can import form all public blocks published in a track and all
+        # their own blocks.
+        public_blocks = qs.filter(
+            private=False
+        ).exclude(
+            track__isnull=True
+        )
+        private_blocks = qs.filter(user=self.request.user)
+        all_blocks = public_blocks | private_blocks
+        return all_blocks.order_by('title')
+    
+
+@login_required
+def import_block(request, username, slug):
+    """Import course occasions from block from GET info."""
+
+    # Block to import course occasions into.
+    user_block = get_object_or_404(
+        Block,
+        user__username=username,
+        slug=slug
+    )
+
+    # Block to import course occasions from.
+    imported_block_username = request.GET.get('username', '')
+    imported_block_slug = request.GET.get('slug', '')
+    imported_block = get_object_or_404(
+        Block,
+        user__username=imported_block_username,
+        slug=imported_block_slug
+    )
+
+    imported_course_occasions = import_course_occasions(
+        user_block.start_year,
+        imported_block
+    )
+
+    # Add imported course occasions to user block.
+    for course_occasion in imported_course_occasions:
+        try:
+            user_block.courseoccasions.add(course_occasion)
+        except:
+            pass
+
+    return redirect('block-detail', username=username, slug=slug)
+
+
 @login_required
 def block_course_list(request: HttpRequest, username: str, slug: str):
     """Custom list view with all courses that can be added a specific year and
@@ -1107,7 +1164,7 @@ def add_course_to_block(request, username, b_slug):
     # Get block
     block = get_object_or_404(Block, user__username=username, slug=b_slug)
 
-    # Only blocks made by same user
+    # Only blocks made by same user, except if the user is staff.
     if not request.user.is_staff:
         if (block.user.username != request.user.username):
             return redirect(reverse('index'))
