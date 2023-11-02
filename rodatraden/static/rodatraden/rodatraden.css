@@ -285,6 +285,11 @@ a:not(.default):hover{
   background-color: var(--main-color-dark);
 }
 
+.course--private {
+  border-color: var(--gray-dark);
+  background-color: var(--gray-darker);
+}
+
 .course-title {
   padding-inline: var(--schedule-padding);
   margin: 0;

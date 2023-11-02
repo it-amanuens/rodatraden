@@ -319,6 +319,11 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     .attr('class', course => {
       let classList = ['course'];
 
+      // Mark a block if it is private.
+      if (course.isPrivate) {
+        classList.push('course--private');
+      }
+
       // Mark a block if it is only a portion of a course, as well as which
       // term the block belongs to.
       if (course.length !== course.weeks) {
