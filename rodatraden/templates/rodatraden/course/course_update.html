@@ -71,6 +71,34 @@
       <span class="fa fa-plus"></span>
     </button>
 
+    <h2>Förkunskapskrav</h2>
+    {% for prerequisite_field in form.get_prerequisite_fields %}
+    <div class="form-group row px-3 form-prerequisite">
+        {{ prerequisite_field }}
+        <button type="button" class="btn btn-gone add-equivalent-course"
+          data-toggle="tooltip" title="Lägg till alternativ kurs">
+          <span class="fa fa-plus"></span>
+        </button>
+        <button type="button" class="btn btn-gone remove-prerequisite"
+          data-toggle="tooltip" title="Ta bort förkunskapskrav">
+          <span class="fa fa-trash"></span>
+        </button>
+    </div>
+
+    {% if prerequisite_field.errors %}
+    <div class="invalid">
+      {% for error in prerequisite_field.errors %}
+        <p class="alert alert-danger">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not forloop.last %}
+    <span class="form-prerequisite__vertical-divider">och</span>
+    {% endif %}
+
+    {% endfor %}
+
   </div>
 
   <div class="modal-footer">
@@ -134,5 +162,26 @@
 
           $('[data-toggle="tooltip"]').tooltip()
         });
+
+      /* Adjust the CSS grid for each row of prerequisites. */
+      const prerequisiteFormGroups = document.getElementsByClassName(
+        'form-prerequisite'
+      );
+      for (const formGroup of prerequisiteFormGroups) {
+        const courseCount = formGroup.getElementsByTagName('select').length;
+        formGroup.style.setProperty('--course-count', courseCount);
+      }
+
+      /* Add separator word between alternative courses. Make sure not to add
+      before first element. */
+      const prerequisiteSelects = document.querySelectorAll(
+        '.form-prerequisite__select:not(:first-child)'
+      );
+      for (const select of prerequisiteSelects) {
+        const text = document.createElement('span');
+        text.classList.add('form-prerequisite__horizontal-divider');
+        text.innerText = 'eller';
+        select.parentNode.insertBefore(text, select);
+      }
     });
 </script>

@@ -1,6 +1,6 @@
 from rodatraden.models import Block, Category, CourseOccasion
 from .functions import import_course_occasions, is_ajax
-from .forms import CategoryEctsField
+from .forms import CategoryEctsField, PrerequisiteField
 from decimal import Decimal
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -91,6 +91,43 @@ class CategoryFormMixin(object):
         """Yield the category fields for usage in form templates."""
         for field_name in self.fields:
             if field_name.startswith('category_'):
+                yield self[field_name]
+
+
+class PrerequisiteFormMixin(object):
+    """Mixin for prerequisites."""
+
+    def _build_prerequisite_fields(self, prerequisites):
+        """Build the fields for each given prerequisite and add one extra."""
+
+        for i, prerequisite in enumerate(prerequisites):
+            field_name = f'prerequisite_{i}'
+
+            equivalent_prerequisites = prerequisite.equivalent_prerequisites.all()
+
+            # Set new fields.
+            self.fields[field_name] = PrerequisiteField(
+                equivalent_courses=equivalent_prerequisites
+            )
+
+            # Set initial values using the primary keys of the courses.
+            primary_keys = [course.pk for course in equivalent_prerequisites]
+            self.initial[field_name] = primary_keys
+
+            """ for j, course in enumerate(equivalent_prerequisites):
+                # Set new fields
+                self.fields[f'{field_name}_{j}'] = PrerequisiteField(
+                    queryset=Course.objects.all()
+                )
+
+                # Set initial values
+                self.initial[f'{field_name}_{j}'] = course """
+
+
+    def get_prerequisite_fields(self):
+        """Yield the prerequisite fields for usage in form templates."""
+        for field_name in self.fields:
+            if field_name.startswith('prerequisite_'):
                 yield self[field_name]
 
 

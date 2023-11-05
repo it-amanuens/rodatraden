@@ -1,5 +1,5 @@
 from django import forms
-from rodatraden.models import Category
+from rodatraden.models import Category, Course
 from decimal import Decimal
 
 class CategoryEctsWidget(forms.MultiWidget):
@@ -190,3 +190,55 @@ class StartWeekField(forms.MultiValueField):
         else:
             # First week by default.
             return 0
+
+
+class PrerequisiteWidget(forms.MultiWidget):
+    """Widget to work in tandem with PrerequisiteField.
+    
+    The widget splits the equivalent courses into multiple fields.
+    """
+
+    def __init__(self, widgets: list[forms.Widget]):
+        for widget in widgets:
+            widget.attrs['class'] = 'form-control form-prerequisite__select'
+
+        super().__init__(widgets=widgets)
+
+    
+    def decompress(self, value):
+        if value:
+            return value
+        else:
+            return []
+
+
+class PrerequisiteField(forms.MultiValueField):
+    """Field for prerequisite input in forms.
+    
+    The user can select multiple equivalent courses that can meet the same
+    prerequisite."""
+
+
+    def __init__(self, equivalent_courses):
+
+        # TODO: Filter out the other courses from the queryset so the same
+        # course can't be selected twice.
+        queryset = Course.objects.order_by('title')
+
+        fields = []
+        widgets = []
+        for _ in range(len(equivalent_courses)):
+            field = forms.ModelChoiceField(queryset=queryset)
+            fields.append(field)
+            widgets.append(field.widget)
+        
+        super().__init__(fields=fields)
+
+        self.widget = PrerequisiteWidget(widgets)
+
+
+    def compress(self, data_list):
+        if data_list:
+            return data_list
+        else:
+            return []

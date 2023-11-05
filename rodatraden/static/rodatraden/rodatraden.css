@@ -731,13 +731,42 @@ a:not(.default):hover{
   }
 }
 
-/* FORM CATEGORY */
+/* Fields in course form */
 .cat-select {
   width: 60%;
 }
 
 .cat-ects {
   width: 20%;
+}
+
+.form-prerequisite {
+  /* This variable will be overritten by JS code. */
+  --course-count: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--course-count), 1fr 5ch) 5ch;
+  align-items: center;
+}
+
+.form-prerequisite:not(:last-child) {
+  /* Remove the margins in contact with the vertical dividers */
+  margin-bottom: 0;
+
+}
+
+.form-prerequisite__select {
+  text-overflow: ellipsis;
+}
+
+.form-prerequisite__horizontal-divider {
+  margin: 0;
+  text-align: center;
+}
+
+.form-prerequisite__vertical-divider {
+  display: block;
+  margin-block: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 /* Fields for start year and week in private course form. */

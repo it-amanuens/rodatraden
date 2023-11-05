@@ -481,6 +481,33 @@ class Course(models.Model):
         return category_sum
 
 
+class PrerequisiteNew(models.Model):
+    """Prerequisite for a course.
+    
+    Includes equivalent courses where only one of them need to be included in
+    the schedule to meet the prerequisite.
+    """
+    
+    # This is the course that has the prerequisite.
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE)
+    # These are courses that all meet the same prerequisite of the course above.
+    equivalent_prerequisites = models.ManyToManyField(
+        Course,
+        related_name='equivalent_prerequisites',
+        )
+
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+                                      null=False, blank=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False,
+                                      null=False, blank=False)
+
+
+    def __str__(self):
+        return f'{self.course} requires any of {list(self.equivalent_prerequisites.all())}'
+
+
 class Prerequisite(models.Model):
     """Prerequisites for a course.
 
