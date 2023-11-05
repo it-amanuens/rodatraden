@@ -220,9 +220,6 @@ class PrerequisiteField(forms.MultiValueField):
 
 
     def __init__(self, equivalent_courses):
-
-        # TODO: Filter out the other courses from the queryset so the same
-        # course can't be selected twice.
         queryset = Course.objects.order_by('title')
 
         fields = []
