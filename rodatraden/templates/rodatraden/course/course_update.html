@@ -96,14 +96,6 @@
       </div>
       {% endif %}
 
-      <template id="prerequisite-or-template">
-        <span class="form-prerequisite__or-separator">eller</span>
-      </template>
-
-      <template id="prerequisite-and-template">
-        <span class="form-prerequisite__and-separator">och</span>
-      </template>
-
 
       {% endfor %}
     </div>
@@ -111,8 +103,16 @@
     <button type="button" id="add-prerequisite"
             class="btn btn-gone form-add-prerequisite"
             data-toggle="tooltip" title="Lägg till förkunskapskrav">
-        <span class="fa fa-plus"></span>
-      </button>
+      <span class="fa fa-plus"></span>
+    </button>
+
+    <template id="prerequisite-or-template">
+      <span class="form-prerequisite__or-separator">eller</span>
+    </template>
+
+    <template id="prerequisite-and-template">
+      <span class="form-prerequisite__and-separator">och</span>
+    </template>
 
   </div>
 
