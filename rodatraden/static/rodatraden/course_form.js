@@ -123,45 +123,42 @@ function addEquivalentCourse() {
 function addPrerequisite() {
   if (!shouldAddPrerequisite()) return;
 
-  // Get the current number of prerequisites as well as the first row.
+  const prerequisiteContainer = document.getElementById('prerequisites');
+
+  // Get the current number of prerequisites.
   const prerequisites = document.querySelectorAll('.form-prerequisite')
   const prerequisiteCount = prerequisites.length;
-  const firstPrerequisite = prerequisites[0];
-  
-  // Create a new prerequisite row as an empty div with the same classes.
-  const newPrerequisite = document.createElement('div');
-  newPrerequisite.className = firstPrerequisite.className;
 
-  // Find the first select element and duplicate it.
-  const firstSelect = firstPrerequisite.querySelector('select');
-  const newSelect = firstSelect.cloneNode(true);
-  // Clear the value of the new select.
-  newSelect.value = '';
+  // Add a separator if there already exists prerequisites.
+  if (prerequisiteCount > 0) {
+    const separatorTemplate = document.getElementById('prerequisite-and-template');
+    const separator = separatorTemplate.content.cloneNode(true);
+    prerequisiteContainer.appendChild(separator);
+  }
 
-  // Change the name and id of the new select to be unique.
-  const newSelectName = newSelect.getAttribute('name');
-  const newSelectId = newSelect.getAttribute('id');
-  newSelect.setAttribute('name', newSelectName.replace('0', prerequisiteCount));
-  newSelect.setAttribute('id', newSelectId.replace('0', prerequisiteCount));
+  // Create a new prerequisite from the template tag.
+  const prerequisiteTemplate = document.getElementById('prerequisite-template');
+  const newPrerequisite = prerequisiteTemplate.content.cloneNode(true);
+  const newSelect = newPrerequisite.querySelector('select');
 
-  // Add the new select to the new prerequisite row.
-  newPrerequisite.appendChild(newSelect);
+  // Change the name and id of the new select to be unique and make it required.
+  const defaultName = newSelect.getAttribute('name');
+  const newName = defaultName.replace('0', prerequisiteCount);
+  newSelect.setAttribute('name', newName);
+  newSelect.setAttribute('id', `id_${newName}`);
+  newSelect.required = true;
 
-  // Clone the add and remove buttons from the first prerequisite and append them.
-  const firstAddButton = firstPrerequisite.querySelector('.add-equivalent-course');
-  const firstRemoveButton = firstPrerequisite.querySelector('.remove-prerequisite');
-  const newAddButton = firstAddButton.cloneNode(true);
-  newAddButton.addEventListener('click', addEquivalentCourse);
-  const newRemoveButton = firstRemoveButton.cloneNode(true);
-  newRemoveButton.addEventListener('click', removePrerequisite);
-  newPrerequisite.appendChild(newAddButton);
-  newPrerequisite.appendChild(newRemoveButton);
+  // Add eventlisteners to the add and remove buttons.
+  const addButton = newPrerequisite.querySelector('.add-equivalent-course');
+  const removeButton = newPrerequisite.querySelector('.remove-prerequisite');
+  addButton.addEventListener('click', addEquivalentCourse);
+  removeButton.addEventListener('click', removePrerequisite);
 
-  // Add the a separator and the new prerequisite row to the end of the list.
-  const prerequisiteContainer = document.getElementById('prerequisites');
-  const template = document.getElementById('prerequisite-and-template');
-  const separator = template.content.cloneNode(true);
-  prerequisiteContainer.appendChild(separator);
+  // Add jQuery tooltip.
+  $(addButton).tooltip();
+  $(removeButton).tooltip();
+
+  // Add the new prerequisite.
   prerequisiteContainer.appendChild(newPrerequisite);
 }
 

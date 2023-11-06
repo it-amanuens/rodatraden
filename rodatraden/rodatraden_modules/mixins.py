@@ -114,21 +114,26 @@ class PrerequisiteFormMixin(object):
             primary_keys = [course.pk for course in equivalent_prerequisites]
             self.initial[field_name] = primary_keys
 
-            """ for j, course in enumerate(equivalent_prerequisites):
-                # Set new fields
-                self.fields[f'{field_name}_{j}'] = PrerequisiteField(
-                    queryset=Course.objects.all()
-                )
-
-                # Set initial values
-                self.initial[f'{field_name}_{j}'] = course """
-
 
     def get_prerequisite_fields(self):
         """Yield the prerequisite fields for usage in form templates."""
+
         for field_name in self.fields:
             if field_name.startswith('prerequisite_'):
                 yield self[field_name]
+
+    
+    def get_default_prerequisite_field(self):
+        """Return a default prerequisite field to be used in an HTML template
+        for cloning more fields."""
+
+        # Use widget.render() to get the HTML instead of attaching the field to
+        # self.fields. This is because the field is not used in the form, but
+        # only in the template.
+        # The name 'prerequisite_0' will turn into 'prerequisite_0_0' due to
+        # the form having automatic id generation.
+        return PrerequisiteField().widget.render(name='prerequisite_0',
+                                                 value=None)
 
 
 class SaveAndImportBlockMixin(object):

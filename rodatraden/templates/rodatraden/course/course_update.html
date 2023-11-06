@@ -77,15 +77,16 @@
     <div id="prerequisites">
       {% for prerequisite_field in form.get_prerequisite_fields %}
       <div class="form-group row px-3 form-prerequisite">
-          {{ prerequisite_field }}
-          <button type="button" class="btn btn-gone add-equivalent-course"
-            data-toggle="tooltip" title="Lägg till alternativ kurs">
-            <span class="fa fa-plus"></span>
-          </button>
-          <button type="button" class="btn btn-gone remove-prerequisite"
-            data-toggle="tooltip" title="Ta bort förkunskapskrav">
-            <span class="fa fa-trash"></span>
-          </button>
+        {{ prerequisite_field }}
+
+        <button type="button" class="btn btn-gone add-equivalent-course"
+          data-toggle="tooltip" title="Lägg till alternativ kurs">
+          <span class="fa fa-plus"></span>
+        </button>
+        <button type="button" class="btn btn-gone remove-prerequisite"
+          data-toggle="tooltip" title="Ta bort förkunskapskrav">
+          <span class="fa fa-trash"></span>
+        </button>
       </div>
 
       {% if prerequisite_field.errors %}
@@ -105,6 +106,21 @@
             data-toggle="tooltip" title="Lägg till förkunskapskrav">
       <span class="fa fa-plus"></span>
     </button>
+
+    <template id="prerequisite-template">
+      <div class="form-group row px-3 form-prerequisite">
+        {{ form.get_default_prerequisite_field }}
+
+        <button type="button" class="btn btn-gone add-equivalent-course"
+          data-toggle="tooltip" title="Lägg till alternativ kurs">
+          <span class="fa fa-plus"></span>
+        </button>
+        <button type="button" class="btn btn-gone remove-prerequisite"
+          data-toggle="tooltip" title="Ta bort förkunskapskrav">
+          <span class="fa fa-trash"></span>
+        </button>
+      </div>
+    </template>
 
     <template id="prerequisite-or-template">
       <span class="form-prerequisite__or-separator">eller</span>

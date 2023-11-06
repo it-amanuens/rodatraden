@@ -219,12 +219,15 @@ class PrerequisiteField(forms.MultiValueField):
     prerequisite."""
 
 
-    def __init__(self, equivalent_courses):
+    def __init__(self, equivalent_courses = None):
+        # Always create at least one field.
+        course_count = len(equivalent_courses) if equivalent_courses else 1
+
         queryset = Course.objects.order_by('title')
 
         fields = []
         widgets = []
-        for _ in range(len(equivalent_courses)):
+        for _ in range(course_count):
             field = forms.ModelChoiceField(queryset=queryset)
             fields.append(field)
             widgets.append(field.widget)
