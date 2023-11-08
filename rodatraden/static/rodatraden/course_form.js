@@ -100,11 +100,17 @@ function addEquivalentCourse() {
   const newCourse = firstCourse.cloneNode(true);
   newCourse.value = '';
 
+  // The name is on the form 'prerequisite_{prerequisite index}_{course index}'.
+  // Therefore we replace the course index with the new course count to make it
+  // unique.
+  const firstCourseName = newCourse.getAttribute('name');
+  nameComponents = firstCourseName.split('_');
+  nameComponents[2] = courseCount;
+  const newCourseName = nameComponents.join('_');
+  
   // Change the name and id of the new select to be unique.
-  const newCourseName = newCourse.getAttribute('name');
-  const newCourseId = newCourse.getAttribute('id');
-  newCourse.setAttribute('name', newCourseName.replace('0', courseCount));
-  newCourse.setAttribute('id', newCourseId.replace('0', courseCount));
+  newCourse.setAttribute('name', newCourseName);
+  newCourse.setAttribute('id', `id_${newCourseName}`);
 
   // Add a separator and the new course before the buttons.
   const template = document.getElementById('prerequisite-or-template');
