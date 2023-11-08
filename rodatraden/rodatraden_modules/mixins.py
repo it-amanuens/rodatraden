@@ -1,4 +1,5 @@
-from rodatraden.models import Block, Category, CourseOccasion
+from collections import defaultdict
+from rodatraden.models import Block, Category, Course, CourseOccasion
 from .functions import import_course_occasions, is_ajax
 from .forms import CategoryEctsField, PrerequisiteField
 from decimal import Decimal
@@ -38,6 +39,14 @@ class CategoryFormMixin(object):
             except IndexError:
                 self.initial[field_name] = ''
 
+
+    def get_category_fields(self):
+        """Yield the category fields for usage in form templates."""
+        for field_name in self.fields:
+            if field_name.startswith('category_'):
+                yield self[field_name]
+
+
     def save(self, commit=True):
         """Overwrite the save function to save not only the model, but all the
         through connections to categories.
@@ -49,7 +58,7 @@ class CategoryFormMixin(object):
         # respository. 
         # https://github.com/trco/django-bootstrap-modal-forms/issues/14
         if not is_ajax(self.request):
-            instance = super().save(commit=commit)
+            course = super().save(commit=commit)
 
             # Captures all fields that start with category_
             categories = {k:v for k,v in self.request.POST.items() if
@@ -59,7 +68,7 @@ class CategoryFormMixin(object):
             # connections than to make smart logic). Should probably be
             # improved.
             try:
-                instance.categories.clear()
+                course.categories.clear()
             except:
                 pass
 
@@ -77,21 +86,15 @@ class CategoryFormMixin(object):
                 try:
                     cat_ects = Decimal(categories[ects_key])
                     cat = Category.objects.get(id=cat_id)
-                    instance.categories.add(cat,
+                    course.categories.add(cat,
                             through_defaults={'ects':cat_ects})
                 except:
                     pass
 
         else:
-            instance = super().save(commit=False)
+            course = super().save(commit=False)
 
-        return instance
-
-    def get_category_fields(self):
-        """Yield the category fields for usage in form templates."""
-        for field_name in self.fields:
-            if field_name.startswith('category_'):
-                yield self[field_name]
+        return course
 
 
 class PrerequisiteFormMixin(object):
@@ -134,6 +137,74 @@ class PrerequisiteFormMixin(object):
         # the form having automatic id generation.
         return PrerequisiteField().widget.render(name='prerequisite_0',
                                                  value=None)
+
+
+    def save(self, commit=True):
+        """Overwrite save to store the prerequisites.
+        
+        Since the prerequisite field is a bit custom and not stored directly
+        to the model, this save logic renders the compress method of the
+        prerequisite field unused.
+        """
+
+        # This if-case is due to BSModalForms. See issue #14 of the official
+        # respository. 
+        # https://github.com/trco/django-bootstrap-modal-forms/issues/14
+        if not is_ajax(self.request):
+            course_instance = super().save(commit=commit)
+
+            # Removes all prerequisites. This is a dirty but simple solution.
+            old_prerequisites = course_instance.prerequisitenew_set.all()
+            old_prerequisites.delete()
+
+            # The defaultdict allows for appending without checking if the key
+            # exists since an empty list is created if the key doesn't exist.
+            courses_grouped_by_prerequisite = defaultdict(list)
+
+            # Iterate over all fields.
+            for name, course_id in self.request.POST.items():
+                # Ignore fields that aren't prerequisites.
+                if not name.startswith('prerequisite_'):
+                    continue
+
+                # The field name has the format
+                # 'prerequisite_{prerequisite index}_{course index}'.
+                [_, prerequisite_index, _] = name.split('_')
+
+                # Ignore fields with empty values.
+                if course_id == '':
+                    continue
+                
+                # Append the course to group the courses by prerequisite.
+                courses_grouped_by_prerequisite[prerequisite_index].append(
+                    Course.objects.get(pk=course_id)
+                )
+
+            # Create new prerequisites.
+            for courses in courses_grouped_by_prerequisite.values():
+                prerequisite = course_instance.prerequisitenew_set.create()
+                # Need to save the prerequisite before adding the courses
+                # since the courses are added through a many-to-many field.
+                prerequisite.save()
+
+                for equivalent_course in courses:
+                    prerequisite.equivalent_prerequisites.add(equivalent_course)
+                
+                prerequisite.save()
+
+                #TODO: Can't remove fields due to them being required.
+                # https://docs.djangoproject.com/en/4.2/ref/forms/fields/#django.forms.MultiValueField.require_all_fields
+                # I suggest unbinding the fields from the forms and only
+                # rendering them, like for the default prerequisite field.
+            
+            
+            
+
+
+        else:
+            course_instance = super().save(commit=False)
+        
+        return course_instance
 
 
 class SaveAndImportBlockMixin(object):

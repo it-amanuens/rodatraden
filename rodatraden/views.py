@@ -16,7 +16,7 @@ from django.http import Http404, HttpRequest, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
-    Category, Course, CourseOccasion, Block, User, Profile,
+    Category, Course, CourseOccasion, Block, PrerequisiteNew, User, Profile,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
     PrivateCourse, ISPTemplate
 )
@@ -394,6 +394,12 @@ class CourseDetail(DetailView):
         context = super().get_context_data(**kwargs)
         # Get all courses with the current id as prerequisite
         context['prereq_courses'] = self.object.course_set.all()
+
+        print('-'*20)
+        all_prerequisites = PrerequisiteNew.objects.all()
+        for prerequisite in all_prerequisites:
+            print(prerequisite.pk, prerequisite)
+        print('-'*20)
 
         return context
 
