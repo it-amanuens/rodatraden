@@ -103,10 +103,12 @@ class PrerequisiteFormMixin(object):
 
     def _setup_prerequisites(self, prerequisites: Manager[PrerequisiteNew]):
         """Add the prerequisites to the form so that they can be later used when
-        rendering the fields in the Django template.
+        rendering the fields in the Django template. Also store the queryset
+        for the prerequisite field so that it can be reused.
         """
 
         self.prerequisites = prerequisites
+        self.prerequisite_queryset = Course.objects.order_by('title')
 
 
     def get_prerequisite_fields(self):
@@ -131,7 +133,8 @@ class PrerequisiteFormMixin(object):
             # the field was bound to the form.
             primary_keys = [course.pk for course in courses]
 
-            field = PrerequisiteField(equivalent_courses=courses)
+            field = PrerequisiteField(queryset=self.prerequisite_queryset,
+                                      equivalent_course_count=len(courses))
             yield field.widget.render(name=field_name, value=primary_keys)
 
     
@@ -144,7 +147,7 @@ class PrerequisiteFormMixin(object):
         # only in the template.
         # The name 'prerequisite_0' will turn into 'prerequisite_0_0' due to
         # the form having automatic id generation.
-        field = PrerequisiteField()
+        field = PrerequisiteField(queryset=self.prerequisite_queryset)
         return field.widget.render(name='prerequisite_0', value=None)
 
 

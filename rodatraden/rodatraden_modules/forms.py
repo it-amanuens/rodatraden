@@ -1,6 +1,7 @@
 from django import forms
 from rodatraden.models import Category, Course
 from decimal import Decimal
+from django.db.models import Manager
 
 class CategoryEctsWidget(forms.MultiWidget):
     """Widget to work in tandem with CategoryEctsField.
@@ -219,17 +220,13 @@ class PrerequisiteField(forms.MultiValueField):
     prerequisite."""
 
 
-    def __init__(self, equivalent_courses = None):
-        # Always create at least one field.
-        course_count = len(equivalent_courses) if equivalent_courses else 1
-
-        # XXX: This is possibly slow. Maybe we should use a queryset instead?
-        # Then we could use the same queryset for all fields.
-        queryset = Course.objects.order_by('title')
+    def __init__(self, queryset: Manager[Course],
+                 equivalent_course_count = 1):
+        """Initialize the field with at least one field."""
 
         fields = []
         widgets = []
-        for _ in range(course_count):
+        for _ in range(equivalent_course_count):
             field = forms.ModelChoiceField(queryset=queryset)
             fields.append(field)
             widgets.append(field.widget)
