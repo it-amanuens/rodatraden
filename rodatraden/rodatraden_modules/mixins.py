@@ -1,10 +1,11 @@
 from collections import defaultdict
-from rodatraden.models import Block, Category, Course, CourseOccasion
+from rodatraden.models import Block, Category, Course, CourseOccasion, PrerequisiteNew
 from .functions import import_course_occasions, is_ajax
 from .forms import CategoryEctsField, PrerequisiteField
 from decimal import Decimal
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.db.models import Manager
 
 class CategoryFormMixin(object):
     """Form mixin for creation and saving of CategoryEctsFields.
@@ -100,30 +101,38 @@ class CategoryFormMixin(object):
 class PrerequisiteFormMixin(object):
     """Mixin for prerequisites."""
 
-    def _build_prerequisite_fields(self, prerequisites):
-        """Build the fields for each given prerequisite and add one extra."""
+    def _setup_prerequisites(self, prerequisites: Manager[PrerequisiteNew]):
+        """Add the prerequisites to the form so that they can be later used when
+        rendering the fields in the Django template.
+        """
+
+        self.prerequisites = prerequisites
+
+
+    def get_prerequisite_fields(self):
+        """Yield the prerequisite fields for usage in form templates.
+        
+        There is no reason to bind the fields to the form since they are parsed
+        manually anyways in the overriden save() method. Therefore we only
+        render the fields.
+        """
+
+        # This is only to attatch type hints to the prerequisites.
+        prerequisites: Manager[PrerequisiteNew] = self.prerequisites
 
         for i, prerequisite in enumerate(prerequisites):
             field_name = f'prerequisite_{i}'
 
-            equivalent_prerequisites = prerequisite.equivalent_prerequisites.all()
+            courses: Manager[Course] = (
+                prerequisite.equivalent_prerequisites.all())
 
-            # Set new fields.
-            self.fields[field_name] = PrerequisiteField(
-                equivalent_courses=equivalent_prerequisites
-            )
+            # The primary keys are used as field values. That is the behavior
+            # when using 'self.initial[field_name] = ...' to set the values if
+            # the field was bound to the form.
+            primary_keys = [course.pk for course in courses]
 
-            # Set initial values using the primary keys of the courses.
-            primary_keys = [course.pk for course in equivalent_prerequisites]
-            self.initial[field_name] = primary_keys
-
-
-    def get_prerequisite_fields(self):
-        """Yield the prerequisite fields for usage in form templates."""
-
-        for field_name in self.fields:
-            if field_name.startswith('prerequisite_'):
-                yield self[field_name]
+            field = PrerequisiteField(equivalent_courses=courses)
+            yield field.widget.render(name=field_name, value=primary_keys)
 
     
     def get_default_prerequisite_field(self):
@@ -135,8 +144,8 @@ class PrerequisiteFormMixin(object):
         # only in the template.
         # The name 'prerequisite_0' will turn into 'prerequisite_0_0' due to
         # the form having automatic id generation.
-        return PrerequisiteField().widget.render(name='prerequisite_0',
-                                                 value=None)
+        field = PrerequisiteField()
+        return field.widget.render(name='prerequisite_0', value=None)
 
 
     def save(self, commit=True):
@@ -151,18 +160,22 @@ class PrerequisiteFormMixin(object):
         # respository. 
         # https://github.com/trco/django-bootstrap-modal-forms/issues/14
         if not is_ajax(self.request):
-            course_instance = super().save(commit=commit)
+            course_instance: Course = super().save(commit=commit)
 
             # Removes all prerequisites. This is a dirty but simple solution.
-            old_prerequisites = course_instance.prerequisitenew_set.all()
+            old_prerequisites: Manager[PrerequisiteNew] = (
+                course_instance.prerequisitenew_set.all())
             old_prerequisites.delete()
 
             # The defaultdict allows for appending without checking if the key
             # exists since an empty list is created if the key doesn't exist.
-            courses_grouped_by_prerequisite = defaultdict(list)
+            courses_grouped_by_prerequisite = defaultdict(list[Course])
+
+            # Form POST data is a dictionary mapping field names to values.
+            form_data: dict[str, str] = self.request.POST
 
             # Iterate over all fields.
-            for name, course_id in self.request.POST.items():
+            for name, course_id in form_data.items():
                 # Ignore fields that aren't prerequisites.
                 if not name.startswith('prerequisite_'):
                     continue
@@ -182,7 +195,8 @@ class PrerequisiteFormMixin(object):
 
             # Create new prerequisites.
             for courses in courses_grouped_by_prerequisite.values():
-                prerequisite = course_instance.prerequisitenew_set.create()
+                prerequisite: PrerequisiteNew = (
+                    course_instance.prerequisitenew_set.create())
                 # Need to save the prerequisite before adding the courses
                 # since the courses are added through a many-to-many field.
                 prerequisite.save()
@@ -191,15 +205,6 @@ class PrerequisiteFormMixin(object):
                     prerequisite.equivalent_prerequisites.add(equivalent_course)
                 
                 prerequisite.save()
-
-                #TODO: Can't remove fields due to them being required.
-                # https://docs.djangoproject.com/en/4.2/ref/forms/fields/#django.forms.MultiValueField.require_all_fields
-                # I suggest unbinding the fields from the forms and only
-                # rendering them, like for the default prerequisite field.
-            
-            
-            
-
 
         else:
             course_instance = super().save(commit=False)

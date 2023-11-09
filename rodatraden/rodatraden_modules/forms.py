@@ -223,6 +223,8 @@ class PrerequisiteField(forms.MultiValueField):
         # Always create at least one field.
         course_count = len(equivalent_courses) if equivalent_courses else 1
 
+        # XXX: This is possibly slow. Maybe we should use a queryset instead?
+        # Then we could use the same queryset for all fields.
         queryset = Course.objects.order_by('title')
 
         fields = []
@@ -237,8 +239,11 @@ class PrerequisiteField(forms.MultiValueField):
         self.widget = PrerequisiteWidget(widgets)
 
 
-    def compress(self, data_list):
+    # compress is not implemented since the prerequisite field are never bound
+    # to the form. Instead the fields are parsed in the forms save method by
+    # accessing the POST data directly.
+    """ def compress(self, data_list):
         if data_list:
             return data_list
         else:
-            return []
+            return [] """

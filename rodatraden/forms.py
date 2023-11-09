@@ -48,8 +48,8 @@ class CourseForm(CategoryFormMixin, PrerequisiteFormMixin, BSModalModelForm):
             course = self.instance
         )
 
-        # Build the fields for the prerequisites.
-        self._build_prerequisite_fields(prerequisites)
+        # Setup data needed to render the prerequisite fields.
+        self._setup_prerequisites(prerequisites)
 
         # Add class to tracks and prereq for nice css
         self.fields['tracks'].widget.attrs.update({'class' :

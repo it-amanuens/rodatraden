@@ -395,12 +395,6 @@ class CourseDetail(DetailView):
         # Get all courses with the current id as prerequisite
         context['prereq_courses'] = self.object.course_set.all()
 
-        print('-'*20)
-        all_prerequisites = PrerequisiteNew.objects.all()
-        for prerequisite in all_prerequisites:
-            print(prerequisite.pk, prerequisite)
-        print('-'*20)
-
         return context
 
 
