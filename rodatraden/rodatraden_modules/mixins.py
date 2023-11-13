@@ -26,11 +26,14 @@ class CategoryFormMixin(object):
     def _build_category_fields(self, categories=None):
         """Build the fields for each given category and add one extra."""
 
+        # Common queryset for all fields.
+        queryset = Category.objects.order_by('title')
+
         for i in range(0, len(categories) + 1):
             field_name = 'category_%s' % (i,)
             # Set new fields
             self.fields[field_name] = CategoryEctsField(
-                queryset=Category.objects.all()
+                queryset=queryset
             )
             # Set initial values
             try:

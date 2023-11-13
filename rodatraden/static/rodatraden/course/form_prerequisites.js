@@ -179,8 +179,6 @@ function removeLeftoverSeparators() {
   const lastSeparator = prerequisiteContainer.querySelector(
     `.${separatorClassName}:last-child`
   );
-  console.log('firstSeparator', firstSeparator)
-  console.log('lastSeparator', lastSeparator)
   if (firstSeparator) firstSeparator.remove();
   if (lastSeparator) lastSeparator.remove();
 
@@ -188,7 +186,6 @@ function removeLeftoverSeparators() {
   const separators = prerequisiteContainer.querySelectorAll(
     `.${separatorClassName} + .${separatorClassName}`
   );
-  console.log('separators', separators)
   for (const separator of separators) {
     separator.remove();
   }
