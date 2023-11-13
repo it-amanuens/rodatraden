@@ -731,6 +731,14 @@ a:not(.default):hover{
   }
 }
 
+/* Prerequisite list on course detail page. */
+.prerequisite-list-separator {
+  display: block;
+
+  margin-block: 0.5rem;
+  margin-left: 1rem;
+}
+
 /* Fields in course form */
 .cat-select {
   width: 60%;

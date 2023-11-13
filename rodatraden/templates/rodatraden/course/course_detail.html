@@ -62,12 +62,53 @@
         </div>
       </div>
 
+      <div class="col m-1 pb-3">
+        {% comment %} New prerequisite system {% endcomment %}
+        <div class="card">
+          <h5 class="card-header">Förkunskapskrav (v2)</h5>
+          <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+              {% for prerequisite in course.prerequisitenew_set.all %}
+
+              <li class="list-group-item">
+                {% for prerequisite_course in prerequisite.equivalent_prerequisites.all %}
+
+                <a href="{% url 'course-detail' prerequisite_course.slug %}">{{ prerequisite_course.title }}</a>
+
+                {% if not forloop.last %}
+                <span class="prerequisite-list-separator">eller</span>
+                {% endif %}
+
+                {% endfor %}
+              </li>
+
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div class="col-lg-5 m-1 pb-3">
         <div class="card">
           <h5 class="card-header">Ger behörighet</h5>
           <div class="card-body">
             <ul class="list-group list-group-flush m-0">
             {% for course in prereq_courses %}
+            <li class="list-group-item">
+              <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
+            </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5 m-1 pb-3">
+        <div class="card">
+          <h5 class="card-header">Ger behörighet (v2)</h5>
+          <div class="card-body">
+            <ul class="list-group list-group-flush m-0">
+            {% for course in courses_requiring_this_course %}
             <li class="list-group-item">
               <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
             </li>
