@@ -50,21 +50,21 @@
     <hr>
 
     {% for category_field in form.get_category_fields %}
-      <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
-        row px-3">
-        {{ category_field }}
-        <div class="input-group-append">
-          <span class="input-group-text">hp</span>
-        </div>
-        <button type="button" class="btn btn-gone remove-category">
-          <span class="fa fa-trash"></span>
-        </button>
-        <div class="{% if category_field.errors %} invalid{% endif %}">
-          {% for error in category_field.errors %}
-            <p class="alert alert-danger">{{ error }}</p>
-          {% endfor %}
-        </div>
+    <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
+                row px-3">
+      {{ category_field }}
+      <div class="input-group-append">
+        <span class="input-group-text">hp</span>
       </div>
+      <button type="button" class="btn btn-gone remove-category">
+        <span class="fa fa-trash"></span>
+      </button>
+    </div>
+    <div class="{% if category_field.errors %} invalid{% endif %}">
+      {% for error in category_field.errors %}
+        <p class="alert alert-danger">{{ error }}</p>
+      {% endfor %}
+    </div>
     {% endfor %}
 
     <button type="button" class="btn btn-gone add-category"
