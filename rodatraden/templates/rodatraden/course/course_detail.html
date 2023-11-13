@@ -1,5 +1,7 @@
 {% extends 'rodatraden/course/course_list.html' %}
 
+{% load prerequisite_sorter %}
+
 {% block title %}{{ course.title }}{% endblock %}
 
 {% block menu %}
@@ -68,10 +70,10 @@
           <h5 class="card-header">Förkunskapskrav (v2)</h5>
           <div class="card-body">
             <ul class="list-group list-group-flush m-0">
-              {% for prerequisite in course.prerequisitenew_set.all %}
+              {% for prerequisite in course.prerequisitenew_set.all|sort_prerequisites %}
 
               <li class="list-group-item">
-                {% for prerequisite_course in prerequisite.equivalent_prerequisites.all %}
+                {% for prerequisite_course in prerequisite.equivalent_prerequisites.all|dictsort:'title' %}
 
                 <a href="{% url 'course-detail' prerequisite_course.slug %}">{{ prerequisite_course.title }}</a>
 
