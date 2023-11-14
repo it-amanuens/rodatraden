@@ -488,9 +488,10 @@ class Prerequisite(models.Model):
     # This is the course that has the prerequisite.
     course = models.ForeignKey(
         Course,
+        related_name='prerequisites',
         on_delete=models.CASCADE)
     # These are courses that all meet the same prerequisite of the course above.
-    equivalent_prerequisites = models.ManyToManyField(
+    equivalent_courses = models.ManyToManyField(
         Course,
         related_name='equivalent_prerequisites',
         )
@@ -502,7 +503,7 @@ class Prerequisite(models.Model):
 
 
     def __str__(self):
-        return f'{self.course} requires any of {list(self.equivalent_prerequisites.all())}'
+        return f'{self.course} requires any of {list(self.equivalent_courses.all())}'
 
 
 class CategoryCourse(models.Model):

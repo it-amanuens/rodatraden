@@ -479,7 +479,7 @@ class CourseOccasionDetail(DetailView):
         given course."""
 
         context = super().get_context_data(**kwargs)
-        
+
         # Get all prerequisites that this course is appart of, meaning that the
         # queryset will inform which courses require this course.
         prerequisites: Manager[Prerequisite] = self.object.course.equivalent_prerequisites.all()

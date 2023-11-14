@@ -54,10 +54,10 @@
           <div class="card-body">
             <p class="card-text">
               <ul class="list-group list-group-flush m-0">
-                {% for prerequisite in courseoccasion.course.prerequisite_set.all|sort_prerequisites %}
+                {% for prerequisite in courseoccasion.course.prerequisites.all|sort_prerequisites %}
   
                 <li class="list-group-item">
-                  {% for prerequisite_course in prerequisite.equivalent_prerequisites.all|dictsort:'title' %}
+                  {% for prerequisite_course in prerequisite.equivalent_courses.all|dictsort:'title' %}
   
                   <a href="{% url 'course-detail' prerequisite_course.slug %}">{{ prerequisite_course.title }}</a>
   

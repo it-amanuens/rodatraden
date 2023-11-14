@@ -129,7 +129,7 @@ class PrerequisiteFormMixin(object):
             field_name = f'prerequisite_{i}'
 
             courses: Manager[Course] = (
-                prerequisite.equivalent_prerequisites.all())
+                prerequisite.equivalent_courses.all())
 
             # The primary keys are used as field values. That is the behavior
             # when using 'self.initial[field_name] = ...' to set the values if
@@ -170,7 +170,7 @@ class PrerequisiteFormMixin(object):
 
             # Removes all prerequisites. This is a dirty but simple solution.
             old_prerequisites: Manager[Prerequisite] = (
-                course_instance.prerequisite_set.all())
+                course_instance.prerequisites.all())
             old_prerequisites.delete()
 
             # The defaultdict allows for appending without checking if the key
@@ -202,13 +202,13 @@ class PrerequisiteFormMixin(object):
             # Create new prerequisites.
             for courses in courses_grouped_by_prerequisite.values():
                 prerequisite: Prerequisite = (
-                    course_instance.prerequisite_set.create())
+                    course_instance.prerequisites.create())
                 # Need to save the prerequisite before adding the courses
                 # since the courses are added through a many-to-many field.
                 prerequisite.save()
 
                 for equivalent_course in courses:
-                    prerequisite.equivalent_prerequisites.add(equivalent_course)
+                    prerequisite.equivalent_courses.add(equivalent_course)
                 
                 prerequisite.save()
 

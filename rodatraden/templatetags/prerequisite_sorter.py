@@ -22,12 +22,12 @@ def sort_prerequisites(prerequisites: Manager[Prerequisite]):
 
   # It is the responsibility of the creater of prerequisites to not create
   # unusable prerequisites. If they exist, we just ignore them here.
-  prerequisites = prerequisites.exclude(equivalent_prerequisites=None)
+  prerequisites = prerequisites.exclude(equivalent_courses=None)
 
   for prerequisite in prerequisites:
     # We garanteed that at least one equivalent course exists in the exclusion
     # above.
-    key: str = prerequisite.equivalent_prerequisites.order_by('title')[0].title
+    key: str = prerequisite.equivalent_courses.order_by('title')[0].title
     prerequisites_with_sort_key.append((key, prerequisite))
   
   # Sort by the key and return just the prerequisites.
