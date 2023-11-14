@@ -55,7 +55,7 @@
           <h5 class="card-header">Förkunskapskrav</h5>
           <div class="card-body">
             <ul class="list-group list-group-flush m-0">
-              {% for prerequisite in course.prerequisitenew_set.all|sort_prerequisites %}
+              {% for prerequisite in course.prerequisite_set.all|sort_prerequisites %}
 
               <li class="list-group-item">
                 {% for prerequisite_course in prerequisite.equivalent_prerequisites.all|dictsort:'title' %}

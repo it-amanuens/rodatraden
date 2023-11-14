@@ -1,5 +1,5 @@
 from collections import defaultdict
-from rodatraden.models import Block, Category, Course, CourseOccasion, PrerequisiteNew
+from rodatraden.models import Block, Category, Course, CourseOccasion, Prerequisite
 from .functions import import_course_occasions, is_ajax
 from .forms import CategoryEctsField, PrerequisiteField
 from decimal import Decimal
@@ -104,7 +104,7 @@ class CategoryFormMixin(object):
 class PrerequisiteFormMixin(object):
     """Mixin for prerequisites."""
 
-    def _setup_prerequisites(self, prerequisites: Manager[PrerequisiteNew]):
+    def _setup_prerequisites(self, prerequisites: Manager[Prerequisite]):
         """Add the prerequisites to the form so that they can be later used when
         rendering the fields in the Django template. Also store the queryset
         for the prerequisite field so that it can be reused.
@@ -123,7 +123,7 @@ class PrerequisiteFormMixin(object):
         """
 
         # This is only to attatch type hints to the prerequisites.
-        prerequisites: Manager[PrerequisiteNew] = self.prerequisites
+        prerequisites: Manager[Prerequisite] = self.prerequisites
 
         for i, prerequisite in enumerate(prerequisites):
             field_name = f'prerequisite_{i}'
@@ -169,8 +169,8 @@ class PrerequisiteFormMixin(object):
             course_instance: Course = super().save(commit=commit)
 
             # Removes all prerequisites. This is a dirty but simple solution.
-            old_prerequisites: Manager[PrerequisiteNew] = (
-                course_instance.prerequisitenew_set.all())
+            old_prerequisites: Manager[Prerequisite] = (
+                course_instance.prerequisite_set.all())
             old_prerequisites.delete()
 
             # The defaultdict allows for appending without checking if the key
@@ -201,8 +201,8 @@ class PrerequisiteFormMixin(object):
 
             # Create new prerequisites.
             for courses in courses_grouped_by_prerequisite.values():
-                prerequisite: PrerequisiteNew = (
-                    course_instance.prerequisitenew_set.create())
+                prerequisite: Prerequisite = (
+                    course_instance.prerequisite_set.create())
                 # Need to save the prerequisite before adding the courses
                 # since the courses are added through a many-to-many field.
                 prerequisite.save()

@@ -16,7 +16,7 @@ from django.http import Http404, HttpRequest, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
-    Category, Course, CourseOccasion, Block, PrerequisiteNew, User, Profile,
+    Category, Course, CourseOccasion, Block, Prerequisite, User, Profile,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
     PrivateCourse, ISPTemplate
 )
@@ -395,7 +395,7 @@ class CourseDetail(DetailView):
 
         # Get all prerequisites that this course is appart of, meaning that the
         # queryset will inform which courses require this course.
-        prerequisites: Manager[PrerequisiteNew] = self.object.equivalent_prerequisites.all()
+        prerequisites: Manager[Prerequisite] = self.object.equivalent_prerequisites.all()
 
         courses_requiring_this_course = [
             prerequisite.course for prerequisite in prerequisites]
@@ -482,7 +482,7 @@ class CourseOccasionDetail(DetailView):
         
         # Get all prerequisites that this course is appart of, meaning that the
         # queryset will inform which courses require this course.
-        prerequisites: Manager[PrerequisiteNew] = self.object.course.equivalent_prerequisites.all()
+        prerequisites: Manager[Prerequisite] = self.object.course.equivalent_prerequisites.all()
 
         courses_requiring_this_course = [
             prerequisite.course for prerequisite in prerequisites]

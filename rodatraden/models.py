@@ -478,7 +478,7 @@ class Course(models.Model):
         return category_sum
 
 
-class PrerequisiteNew(models.Model):
+class Prerequisite(models.Model):
     """Prerequisite for a course.
     
     Includes equivalent courses where only one of them need to be included in

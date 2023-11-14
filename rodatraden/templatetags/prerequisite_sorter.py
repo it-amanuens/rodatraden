@@ -1,12 +1,12 @@
 from django import template
 from django.db.models import Manager
 
-from rodatraden.models import PrerequisiteNew
+from rodatraden.models import Prerequisite
 
 register = template.Library()
 
 @register.filter
-def sort_prerequisites(prerequisites: Manager[PrerequisiteNew]):
+def sort_prerequisites(prerequisites: Manager[Prerequisite]):
   """Since a prerequisite can have multiple equivalent courses. There is no
   obvious sort order. If we assume the equivalent courses will be displayed
   ordered by title, then we can sort the prerequisites by the title of the first
