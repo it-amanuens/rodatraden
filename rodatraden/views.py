@@ -145,9 +145,6 @@ def prerequisite_migration(request: HttpRequest):
         courses = Course.objects.exclude(prerequisites__isnull=True)
         for course_with_prerequisite in courses:
 
-            if (course_with_prerequisite.title == 'Aktuella forskningsområden i fysik'):
-                print(course_with_prerequisite.pk, course_with_prerequisite.slug)
-
             prerequisites = course_with_prerequisite.prerequisites.all()
             for prerequisite_course in prerequisites:
 

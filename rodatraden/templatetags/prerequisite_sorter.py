@@ -20,8 +20,13 @@ def sort_prerequisites(prerequisites: Manager[PrerequisiteNew]):
   # sorting the prerequisites.
   prerequisites_with_sort_key = []
 
+  # It is the responsibility of the creater of prerequisites to not create
+  # unusable prerequisites. If they exist, we just ignore them here.
+  prerequisites = prerequisites.exclude(equivalent_prerequisites=None)
+
   for prerequisite in prerequisites:
-    # Here we assume that at least one equivalent course exists.
+    # We garanteed that at least one equivalent course exists in the exclusion
+    # above.
     key: str = prerequisite.equivalent_prerequisites.order_by('title')[0].title
     prerequisites_with_sort_key.append((key, prerequisite))
   
