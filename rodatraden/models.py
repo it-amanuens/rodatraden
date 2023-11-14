@@ -388,9 +388,6 @@ class Course(models.Model):
     tracks = models.ManyToManyField(Track, blank=True, verbose_name='Ingår')
     recommended = models.ManyToManyField(Track, blank=True,
             related_name='recommended_track', verbose_name='Rekommenderad',)
-    prerequisites = models.ManyToManyField('self', blank=True,
-            through='Prerequisite', symmetrical = False,
-            verbose_name='Förkunskapskrav')
     slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
@@ -506,27 +503,6 @@ class PrerequisiteNew(models.Model):
 
     def __str__(self):
         return f'{self.course} requires any of {list(self.equivalent_prerequisites.all())}'
-
-
-class Prerequisite(models.Model):
-    """Prerequisites for a course.
-
-    NOTE: This is not important, but rather a left-over from the old website,
-    which stored these connections with dates.
-    """
-    
-    course = models.ForeignKey(Course, related_name = 'curr_course',
-            on_delete=models.CASCADE)
-    prereq = models.ForeignKey(Course, related_name = 'prereq_course',
-            on_delete=models.CASCADE)
-
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-
-    def __str__(self):
-        return '{}->{}'.format(self.prereq.title, self.course.title)
 
 
 class CategoryCourse(models.Model):
