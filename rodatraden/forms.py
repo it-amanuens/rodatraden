@@ -3,12 +3,12 @@ import datetime
 from django import forms
 
 from .models import (
-    Course, Block, CourseOccasion, Category, CategoryCourse, Profile,
+    Course, Block, CourseOccasion, Category, CategoryCourse, PrerequisiteNew, Profile,
     AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
     PrivateCourseCategory, User
 )
 from .rodatraden_modules.mixins import (
-    CategoryFormMixin, SaveAndImportBlockMixin
+    CategoryFormMixin, PrerequisiteFormMixin, SaveAndImportBlockMixin
 )
 from rodatraden.rodatraden_modules.forms import StartWeekField
 
@@ -29,7 +29,7 @@ class DeleteUserForm(forms.Form):
     email = forms.EmailField()
 
 
-class CourseForm(CategoryFormMixin, BSModalModelForm):
+class CourseForm(CategoryFormMixin, PrerequisiteFormMixin, BSModalModelForm):
     """Form for Courses."""
 
     def __init__(self, *args, **kwargs):
@@ -42,6 +42,14 @@ class CourseForm(CategoryFormMixin, BSModalModelForm):
 
         # Build the fields from these categories
         self._build_category_fields(categories)
+
+        # Get all prerequisites for this course.
+        prerequisites = PrerequisiteNew.objects.filter(
+            course = self.instance
+        )
+
+        # Setup data needed to render the prerequisite fields.
+        self._setup_prerequisites(prerequisites)
 
         # Add class to tracks and prereq for nice css
         self.fields['tracks'].widget.attrs.update({'class' :

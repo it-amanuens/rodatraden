@@ -123,4 +123,10 @@ urlpatterns = [
 
     # Staff tools
     path('verktyg/', views.tools, name='tools'),
+
+    # TODO: Remove this when the prerequisite migration is complete.
+    # Temporary tool used when migrating from the old prerequisite system to the
+    # new system.
+    path('forkunskapskravsmigrering/', views.prerequisite_migration,
+         name='prerequisite-migration')
 ]

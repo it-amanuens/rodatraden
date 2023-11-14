@@ -1,6 +1,7 @@
 from django import forms
-from rodatraden.models import Category
+from rodatraden.models import Category, Course
 from decimal import Decimal
+from django.db.models import Manager
 
 class CategoryEctsWidget(forms.MultiWidget):
     """Widget to work in tandem with CategoryEctsField.
@@ -190,3 +191,56 @@ class StartWeekField(forms.MultiValueField):
         else:
             # First week by default.
             return 0
+
+
+class PrerequisiteWidget(forms.MultiWidget):
+    """Widget to work in tandem with PrerequisiteField.
+    
+    The widget splits the equivalent courses into multiple fields.
+    """
+
+    def __init__(self, widgets: list[forms.Widget]):
+        for widget in widgets:
+            widget.attrs['class'] = 'form-control form-prerequisite__select'
+
+        super().__init__(widgets=widgets)
+
+    
+    def decompress(self, value):
+        if value:
+            return value
+        else:
+            return []
+
+
+class PrerequisiteField(forms.MultiValueField):
+    """Field for prerequisite input in forms.
+    
+    The user can select multiple equivalent courses that can meet the same
+    prerequisite."""
+
+
+    def __init__(self, queryset: Manager[Course],
+                 equivalent_course_count = 1):
+        """Initialize the field with at least one field."""
+
+        fields = []
+        widgets = []
+        for _ in range(equivalent_course_count):
+            field = forms.ModelChoiceField(queryset=queryset)
+            fields.append(field)
+            widgets.append(field.widget)
+        
+        super().__init__(fields=fields)
+
+        self.widget = PrerequisiteWidget(widgets)
+
+
+    # compress is not implemented since the prerequisite field are never bound
+    # to the form. Instead the fields are parsed in the forms save method by
+    # accessing the POST data directly.
+    """ def compress(self, data_list):
+        if data_list:
+            return data_list
+        else:
+            return [] """

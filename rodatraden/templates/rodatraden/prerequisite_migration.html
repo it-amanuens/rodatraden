@@ -1,0 +1,20 @@
+{% comment %}
+TODO: Remove this file when the prerequisite migration is complete.
+{% endcomment %}
+
+<h2>Migrera till det nya förkunskapssystemet</h2>
+
+<p>
+  Med detta verktyg kopierar du över alla förkunskapskrav från det gamla
+  systemet till det nya. Detta verktyg tas bort i samband med att det gamla
+  förkunskapssystemet tas bort.
+</p>
+
+<div class='my-3'>
+  <form action={% url 'prerequisite-migration' %} method='post' novalidate>
+    {% csrf_token %}
+    <input type='submit' value='Migrera förkunskapskrav' name='migrate'>
+  </form>
+</div>
+
+<hr>

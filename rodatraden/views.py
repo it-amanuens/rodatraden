@@ -16,7 +16,7 @@ from django.http import Http404, HttpRequest, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
-    Category, Course, CourseOccasion, Block, User, Profile,
+    Category, Course, CourseOccasion, Block, PrerequisiteNew, User, Profile,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
     PrivateCourse, ISPTemplate
 )
@@ -43,8 +43,7 @@ from rodatraden import validator
 from openpyxl.styles import Alignment, Font
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.db.models import Q
-
+from django.db.models import Q, Manager
 
 def get_public_elective_course_occasions(block: Block):
     """Get public elective courses, that is courses not in the base block.
@@ -125,6 +124,46 @@ def tools(request):
             'acyears': acyears,
     }
 
+    return render(request, 'rodatraden/tools.html', context)
+
+# TODO: Remove this when the prerequisite migration is complete.
+def prerequisite_migration(request: HttpRequest):
+    """Temporary tool for migrating prerequisites from the old system to the new
+    system.
+    """
+
+    # Only staff can access this site
+    if not request.user.is_staff:
+        return redirect(reverse('index'))
+
+    if request.method == 'POST':
+
+        # Remove all existing prerequisites from the new system.
+        PrerequisiteNew.objects.all().delete()
+
+        # Migrate all prerequisites from the old system to the new system.
+        courses = Course.objects.exclude(prerequisites__isnull=True)
+        for course_with_prerequisite in courses:
+
+            prerequisites = course_with_prerequisite.prerequisites.all()
+            for prerequisite_course in prerequisites:
+
+                new_prerequisite = PrerequisiteNew.objects.create(
+                    course=course_with_prerequisite
+                )
+
+                # Save before so that we can add the equivalent prerequisites.
+                new_prerequisite.save()
+                new_prerequisite.equivalent_prerequisites.add(
+                    prerequisite_course)
+
+                new_prerequisite.save()
+        
+    # Return to the tools page.
+    acyears = AcademicYear.objects.all().order_by('year')
+    context = {
+            'acyears': acyears,
+    }
     return render(request, 'rodatraden/tools.html', context)
 
 ##########
@@ -393,7 +432,21 @@ class CourseDetail(DetailView):
 
         context = super().get_context_data(**kwargs)
         # Get all courses with the current id as prerequisite
+        # TODO: Remove this when the prerequisite migration is complete.
         context['prereq_courses'] = self.object.course_set.all()
+
+        # Get all prerequisites that this course is appart of, meaning that the
+        # queryset will inform which courses require this course.
+        prerequisites: Manager[PrerequisiteNew] = self.object.equivalent_prerequisites.all()
+
+        courses_requiring_this_course = [
+            prerequisite.course for prerequisite in prerequisites]
+
+        # Keep only distinct courses.
+        courses_requiring_this_course = list(set(courses_requiring_this_course))
+        courses_requiring_this_course.sort(key=lambda course: course.title)
+
+        context['courses_requiring_this_course'] = courses_requiring_this_course
 
         return context
 
