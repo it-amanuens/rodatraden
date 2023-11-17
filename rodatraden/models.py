@@ -388,9 +388,6 @@ class Course(models.Model):
     tracks = models.ManyToManyField(Track, blank=True, verbose_name='Ingår')
     recommended = models.ManyToManyField(Track, blank=True,
             related_name='recommended_track', verbose_name='Rekommenderad',)
-    prerequisites = models.ManyToManyField('self', blank=True,
-            through='Prerequisite', symmetrical = False,
-            verbose_name='Förkunskapskrav')
     slug = models.SlugField(max_length=100, unique=True, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
@@ -481,7 +478,7 @@ class Course(models.Model):
         return category_sum
 
 
-class PrerequisiteNew(models.Model):
+class Prerequisite(models.Model):
     """Prerequisite for a course.
     
     Includes equivalent courses where only one of them need to be included in
@@ -491,9 +488,10 @@ class PrerequisiteNew(models.Model):
     # This is the course that has the prerequisite.
     course = models.ForeignKey(
         Course,
+        related_name='prerequisites',
         on_delete=models.CASCADE)
     # These are courses that all meet the same prerequisite of the course above.
-    equivalent_prerequisites = models.ManyToManyField(
+    equivalent_courses = models.ManyToManyField(
         Course,
         related_name='equivalent_prerequisites',
         )
@@ -505,28 +503,7 @@ class PrerequisiteNew(models.Model):
 
 
     def __str__(self):
-        return f'{self.course} requires any of {list(self.equivalent_prerequisites.all())}'
-
-
-class Prerequisite(models.Model):
-    """Prerequisites for a course.
-
-    NOTE: This is not important, but rather a left-over from the old website,
-    which stored these connections with dates.
-    """
-    
-    course = models.ForeignKey(Course, related_name = 'curr_course',
-            on_delete=models.CASCADE)
-    prereq = models.ForeignKey(Course, related_name = 'prereq_course',
-            on_delete=models.CASCADE)
-
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-
-    def __str__(self):
-        return '{}->{}'.format(self.prereq.title, self.course.title)
+        return f'{self.course} requires any of {list(self.equivalent_courses.all())}'
 
 
 class CategoryCourse(models.Model):

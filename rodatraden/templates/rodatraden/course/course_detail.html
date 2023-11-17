@@ -2,7 +2,7 @@
 
 {% load prerequisite_sorter %}
 
-{% block title %}{{ course.title }}{% endblock %}
+{% block title %}{{ course }}{% endblock %}
 
 {% block menu %}
 <a class="btn btn-gone" 
@@ -49,31 +49,16 @@
     </div>
 
     <div class="row">
+
       <div class="col m-1 pb-3">
         <div class="card">
           <h5 class="card-header">Förkunskapskrav</h5>
           <div class="card-body">
             <ul class="list-group list-group-flush m-0">
-            {% for prereq in course.prerequisites.all %}
-            <li class="list-group-item">
-              <a href="{% url 'course-detail' prereq.slug %}">{{ prereq.title }}</a>
-            </li>
-            {% endfor %}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="col m-1 pb-3">
-        {% comment %} New prerequisite system {% endcomment %}
-        <div class="card">
-          <h5 class="card-header">Förkunskapskrav (v2)</h5>
-          <div class="card-body">
-            <ul class="list-group list-group-flush m-0">
-              {% for prerequisite in course.prerequisitenew_set.all|sort_prerequisites %}
+              {% for prerequisite in course.prerequisites.all|sort_prerequisites %}
 
               <li class="list-group-item">
-                {% for prerequisite_course in prerequisite.equivalent_prerequisites.all|dictsort:'title' %}
+                {% for prerequisite_course in prerequisite.equivalent_courses.all|dictsort:'title' %}
 
                 <a href="{% url 'course-detail' prerequisite_course.slug %}">{{ prerequisite_course.title }}</a>
 
@@ -93,21 +78,6 @@
       <div class="col-lg-5 m-1 pb-3">
         <div class="card">
           <h5 class="card-header">Ger behörighet</h5>
-          <div class="card-body">
-            <ul class="list-group list-group-flush m-0">
-            {% for course in prereq_courses %}
-            <li class="list-group-item">
-              <a href="{% url 'course-detail' course.slug %}">{{ course.title }}</a>
-            </li>
-            {% endfor %}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-5 m-1 pb-3">
-        <div class="card">
-          <h5 class="card-header">Ger behörighet (v2)</h5>
           <div class="card-body">
             <ul class="list-group list-group-flush m-0">
             {% for course in courses_requiring_this_course %}

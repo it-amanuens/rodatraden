@@ -3,7 +3,7 @@ import datetime
 from django import forms
 
 from .models import (
-    Course, Block, CourseOccasion, Category, CategoryCourse, PrerequisiteNew, Profile,
+    Course, Block, CourseOccasion, Category, CategoryCourse, Prerequisite, Profile,
     AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
     PrivateCourseCategory, User
 )
@@ -44,7 +44,7 @@ class CourseForm(CategoryFormMixin, PrerequisiteFormMixin, BSModalModelForm):
         self._build_category_fields(categories)
 
         # Get all prerequisites for this course.
-        prerequisites = PrerequisiteNew.objects.filter(
+        prerequisites = Prerequisite.objects.filter(
             course = self.instance
         )
 
@@ -53,8 +53,6 @@ class CourseForm(CategoryFormMixin, PrerequisiteFormMixin, BSModalModelForm):
 
         # Add class to tracks and prereq for nice css
         self.fields['tracks'].widget.attrs.update({'class' :
-            'select2-mult-choice'})
-        self.fields['prerequisites'].widget.attrs.update({'class' :
             'select2-mult-choice'})
         self.fields['recommended'].widget.attrs.update({'class' :
             'select2-mult-choice'})
