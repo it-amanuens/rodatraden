@@ -18,7 +18,9 @@ export default class CourseOccasion {
       json.year,
       json.start,
       json.weeks,
-      isPrivate
+      isPrivate,
+      json?.course_id,
+      json?.prerequisites
     );
   }
 
@@ -30,8 +32,11 @@ export default class CourseOccasion {
    * @param {number} start 
    * @param {number} weeks 
    * @param {boolean} isPrivate 
+   * @param {number|null} course_id
+   * @param {number[]} prerequisites
    */
-  constructor(title, slug, ects, academicYear, start, weeks, isPrivate) {
+  constructor(title, slug, ects, academicYear, start, weeks, isPrivate,
+              course_id = null, prerequisites = []) {
     this.title = title;
     this.slug = slug;
     this.ects = ects;
@@ -39,6 +44,8 @@ export default class CourseOccasion {
     this.start = start;
     this.weeks = weeks;
     this.isPrivate = isPrivate;
+    this.course_id = course_id;
+    this.prerequisites = prerequisites;
 
     this.termStart = this.start;
     // TODO: Replace all mentions of "length" with "weeks".
@@ -57,8 +64,12 @@ export default class CourseOccasion {
   start;
   /** @type {number} */
   weeks;
-  /** @type {booelan} */
+  /** @type {boolean} */
   isPrivate;
+  /** @type {number|null} */
+  id;
+  /** @type {number[]} */
+  prerequisites;
 
   /** @type {number} */
   termStart;
