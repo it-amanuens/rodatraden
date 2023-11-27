@@ -330,6 +330,14 @@ a:not(.default):hover{
   color: var(--main-color-light);
 }
 
+.course-warning-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  margin: var(--schedule-margin);
+}
+
 .term-footer {
   display: flex;
   gap: var(--schedule-gap);
