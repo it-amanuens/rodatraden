@@ -46,6 +46,34 @@ function getCourseContainerHeight(coursesSameAcademicYear, margin, scale) {
 }
 
 /**
+ * Check if some prerequisites are met by previously completed courses.
+ * 
+ * @param {number[][]} prerequisites - Prerequisites for the given courses.
+ * @param {CourseOccasion[]} previousCourses - Courses that have been added to the schedule.
+ * @returns True if the prerequisites are met.
+ */
+function arePrerequisitesMet(prerequisites, previousCourses) {
+  // If there are no prerequisites, they are met.
+  if (prerequisites.length === 0) {
+    return true;
+  }
+
+  // If there are prerequisites, but no previous courses, they are not met.
+  if (previousCourses.length === 0) {
+    return false;
+  }
+
+  for (const prerequisite of prerequisites) {
+    // We require one course from each prerequisite to have been completed.
+    if (!prerequisite.some(courseID => previousCourses.includes(courseID))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Adds new and removes old academic years using D3. The new years won't
  * contain any DOM elements but all years will have up-to-date data bound to
  * them.
@@ -355,6 +383,11 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     .style("margin-top", course => {
       const top = course.firstRowIndex * scale + margin * 3;
       return top + "px";
+    })
+    .style("background-color", course => {
+      if (!arePrerequisitesMet(course.prerequisites, course.earlierCourses)) {
+        return "#fc03df";
+      }
     });
 }
 

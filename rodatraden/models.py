@@ -604,7 +604,7 @@ class CourseOccasion(models.Model):
             ects=self.course.ects,
             weeks=self.weeks,
             slug = self.slug,
-            course_id = self.course.id,
+            courseID = self.course.id,
             prerequisites = prerequisites_json,
         )
 

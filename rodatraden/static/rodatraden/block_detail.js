@@ -122,6 +122,37 @@ function createCategorySumChart() {
 }
 
 /**
+ * Given a starting year and week, return the IDs of all courses that have
+ * finished by that time. Ignore courses without IDs. Iterates over all course
+ * occasions and therefore doesn't need occasions to be sorted.
+ * 
+ * @param {number} start_year 
+ * @param {number} start_week 
+ * @param {number[]} courseOccasions 
+ */
+function getEarlierCourseIDs(start_year, start_week, courseOccasions) {
+  let earlierCourseIDs = [];
+
+  for (const courseOccasion of courseOccasions) {
+    // Ignore courses without IDs.
+    if (courseOccasion.courseID === null) {
+      continue;
+    }
+
+    // Check if the course was finished before the given start time.
+    if (courseOccasion.academicYear < start_year) {
+      earlierCourseIDs.push(courseOccasion.courseID);
+    } else if (courseOccasion.academicYear === start_year) {
+      if (courseOccasion.start + courseOccasion.weeks <= start_week) {
+        earlierCourseIDs.push(courseOccasion.courseID);
+      }
+    }
+  }
+
+  return earlierCourseIDs;
+}
+
+/**
  * Gets all private and non-private courses in the block-schedule from external
  * script tags and return them as a single collection.
  * 
@@ -145,6 +176,13 @@ function loadCoursesFromElement() {
   for (const course of privateCoursesAsJSON) {
     const isPrivate = true;
     courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  }
+
+  // Add IDs of all courses that have finished before each course starts.
+  for (const course of courses) {
+    course.earlierCourses = getEarlierCourseIDs(
+      course.academicYear, course.start, courses
+    );
   }
 
   return courses;

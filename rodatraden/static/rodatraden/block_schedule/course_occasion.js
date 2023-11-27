@@ -19,7 +19,7 @@ export default class CourseOccasion {
       json.start,
       json.weeks,
       isPrivate,
-      json?.course_id,
+      json?.courseID,
       json?.prerequisites
     );
   }
@@ -32,11 +32,11 @@ export default class CourseOccasion {
    * @param {number} start 
    * @param {number} weeks 
    * @param {boolean} isPrivate 
-   * @param {number|null} course_id
-   * @param {number[]} prerequisites
+   * @param {number|null} courseID
+   * @param {number[][]} prerequisites
    */
   constructor(title, slug, ects, academicYear, start, weeks, isPrivate,
-              course_id = null, prerequisites = []) {
+              courseID = null, prerequisites = []) {
     this.title = title;
     this.slug = slug;
     this.ects = ects;
@@ -44,7 +44,7 @@ export default class CourseOccasion {
     this.start = start;
     this.weeks = weeks;
     this.isPrivate = isPrivate;
-    this.course_id = course_id;
+    this.courseID = courseID;
     this.prerequisites = prerequisites;
 
     this.termStart = this.start;
@@ -66,9 +66,19 @@ export default class CourseOccasion {
   weeks;
   /** @type {boolean} */
   isPrivate;
-  /** @type {number|null} */
-  id;
-  /** @type {number[]} */
+
+  /** 
+   * ID of the related course. Null if the course is private. This is used when
+   * determining if prerequisites are met.
+   * 
+   * @type {number|null} */
+  courseID;
+  /**
+   * Prerequisites expressed in terms of course IDs. It's a list of lists where
+   * each list is a set of equivalent courses. If at least one course in each
+   * list has been taken, the prerequisite is met.
+   * 
+   * @type {number[][]} */
   prerequisites;
 
   /** @type {number} */
@@ -78,6 +88,13 @@ export default class CourseOccasion {
 
   /** @type {number} */
   firstRowIndex = 0;
+
+  /** 
+   * IDs of all courses that have finished before this course starts. Used when
+   * evaluating prerequisites.
+   * 
+   * @type {number[]} */
+  earlierCourses = [];
   
   get speed() {
     // XXX: Course speed feels arbitrary. Why multiply by 50?
