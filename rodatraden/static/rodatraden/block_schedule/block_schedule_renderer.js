@@ -286,7 +286,6 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
                 + "?year=" + course.academicYear
                 + "&slug=" + course.slug
                 + unmetURL;
-        console.log(url);
       return url;
     });
 

@@ -223,6 +223,23 @@ a:not(.default):hover{
   color: var(--schedule-text-color);
 }
 
+.prerequisite-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.prerequisite-checkbox__input {
+  height: 1em;
+  aspect-ratio: 1;
+}
+
+.prerequisite-checkbox__text {
+  color: initial;
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
 .academic-year {
   display: grid;
   gap: var(--schedule-gap);

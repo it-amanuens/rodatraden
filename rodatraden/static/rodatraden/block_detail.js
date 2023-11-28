@@ -2,6 +2,38 @@ import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
 
 /**
+ * Shows or hides warning icons and tooltips depending on the state of the
+ * prerequisite checkbox.
+ */
+function updatePrerequisiteWarnings() {
+  const checkbox = document.getElementById('prerequisite-checkbox');
+  const icons = document.getElementsByClassName('course-warning-icon');
+
+  if (checkbox.checked) {
+    $('.course[data-toggle="tooltip"]').tooltip('enable');
+
+    for (const icon of icons) {
+      icon.classList.remove('d-none');
+    }
+  } else {
+    $('.course[data-toggle="tooltip"]').tooltip('disable');
+
+    for (const icon of icons) {
+      icon.classList.add('d-none');
+    }
+  }
+}
+
+/**
+ * Setups the prerequisite toggle checkbox to show or hide warning icons and
+ * tooltips.
+ */
+function setupPrerequisiteCheckbox() {
+  const checkbox = document.getElementById('prerequisite-checkbox');
+  checkbox.addEventListener('change', updatePrerequisiteWarnings);
+}
+
+/**
  * Setups event listeners for the buttons to update and delete the block-
  * schedule, as well as import from other schedules.
  */
@@ -259,6 +291,10 @@ function main() {
   // When the window resizes from narrow to wide or vice versa, update the data
   // and redraw the block-schdule.
   blockSchedule.addResizeEventListener(isNarrowWindow);
+
+  // Setup and update prerequisite checkbox.
+  setupPrerequisiteCheckbox();
+  updatePrerequisiteWarnings();
 }
 
 // Run main function when the script is loaded.
