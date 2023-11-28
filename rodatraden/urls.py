@@ -91,6 +91,9 @@ urlpatterns = [
     path('blockscheman/<str:username>/<slug:b_slug>/tabort/',
          views.remove_course_from_block, name='block-remove-course'),
 
+     path('blockscheman/<str:username>/<slug:slug>/kravcheck/',
+          views.updatePrerequisiteCheck, name='update-prerequisite-check'),
+
     # Profiles
     path('profiler/', views.ProfileList.as_view(), name='profile-list'),
     path('profiler/skapa', views.ProfileCreate.as_view(),

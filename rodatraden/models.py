@@ -865,6 +865,11 @@ class Block(models.Model):
 
     __original_title = None
 
+    # The user can choose to ignore warnings about unmet prerequisites.
+    should_verify_prerequisites = models.BooleanField(
+        default=True, 
+        verbose_name='Ska förkunskapskrav verifieras?')
+
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""
 

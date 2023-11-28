@@ -2,6 +2,23 @@ import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
 
 /**
+ * Sends a request to the server to enable or disable the prerequisite check.
+ * When enabled, errors will be shown for courses that have unmet prerequisites.
+ * 
+ * @param {string} url - The url to send the request to.
+ * @param {bool} shouldEnable - True if the prerequisite check should be enabled. Otherwise it will be disabled.
+ */
+function sendPrerequisiteCheckState(url, shouldEnable) {
+  if (shouldEnable) {
+    url += "?enable=1";
+  }
+  fetch(url, {
+    method: 'GET'
+  })
+  .catch(error => console.error(error));
+}
+
+/**
  * Shows or hides warning icons and tooltips depending on the state of the
  * prerequisite checkbox.
  */
@@ -28,9 +45,12 @@ function updatePrerequisiteWarnings() {
  * Setups the prerequisite toggle checkbox to show or hide warning icons and
  * tooltips.
  */
-function setupPrerequisiteCheckbox() {
+function setupPrerequisiteCheckbox(prerequisiteCheckUrl) {
   const checkbox = document.getElementById('prerequisite-checkbox');
-  checkbox.addEventListener('change', updatePrerequisiteWarnings);
+  checkbox.addEventListener('change', () => {
+    updatePrerequisiteWarnings(prerequisiteCheckUrl);
+    sendPrerequisiteCheckState(prerequisiteCheckUrl, checkbox.checked);
+  });
 }
 
 /**
@@ -265,6 +285,7 @@ function main() {
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
+  const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
   const margin = 1;
@@ -293,7 +314,7 @@ function main() {
   blockSchedule.addResizeEventListener(isNarrowWindow);
 
   // Setup and update prerequisite checkbox.
-  setupPrerequisiteCheckbox();
+  setupPrerequisiteCheckbox(prerequisiteCheckUrl);
   updatePrerequisiteWarnings();
 }
 
