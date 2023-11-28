@@ -499,20 +499,26 @@ class CourseOccasionDetail(DetailView):
 def courseoccasion_info(request):
     """Small info view for courseoccasions used in blocks."""
 
-    # Get year and start from get request
     year = int(request.GET.get('year', ''))
     slug = request.GET.get('slug', '')
 
+    # Get valid IDs of the unmet prerequisites.
+    unmet_prerequisite_ids = [
+        int(id) for id in request.GET.getlist('unmet[]') if id.isdigit()]
+
+    unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
+
     courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
-            slug=slug)
+        slug=slug)
 
     context = {
-            'courseoccasion': courseoccasion,
-            'course': courseoccasion.course
-            }
+        'courseoccasion': courseoccasion,
+        'course': courseoccasion.course,
+        'unmet_prerequisites': unmet_prerequisites,
+    }
 
     return render(request, 'rodatraden/courseoccasion/courseoccasion_info.html',
-            context)
+        context)
 
 
 class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,

@@ -1,0 +1,19 @@
+{% load prerequisite_sorter %}
+
+<ul class="list-group list-group-flush m-0">
+  {% for prerequisite in prerequisites|sort_prerequisites %}
+
+  <li class="list-group-item">
+    {% for prerequisite_course in prerequisite.equivalent_courses.all|dictsort:'title' %}
+
+    <a href="{% url 'course-detail' prerequisite_course.slug %}">{{ prerequisite_course.title }}</a>
+
+    {% if not forloop.last %}
+    <span class="prerequisite-list-separator">eller</span>
+    {% endif %}
+
+    {% endfor %}
+  </li>
+
+  {% endfor %}
+</ul>

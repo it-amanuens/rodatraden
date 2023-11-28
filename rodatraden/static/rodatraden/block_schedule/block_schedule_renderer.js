@@ -279,8 +279,14 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     })
     .attr('class', 'courseoccasion-info')
     .attr('data-id', course => {
-      const url = courseoccasionInfoUrl + "?year=" + course.academicYear
-        + "&slug=" + course.slug + "&unmet_prerequisites=" + course.unmetPrerequisiteIDs;
+      // Arrays are send by repeating the parameter name in the URL.
+      const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
+      
+      const url = courseoccasionInfoUrl
+                + "?year=" + course.academicYear
+                + "&slug=" + course.slug
+                + unmetURL;
+        console.log(url);
       return url;
     });
 

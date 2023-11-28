@@ -54,23 +54,7 @@
         <div class="card">
           <h5 class="card-header">Förkunskapskrav</h5>
           <div class="card-body">
-            <ul class="list-group list-group-flush m-0">
-              {% for prerequisite in course.prerequisites.all|sort_prerequisites %}
-
-              <li class="list-group-item">
-                {% for prerequisite_course in prerequisite.equivalent_courses.all|dictsort:'title' %}
-
-                <a href="{% url 'course-detail' prerequisite_course.slug %}">{{ prerequisite_course.title }}</a>
-
-                {% if not forloop.last %}
-                <span class="prerequisite-list-separator">eller</span>
-                {% endif %}
-
-                {% endfor %}
-              </li>
-
-              {% endfor %}
-            </ul>
+            {% include 'rodatraden/prerequisite_list.html' with prerequisites=course.prerequisites.all %}
           </div>
         </div>
       </div>
