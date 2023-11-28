@@ -46,34 +46,6 @@ function getCourseContainerHeight(coursesSameAcademicYear, margin, scale) {
 }
 
 /**
- * Check if some prerequisites are met by previously completed courses.
- * 
- * @param {number[][]} prerequisites - Prerequisites for the given courses.
- * @param {CourseOccasion[]} previousCourses - Courses that have been added to the schedule.
- * @returns True if the prerequisites are met.
- */
-function arePrerequisitesMet(prerequisites, previousCourses) {
-  // If there are no prerequisites, they are met.
-  if (prerequisites.length === 0) {
-    return true;
-  }
-
-  // If there are prerequisites, but no previous courses, they are not met.
-  if (previousCourses.length === 0) {
-    return false;
-  }
-
-  for (const prerequisite of prerequisites) {
-    // We require one course from each prerequisite to have been completed.
-    if (!prerequisite.some(courseID => previousCourses.includes(courseID))) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
  * Adds new and removes old academic years using D3. The new years won't
  * contain any DOM elements but all years will have up-to-date data bound to
  * them.
@@ -308,7 +280,7 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     .attr('class', 'courseoccasion-info')
     .attr('data-id', course => {
       const url = courseoccasionInfoUrl + "?year=" + course.academicYear
-        + "&slug=" + course.slug;
+        + "&slug=" + course.slug + "&unmet_prerequisites=" + course.unmetPrerequisiteIDs;
       return url;
     });
 
@@ -388,7 +360,7 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
   // Add a warning icon to the course blocks that have unmet prerequisites.
   const warningIconSelection = course.selectAll(".course-warning-icon")
     .data(course => {
-      if (!arePrerequisitesMet(course.prerequisites, course.earlierCourses)) {
+      if (course.unmetPrerequisiteIDs.length > 0) {
         // The content of the data array is irrelevant since we only want to add
         // an icon, but we need some data to be present to trigger the enter and
         // exit selections.
@@ -417,7 +389,7 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     .attr("data-toggle", "tooltip")
     .attr("data-placement", "left")
     .attr("title", course => {
-      if (!arePrerequisitesMet(course.prerequisites, course.earlierCourses)) {
+      if (course.unmetPrerequisiteIDs.length > 0) {
         return "Förkunskapskrav ej uppfyllda";
       }
     });

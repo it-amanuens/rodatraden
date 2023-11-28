@@ -1,3 +1,5 @@
+import Prerequisite from "./prerequisite.js";
+
 /**
  * This class holds all the data relevant for a course occasion. The terms
  * "course" and "course occasion" are expected to often be interchanged.
@@ -11,6 +13,12 @@ export default class CourseOccasion {
    */
   static fromJSON(json, isPrivate) {
     // XXX: isPrivate should be taken from JSON data and not as a parameter.
+
+    // Convert prerequisites from JSON to Prerequisite instances.
+    const prerequisites = json?.prerequisites.map(prerequisite => {
+      return Prerequisite.fromJSON(prerequisite);
+    });
+
     return new CourseOccasion(
       json.title,
       json.slug,
@@ -20,7 +28,7 @@ export default class CourseOccasion {
       json.weeks,
       isPrivate,
       json?.courseID,
-      json?.prerequisites
+      prerequisites
     );
   }
 
@@ -33,7 +41,7 @@ export default class CourseOccasion {
    * @param {number} weeks 
    * @param {boolean} isPrivate 
    * @param {number|null} courseID
-   * @param {number[][]} prerequisites
+   * @param {Prerequisite[]} prerequisites
    */
   constructor(title, slug, ects, academicYear, start, weeks, isPrivate,
               courseID = null, prerequisites = []) {
@@ -73,13 +81,14 @@ export default class CourseOccasion {
    * 
    * @type {number|null} */
   courseID;
-  /**
-   * Prerequisites expressed in terms of course IDs. It's a list of lists where
-   * each list is a set of equivalent courses. If at least one course in each
-   * list has been taken, the prerequisite is met.
-   * 
-   * @type {number[][]} */
+  /** @type {Prerequisite[]} */
   prerequisites;
+  /** 
+   * IDs of all unmet prerequisites.
+   * 
+   * @type {number[]}
+   */
+  unmetPrerequisiteIDs = [];
 
   /** @type {number} */
   termStart;
@@ -88,16 +97,70 @@ export default class CourseOccasion {
 
   /** @type {number} */
   firstRowIndex = 0;
-
-  /** 
-   * IDs of all courses that have finished before this course starts. Used when
-   * evaluating prerequisites.
-   * 
-   * @type {number[]} */
-  earlierCourses = [];
   
   get speed() {
     // XXX: Course speed feels arbitrary. Why multiply by 50?
     return parseInt(this.ects * 10 * 5 / this.weeks);
+  }
+
+  /**
+   * Returns the IDs of all courses that have finished before the course
+   * occasion starts. Ignores courses without IDs. Iterates over all course
+   * occasions and therefore doesn't need the occasions to be sorted.
+   * 
+   * @param {CourseOccasion[]} courseOccasions - Course occasions in schedule
+   * @returns {number[]} IDs of courses that have finished before this occasion starts.
+   */
+  getEarlierCourseIDs(courseOccasions) {
+    let earlierCourseIDs = [];
+
+    for (const courseOccasion of courseOccasions) {
+      if (courseOccasion.courseID === null) {
+        continue;
+      }
+
+      const startYear = courseOccasion.academicYear;
+      const endWeek = courseOccasion.start + courseOccasion.weeks;
+      // A course occasion span two academic years if it ends after the summer.
+      const endYear = endWeek > 40 ? startYear + 1 : startYear;
+
+      if (endYear < this.academicYear) {
+        earlierCourseIDs.push(courseOccasion.courseID);
+      } else if (endYear === this.academicYear && endWeek <= this.start) {
+        earlierCourseIDs.push(courseOccasion.courseID);
+      }
+    }
+
+    return earlierCourseIDs;
+  }
+
+  /**
+   * Update the list of IDs of the course's prerequisites that have not been
+   * met. The supplied list of course occasions is used to determine which
+   * courses have been completed before this course occasion and therefore
+   * should be used to check prerequisites against.
+   * 
+   * @param {CourseOccasion[]} courseOccasions - Course occasions in schedule.
+   */
+  updateUnmetPrerequisites(courseOccasions) {
+    // None can be unmet if there are no prerequisites to be begin with.
+    if (this.prerequisites.length === 0) {
+      this.unmetPrerequisiteIDs = [];
+      return;
+    }
+
+    const completedCourses = this.getEarlierCourseIDs(courseOccasions);
+    // Can't meet any prerequisites without completed courses.
+    if (completedCourses.length === 0) {
+      this.unmetPrerequisiteIDs = this.prerequisites.map(prerequisite => prerequisite.id);
+      return;
+    }
+
+    this.unmetPrerequisiteIDs = [];
+    for (const prerequisite of this.prerequisites) {
+      if (!prerequisite.isMetBy(completedCourses)) {
+        this.unmetPrerequisiteIDs.push(prerequisite.id);
+      }
+    }
   }
 }

@@ -178,11 +178,9 @@ function loadCoursesFromElement() {
     courses.push(CourseOccasion.fromJSON(course, isPrivate));
   }
 
-  // Add IDs of all courses that have finished before each course starts.
+  // Update which prerequisites are unmet for each course.
   for (const course of courses) {
-    course.earlierCourses = getEarlierCourseIDs(
-      course.academicYear, course.start, courses
-    );
+    course.updateUnmetPrerequisites(courses);
   }
 
   return courses;

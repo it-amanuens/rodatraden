@@ -510,8 +510,9 @@ class Prerequisite(models.Model):
         """Return the relation between courses using only the course IDs."""
 
         return dict(
+            id=self.pk,
             course=self.course.id,
-            equivalent_courses=[
+            equivalentCourses=[
                 course.id for course in self.equivalent_courses.all()
             ],
         )
@@ -593,9 +594,7 @@ class CourseOccasion(models.Model):
         requests."""
 
         prerequisites = self.course.prerequisites.all()
-        # We only care about the equivalent courses since we already
-        # know the course ID.
-        prerequisites_json = [prerequisite.as_json()['equivalent_courses'] for prerequisite in prerequisites]
+        prerequisites_json = [prerequisite.as_json() for prerequisite in prerequisites]
 
         return dict(
             year=self.academic_year.year,
