@@ -55,6 +55,8 @@
 <div class="text-center"><p class="lead">Total hp: {{ total_ects }}</p></div>
 
 <div id="block-schedule" class="block-schedule">
+
+  {% if logged_in %}
   <div class="prerequisite-checkbox">
     <input type="checkbox" id="prerequisite-checkbox"
            class="prerequisite-checkbox__input"
@@ -64,6 +66,8 @@
       Verifiera förkunskapskrav
     </label>
   </div>
+  {% endif %}
+
   {% comment %} This div is populated by JavaScript. {% endcomment %}
   <div id="academic-year-container"></div>
   <div id="block-schedule-add-year" class="block-schedule-footer text-center">
