@@ -15,7 +15,7 @@ export default class CourseOccasion {
     // XXX: isPrivate should be taken from JSON data and not as a parameter.
 
     // Convert prerequisites from JSON to Prerequisite instances.
-    const prerequisites = json?.prerequisites.map(prerequisite => {
+    const prerequisites = json?.prerequisites?.map(prerequisite => {
       return Prerequisite.fromJSON(prerequisite);
     });
 
