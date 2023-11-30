@@ -89,6 +89,26 @@ export default class BlockSchedule {
     this.#update();
   }
 
+  /**
+   * Downloads and update the courses in block-schedule and redraws it.
+   * 
+   * @param {string} downloadUrl - URL to download courses from.
+   */
+  downloadCourses(downloadUrl) {
+    fetch(downloadUrl, {
+      method: 'GET'
+    })
+    .then(response => response.json())
+    .then(courseOccasionsJSON => {
+      const courseOccasions = courseOccasionsJSON.map(occasion => {
+        return CourseOccasion.fromJSON(occasion);
+      });
+
+      this.updateCourses(courseOccasions);
+      
+    })
+  }
+
   /** @type {BlockScheduleData} */
   #coursesData;
   /** @type {HTMLElement} */

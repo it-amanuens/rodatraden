@@ -2,8 +2,9 @@ import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
 import { updatePrerequisiteWarnings } from './block_schedule/block_schedule_renderer.js';
 
-// To be able to update the block-schedule at a later time, it must have a
-// global scope.
+// To be able to update the block-schedule at a later time, it has to be defined
+// outside of any function. This way its lifetime will persist.
+/** @type {BlockSchedule} */
 let blockSchedule;
 
 /**
@@ -233,6 +234,7 @@ function main() {
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
+  const blockGetCoursesUrl = stringDataset.blockGetCoursesUrl;
   const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
@@ -263,6 +265,16 @@ function main() {
 
   // Setup and update prerequisite checkbox.
   setupPrerequisiteCheckbox(prerequisiteCheckUrl);
+
+  // Make sure to reload the block-schedule if any course occasions are added.
+  document.getElementById('modal').addEventListener('click', event => {
+    // We only care for clicks outside of the modal that causes the modal to
+    // close. If that is the case, there is a chance a course occasion was
+    // added, so we need to get them and update the block-schedule.
+    if (event.target === event.currentTarget) {
+      blockSchedule.downloadCourses(blockGetCoursesUrl);
+    }
+  });
 }
 
 // Run main function when the script is loaded.

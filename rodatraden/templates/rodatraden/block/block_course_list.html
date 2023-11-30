@@ -1,5 +1,6 @@
 {% extends 'rodatraden/rt_modal/modal.html' %}
 
+{% load static %}
 
 {% block rt_modal_title %}
 Kurstillfällen denna period
@@ -15,4 +16,5 @@ Kurstillfällen denna period
 
 {% include 'rodatraden/rt_modal/course_list_modal_table.html' with courseoccasions=privatecourses is_private=True %}
 
+<script src="{% static 'rodatraden/block_course_list.js' %}"></script>
 {% endblock %}

@@ -2,6 +2,7 @@
   <div class='course-row__main'>
     <span>
       <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}{% if is_private %}&private=1{% endif %}"
+          class="add-course-link"
           aria-label="Lägg till {{ course.title }} {{ course.ects }} högskolepoäng"
           title="Lägg till">
         {{ course.title }}
