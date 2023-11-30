@@ -104,14 +104,14 @@ export default class CourseOccasion {
   }
 
   /**
-   * Returns the IDs of all courses that have finished before the course
+   * Returns the IDs of all courses that have started before the course
    * occasion starts. Ignores courses without IDs. Iterates over all course
    * occasions and therefore doesn't need the occasions to be sorted.
    * 
    * @param {CourseOccasion[]} courseOccasions - Course occasions in schedule
-   * @returns {number[]} IDs of courses that have finished before this occasion starts.
+   * @returns {number[]} IDs of courses that have started before this occasion starts.
    */
-  getEarlierCourseIDs(courseOccasions) {
+  getEarlierStartedCourseIDs(courseOccasions) {
     let earlierCourseIDs = [];
 
     for (const courseOccasion of courseOccasions) {
@@ -120,13 +120,11 @@ export default class CourseOccasion {
       }
 
       const startYear = courseOccasion.academicYear;
-      const endWeek = courseOccasion.start + courseOccasion.weeks;
-      // A course occasion span two academic years if it ends after the summer.
-      const endYear = endWeek > 40 ? startYear + 1 : startYear;
+      const startWeek = courseOccasion.start;
 
-      if (endYear < this.academicYear) {
+      if (startYear < this.academicYear) {
         earlierCourseIDs.push(courseOccasion.courseID);
-      } else if (endYear === this.academicYear && endWeek <= this.start) {
+      } else if (startYear === this.academicYear && startWeek < this.start) {
         earlierCourseIDs.push(courseOccasion.courseID);
       }
     }
@@ -137,7 +135,7 @@ export default class CourseOccasion {
   /**
    * Update the list of IDs of the course's prerequisites that have not been
    * met. The supplied list of course occasions is used to determine which
-   * courses have been completed before this course occasion and therefore
+   * courses have been started before this course occasion and therefore
    * should be used to check prerequisites against.
    * 
    * @param {CourseOccasion[]} courseOccasions - Course occasions in schedule.
@@ -149,16 +147,16 @@ export default class CourseOccasion {
       return;
     }
 
-    const completedCourses = this.getEarlierCourseIDs(courseOccasions);
-    // Can't meet any prerequisites without completed courses.
-    if (completedCourses.length === 0) {
+    const startedCourses = this.getEarlierStartedCourseIDs(courseOccasions);
+    // Can't meet any prerequisites without started courses.
+    if (startedCourses.length === 0) {
       this.unmetPrerequisiteIDs = this.prerequisites.map(prerequisite => prerequisite.id);
       return;
     }
 
     this.unmetPrerequisiteIDs = [];
     for (const prerequisite of this.prerequisites) {
-      if (!prerequisite.isMetBy(completedCourses)) {
+      if (!prerequisite.isMetBy(startedCourses)) {
         this.unmetPrerequisiteIDs.push(prerequisite.id);
       }
     }

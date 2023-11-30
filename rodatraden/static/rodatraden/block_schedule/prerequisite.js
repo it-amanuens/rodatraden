@@ -34,10 +34,10 @@ export default class Prerequisite {
   /**
    * Check if the prerequisite is met by the any of the given courses.
    * 
-   * @param {number[]} completedCourseIDs - CourseIDs to check against.
+   * @param {number[]} startedCourseIDs - CourseIDs to check against.
    * @returns True if the prerequisite is met.
    */
-  isMetBy(completedCourseIDs) {
-    return this.equivalentCourses.some(courseID => completedCourseIDs.includes(courseID));
+  isMetBy(startedCourseIDs) {
+    return this.equivalentCourses.some(courseID => startedCourseIDs.includes(courseID));
   }
 }
