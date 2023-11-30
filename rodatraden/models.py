@@ -603,6 +603,7 @@ class CourseOccasion(models.Model):
             ects=self.course.ects,
             weeks=self.weeks,
             slug = self.slug,
+            isPrivate = False,
             courseID = self.course.id,
             prerequisites = prerequisites_json,
         )
@@ -745,13 +746,14 @@ class PrivateCourse(models.Model):
         requests."""
 
         return dict(
-                year=self.year,
-                start=self.start,
-                title=self.title,
-                ects=self.ects,
-                weeks=self.weeks,
-                slug = self.slug,
-                )
+            year=self.year,
+            start=self.start,
+            title=self.title,
+            ects=self.ects,
+            weeks=self.weeks,
+            slug = self.slug,
+            isPrivate = True,
+        )
 
 
     @property

@@ -1,5 +1,10 @@
 import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
+import { updatePrerequisiteWarnings } from './block_schedule/block_schedule_renderer.js';
+
+// To be able to update the block-schedule at a later time, it must have a
+// global scope.
+let blockSchedule;
 
 /**
  * Sends a request to the server to enable or disable the prerequisite check.
@@ -16,40 +21,6 @@ function sendPrerequisiteCheckState(url, shouldEnable) {
     method: 'GET'
   })
   .catch(error => console.error(error));
-}
-
-/**
- * Shows or hides warning icons and tooltips depending on the state of the
- * prerequisite checkbox.
- */
-function updatePrerequisiteWarnings() {
-  const checkbox = document.getElementById('prerequisite-checkbox');
-  const courses = document.getElementsByClassName(
-    'course--unmet-prerequisites'
-  );
-  const icons = document.getElementsByClassName('course-warning-icon');
-
-  if (checkbox.checked) {
-    $('.course[data-toggle="tooltip"]').tooltip('enable');
-
-    for (const course of courses) {
-      course.classList.add('course--warning');
-    }
-
-    for (const icon of icons) {
-      icon.classList.remove('d-none');
-    }
-  } else {
-    $('.course[data-toggle="tooltip"]').tooltip('disable');
-
-    for (const course of courses) {
-      course.classList.remove('course--warning');
-    }
-
-    for (const icon of icons) {
-      icon.classList.add('d-none');
-    }
-  }
 }
 
 /**
@@ -270,7 +241,7 @@ function main() {
 
   // Create a block schedule which renders it automatically in the specified
   // container.
-  const blockSchedule = new BlockSchedule(
+  blockSchedule = new BlockSchedule(
     startYear,
     courseOccasions,
     academicYearContainer,
@@ -292,7 +263,6 @@ function main() {
 
   // Setup and update prerequisite checkbox.
   setupPrerequisiteCheckbox(prerequisiteCheckUrl);
-  updatePrerequisiteWarnings();
 }
 
 // Run main function when the script is loaded.

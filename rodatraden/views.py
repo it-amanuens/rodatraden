@@ -44,6 +44,7 @@ from openpyxl.styles import Alignment, Font
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Q, Manager
+from django.core.exceptions import PermissionDenied
 
 def get_public_elective_course_occasions(block: Block):
     """Get public elective courses, that is courses not in the base block.
@@ -68,7 +69,7 @@ def get_public_elective_course_occasions(block: Block):
     return elective_course_occasions
 
 
-def index(request):
+def index(request: HttpRequest):
     """Homepage of site."""
 
     context = {
@@ -82,13 +83,13 @@ def index(request):
     return render(request, 'rodatraden/index.html', context)
 
 
-def changelog(request):
+def changelog(request: HttpRequest):
     """A site with changelogs."""
 
     return render(request, 'rodatraden/changelog.html')
 
 
-def tools(request):
+def tools(request: HttpRequest):
     """Various tools for usage"""
 
     # Only staff can access this site
@@ -132,19 +133,19 @@ def tools(request):
 ##########
 
 
-def rt400(request, exception=None):
+def rt400(request: HttpRequest, exception=None):
     return render(request, 'rodatraden/400.html')
 
 
-def rt403(request, exception=None):
+def rt403(request: HttpRequest, exception=None):
     return render(request, 'rodatraden/403.html')
 
 
-def rt404(request, exception=None):
+def rt404(request: HttpRequest, exception=None):
     return render(request, 'rodatraden/404.html')
 
 
-def rt500(request, exception=None):
+def rt500(request: HttpRequest, exception=None):
     return render(request, 'rodatraden/500.html')
 
 #########
@@ -162,7 +163,7 @@ class UserUpdate(CorrectUserPermissionMixin, UpdateView):
 
 
 @login_required
-def user_delete(request, username, pk):
+def user_delete(request: HttpRequest, username, pk):
 
     if request.user.username != username and request.user.id != pk:
         return redirect(reverse('index'))
@@ -496,7 +497,7 @@ class CourseOccasionDetail(DetailView):
         return context
 
 
-def courseoccasion_info(request):
+def courseoccasion_info(request: HttpRequest):
     """Small info view for courseoccasions used in blocks."""
 
     year = int(request.GET.get('year', ''))
@@ -921,7 +922,7 @@ class BlockDelete(CorrectUserPermissionMixin, LoginRequiredMixin,
                             kwargs={'username':self.kwargs['username']})
 
 
-def block_detail(request, username, slug):
+def block_detail(request: HttpRequest, username, slug):
     """Detail view for block."""
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
@@ -1056,13 +1057,6 @@ def block_detail(request, username, slug):
         course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
         prinvate_courses_json = [course.as_json() for course in block.privatecourses.all()]
 
-        # Since both private and non-private occasions will be sent together we
-        # need mark them so that they can be distinguished later.
-        for occasion in course_occasions_json:
-            occasion['isPrivate'] = False
-        for occasion in prinvate_courses_json:
-            occasion['isPrivate'] = True
-
         context = {
             'this_block': block,
             'start_year': block.start_year,
@@ -1101,7 +1095,7 @@ class BlockImportList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
     
 
 @login_required
-def import_block(request, username, slug):
+def import_block(request: HttpRequest, username, slug):
     """Import course occasions from block from GET info."""
 
     # Block to import course occasions into.
@@ -1192,7 +1186,7 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
 
 
 @login_required
-def add_course_to_block(request, username, b_slug):
+def add_course_to_block(request: HttpRequest, username, b_slug):
     """Add a course to block from GET info."""
 
     # Get slug from request
@@ -1220,35 +1214,42 @@ def add_course_to_block(request, username, b_slug):
 
 
 @login_required
-def remove_course_from_block(request, username, b_slug):
+def remove_course_from_block(request: HttpRequest, block_username: str, block_slug: str):
     """Remove a course from a block."""
 
-    # Get slug from request
-    c_slug = request.GET.get('slug', '')
-    is_priv = request.GET.get('private', '')
+    course_occasion_slug = request.GET.get('slug', '')
+    is_private = request.GET.get('private', '')
 
-    # Get block and courseoccasion
-    block = get_object_or_404(Block, user__username=username, slug=b_slug)
+    block = get_object_or_404(Block, user__username=block_username, slug=block_slug)
 
-    # Only blocks made by same user
-    if not request.user.is_staff:
-        if (block.user.username != request.user.username):
-            return redirect(reverse('index'))
+    # Only admins are allowed to edit non-owned schedules.
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
 
-    if (is_priv == '1'):
-        privatecourse = get_object_or_404(PrivateCourse, slug=c_slug)
-        # Add
-        block.privatecourses.remove(privatecourse)
+    if (is_private == '1'):
+        occasion = get_object_or_404(PrivateCourse, slug=course_occasion_slug)
+        block.privatecourses.remove(occasion)
     else:
-        course = get_object_or_404(CourseOccasion, slug=c_slug)
-        # Add
-        block.courseoccasions.remove(course)
+        occasion = get_object_or_404(CourseOccasion, slug=course_occasion_slug)
+        block.courseoccasions.remove(occasion)
 
-    return redirect('block-detail', username=username, slug=b_slug)
+    # Return the updated set of private and non-private course occasions in the
+    # block schedule as a single JSON array.
+    course_occasions = block.courseoccasions.all()
+    private_courses = block.privatecourses.all()
+    course_occasions_json = [course.as_json() for course in course_occasions]
+    private_courses_json = [course.as_json() for course in private_courses]
+    # NOTE: "safe=False" is completely safe to use. See this answer for an
+    # explaination:
+    # https://stackoverflow.com/a/70204451/10844442
+    return JsonResponse(course_occasions_json + private_courses_json,
+                        safe=False)
 
 
 @login_required
-def updatePrerequisiteCheck(request, username, slug):
+def updatePrerequisiteCheck(request: HttpRequest, username, slug):
     """Update if the prerequisites should be verified for the block or not."""
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
@@ -1256,6 +1257,7 @@ def updatePrerequisiteCheck(request, username, slug):
     shouldEnable = request.GET.get('enable', '')
 
     # Treat anything non-empty as True
+    # XXX: Will also be true for "enable=0" or "enable=false" etc.
     if (shouldEnable):
         block.should_verify_prerequisites = True
     else:

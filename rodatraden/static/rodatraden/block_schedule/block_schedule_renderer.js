@@ -1,4 +1,5 @@
 import AcademicYear from "./academic_year.js";
+import BlockSchedule from "./block_schedule.js";
 import CourseOccasion from "./course_occasion.js";
 
 /**
@@ -246,9 +247,15 @@ export function updateCourseContainer(term, scale, margin) {
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
+ * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
-export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
-                            courseoccasionInfoUrl, blockRemoveCourseUrl) {
+export function updateCourseBlocks(courseContainer,
+                                   scale,
+                                   margin,
+                                   isLoggedIn,
+                                   courseoccasionInfoUrl,
+                                   blockRemoveCourseUrl,
+                                   blockSchedule) {
   // Number of weeks in a term.
   const termWeekCount = 20;
 
@@ -299,15 +306,32 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
   // Only logged in users can remove courses.
   if (isLoggedIn) {
     // Add a button to remove the course.
-    // XXX: The page is refreshed each time a course is deleted. Could this be
-    // solved by instead sending an AJAX request?
-    let removeButton = newCourse.append("a")
-      .attr("class", "btn course-remove-button")
-      .attr('href', course => {
-        // Make sure to convert booleans to integers before creating the URL.
-        const url = blockRemoveCourseUrl + "?slug=" + course.slug
-          + "&private=" + (course.isPrivate ? 1 : 0);
-        return url;
+    let removeButton = newCourse.append("button")
+      .attr("class", "btn course-remove-button");
+    
+    // Remove the course using AJAX when the button is clicked.
+    removeButton
+      .on("click", course => {
+        // XXX: Sometimes the tooltip stays on the screen after the course is
+        // deleted. We therefore disable it before deletion.
+        $(removeButton.node()).tooltip('disable');
+
+        const url = blockRemoveCourseUrl
+                  + "?slug=" + course.slug
+                  + "&private=" + (course.isPrivate ? 1 : 0);
+
+        fetch(url, {
+          method: 'GET'
+        })
+        .then(response => response.json())
+        .then(courseOccasionsJSON => {
+          const courseOccasions = courseOccasionsJSON.map(occasion => {
+            return CourseOccasion.fromJSON(occasion);
+          });
+
+          blockSchedule.updateCourses(courseOccasions);
+        })
+        .catch(error => console.error(error));
       });
     
     // Add the icon to the button.
@@ -479,5 +503,39 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
     footer
       .append("div")
       .attr("class", "term-footer-filler");
+  }
+}
+
+/**
+ * Shows or hides warning icons and tooltips depending on the state of the
+ * prerequisite checkbox.
+ */
+export function updatePrerequisiteWarnings() {
+  const checkbox = document.getElementById('prerequisite-checkbox');
+  const courses = document.getElementsByClassName(
+    'course--unmet-prerequisites'
+  );
+  const icons = document.getElementsByClassName('course-warning-icon');
+
+  if (checkbox.checked) {
+    $('.course[data-toggle="tooltip"]').tooltip('enable');
+
+    for (const course of courses) {
+      course.classList.add('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.remove('d-none');
+    }
+  } else {
+    $('.course[data-toggle="tooltip"]').tooltip('disable');
+
+    for (const course of courses) {
+      course.classList.remove('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.add('d-none');
+    }
   }
 }

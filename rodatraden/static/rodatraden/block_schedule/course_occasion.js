@@ -37,21 +37,14 @@ export default class CourseOccasion {
    * @returns All courses, private and non-private in no particular order.
    */
   static fromElement(elementID) {
-    /** @type {CourseOccasion[]} */
-    let courseOccasions = [];
-
     const courseOccasionsAsJSON = JSON.parse(
       document.getElementById(elementID).textContent
     );
 
-    for (const occasion of courseOccasionsAsJSON) {
-      courseOccasions.push(this.fromJSON(occasion));
-    }
-
-    // Update which prerequisites are unmet for each course.
-    for (const occasion of courseOccasions) {
-      occasion.updateUnmetPrerequisites(courseOccasions);
-    }
+    /** @type {CourseOccasion[]} */
+    const courseOccasions = courseOccasionsAsJSON.map(occasion => {
+      return this.fromJSON(occasion);
+    });
 
     return courseOccasions;
   }
