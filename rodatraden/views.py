@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.http import Http404, HttpRequest, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
@@ -499,20 +499,26 @@ class CourseOccasionDetail(DetailView):
 def courseoccasion_info(request):
     """Small info view for courseoccasions used in blocks."""
 
-    # Get year and start from get request
     year = int(request.GET.get('year', ''))
     slug = request.GET.get('slug', '')
 
+    # Get valid IDs of the unmet prerequisites.
+    unmet_prerequisite_ids = [
+        int(id) for id in request.GET.getlist('unmet[]') if id.isdigit()]
+
+    unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
+
     courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
-            slug=slug)
+        slug=slug)
 
     context = {
-            'courseoccasion': courseoccasion,
-            'course': courseoccasion.course
-            }
+        'courseoccasion': courseoccasion,
+        'course': courseoccasion.course,
+        'unmet_prerequisites': unmet_prerequisites,
+    }
 
     return render(request, 'rodatraden/courseoccasion/courseoccasion_info.html',
-            context)
+        context)
 
 
 class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
@@ -1230,3 +1236,23 @@ def remove_course_from_block(request, username, b_slug):
         block.courseoccasions.remove(course)
 
     return redirect('block-detail', username=username, slug=b_slug)
+
+
+@login_required
+def updatePrerequisiteCheck(request, username, slug):
+    """Update if the prerequisites should be verified for the block or not."""
+
+    block = get_object_or_404(Block, user__username=username, slug=slug)
+
+    shouldEnable = request.GET.get('enable', '')
+
+    # Treat anything non-empty as True
+    if (shouldEnable):
+        block.should_verify_prerequisites = True
+    else:
+        block.should_verify_prerequisites = False
+
+    block.save()
+
+    # Just return an empty response if everything went well.
+    return HttpResponse('')

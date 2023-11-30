@@ -506,6 +506,18 @@ class Prerequisite(models.Model):
         return f'{self.course} requires any of {list(self.equivalent_courses.all())}'
 
 
+    def as_json(self):
+        """Return the relation between courses using only the course IDs."""
+
+        return dict(
+            id=self.pk,
+            course=self.course.id,
+            equivalentCourses=[
+                course.id for course in self.equivalent_courses.all()
+            ],
+        )
+
+
 class CategoryCourse(models.Model):
     """Connects categories to course with a given ects."""
 
@@ -545,8 +557,10 @@ class CourseOccasion(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
             blank=False)
 
+
     def __str__(self):
         return self.course.title + ' - ' + str(self.academic_year.year)
+
 
     def save(self, *args, **kwargs):
         """Extend save to add unique slug."""
@@ -569,24 +583,29 @@ class CourseOccasion(models.Model):
 
         super().save(*args, **kwargs)
 
+
     def get_absolute_url(self):
         return reverse('courseoccasion-detail', kwargs={'year':
             self.academic_year.year, 'slug': self.slug})
+
 
     def as_json(self):
         """Function to return important data as dict for usage in json
         requests."""
 
+        prerequisites = self.course.prerequisites.all()
+        prerequisites_json = [prerequisite.as_json() for prerequisite in prerequisites]
+
         return dict(
-                year=self.academic_year.year,
-                start=self.time_period.week,
-                title=self.course.title,
-                ects=self.course.ects,
-                weeks=self.weeks,
-                prerequisites=1,
-                slug = self.slug,
-                is_priv = '',
-                )
+            year=self.academic_year.year,
+            start=self.time_period.week,
+            title=self.course.title,
+            ects=self.course.ects,
+            weeks=self.weeks,
+            slug = self.slug,
+            courseID = self.course.id,
+            prerequisites = prerequisites_json,
+        )
 
 
     @property
@@ -731,9 +750,7 @@ class PrivateCourse(models.Model):
                 title=self.title,
                 ects=self.ects,
                 weeks=self.weeks,
-                prerequisites=1,
                 slug = self.slug,
-                is_priv = 1,
                 )
 
 
@@ -847,6 +864,11 @@ class Block(models.Model):
             blank=False)
 
     __original_title = None
+
+    # The user can choose to ignore warnings about unmet prerequisites.
+    should_verify_prerequisites = models.BooleanField(
+        default=True, 
+        verbose_name='Ska förkunskapskrav verifieras?')
 
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""

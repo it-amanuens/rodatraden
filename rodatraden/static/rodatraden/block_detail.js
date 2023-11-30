@@ -2,6 +2,69 @@ import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
 
 /**
+ * Sends a request to the server to enable or disable the prerequisite check.
+ * When enabled, errors will be shown for courses that have unmet prerequisites.
+ * 
+ * @param {string} url - The url to send the request to.
+ * @param {bool} shouldEnable - True if the prerequisite check should be enabled. Otherwise it will be disabled.
+ */
+function sendPrerequisiteCheckState(url, shouldEnable) {
+  if (shouldEnable) {
+    url += "?enable=1";
+  }
+  fetch(url, {
+    method: 'GET'
+  })
+  .catch(error => console.error(error));
+}
+
+/**
+ * Shows or hides warning icons and tooltips depending on the state of the
+ * prerequisite checkbox.
+ */
+function updatePrerequisiteWarnings() {
+  const checkbox = document.getElementById('prerequisite-checkbox');
+  const courses = document.getElementsByClassName(
+    'course--unmet-prerequisites'
+  );
+  const icons = document.getElementsByClassName('course-warning-icon');
+
+  if (checkbox.checked) {
+    $('.course[data-toggle="tooltip"]').tooltip('enable');
+
+    for (const course of courses) {
+      course.classList.add('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.remove('d-none');
+    }
+  } else {
+    $('.course[data-toggle="tooltip"]').tooltip('disable');
+
+    for (const course of courses) {
+      course.classList.remove('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.add('d-none');
+    }
+  }
+}
+
+/**
+ * Setups the prerequisite toggle checkbox to show or hide warning icons and
+ * tooltips.
+ */
+function setupPrerequisiteCheckbox(prerequisiteCheckUrl) {
+  const checkbox = document.getElementById('prerequisite-checkbox');
+  checkbox.addEventListener('change', () => {
+    updatePrerequisiteWarnings(prerequisiteCheckUrl);
+    sendPrerequisiteCheckState(prerequisiteCheckUrl, checkbox.checked);
+  });
+}
+
+/**
  * Setups event listeners for the buttons to update and delete the block-
  * schedule, as well as import from other schedules.
  */
@@ -122,6 +185,37 @@ function createCategorySumChart() {
 }
 
 /**
+ * Given a starting year and week, return the IDs of all courses that have
+ * finished by that time. Ignore courses without IDs. Iterates over all course
+ * occasions and therefore doesn't need occasions to be sorted.
+ * 
+ * @param {number} start_year 
+ * @param {number} start_week 
+ * @param {number[]} courseOccasions 
+ */
+function getEarlierCourseIDs(start_year, start_week, courseOccasions) {
+  let earlierCourseIDs = [];
+
+  for (const courseOccasion of courseOccasions) {
+    // Ignore courses without IDs.
+    if (courseOccasion.courseID === null) {
+      continue;
+    }
+
+    // Check if the course was finished before the given start time.
+    if (courseOccasion.academicYear < start_year) {
+      earlierCourseIDs.push(courseOccasion.courseID);
+    } else if (courseOccasion.academicYear === start_year) {
+      if (courseOccasion.start + courseOccasion.weeks <= start_week) {
+        earlierCourseIDs.push(courseOccasion.courseID);
+      }
+    }
+  }
+
+  return earlierCourseIDs;
+}
+
+/**
  * Gets all private and non-private courses in the block-schedule from external
  * script tags and return them as a single collection.
  * 
@@ -145,6 +239,11 @@ function loadCoursesFromElement() {
   for (const course of privateCoursesAsJSON) {
     const isPrivate = true;
     courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  }
+
+  // Update which prerequisites are unmet for each course.
+  for (const course of courses) {
+    course.updateUnmetPrerequisites(courses);
   }
 
   return courses;
@@ -197,6 +296,7 @@ function main() {
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
+  const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
   const margin = 1;
@@ -223,6 +323,10 @@ function main() {
   // When the window resizes from narrow to wide or vice versa, update the data
   // and redraw the block-schdule.
   blockSchedule.addResizeEventListener(isNarrowWindow);
+
+  // Setup and update prerequisite checkbox.
+  setupPrerequisiteCheckbox(prerequisiteCheckUrl);
+  updatePrerequisiteWarnings();
 }
 
 // Run main function when the script is loaded.

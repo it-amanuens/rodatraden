@@ -55,6 +55,20 @@
 <div class="text-center"><p class="lead">Total hp: {{ total_ects }}</p></div>
 
 <div id="block-schedule" class="block-schedule">
+
+  {% if logged_in %}
+  <div class="prerequisite-checkbox">
+    <input type="checkbox" id="prerequisite-checkbox"
+           class="prerequisite-checkbox__input"
+           {% if this_block.should_verify_prerequisites %}checked{% endif %}>
+    </input>
+    <label class="prerequisite-checkbox__text" for="prerequisite-checkbox">
+      Verifiera förkunskapskrav
+    </label>
+  </div>
+  {% endif %}
+
+  {% comment %} This div is populated by JavaScript. {% endcomment %}
   <div id="academic-year-container"></div>
   <div id="block-schedule-add-year" class="block-schedule-footer text-center">
     Lägg till ett år
@@ -130,6 +144,7 @@
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
+          data-prerequisite-check-url="{% url 'update-prerequisite-check' this_block.user this_block.slug %}"
   ></script>
 
   <!-- Main script for this page. -->

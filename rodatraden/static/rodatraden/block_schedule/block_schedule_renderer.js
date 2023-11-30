@@ -279,8 +279,13 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     })
     .attr('class', 'courseoccasion-info')
     .attr('data-id', course => {
-      const url = courseoccasionInfoUrl + "?year=" + course.academicYear
-        + "&slug=" + course.slug;
+      // Arrays are send by repeating the parameter name in the URL.
+      const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
+      
+      const url = courseoccasionInfoUrl
+                + "?year=" + course.academicYear
+                + "&slug=" + course.slug
+                + unmetURL;
       return url;
     });
 
@@ -294,20 +299,20 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
   // Only logged in users can remove courses.
   if (isLoggedIn) {
     // Add a button to remove the course.
-    let removeButton = newCourse.append("p")
-      .attr("class", "btn course-remove-button");
-    
-    // Add the icon and url to the button.
     // XXX: The page is refreshed each time a course is deleted. Could this be
     // solved by instead sending an AJAX request?
-    removeButton.append("a")
-      .attr("class", "fa fa-times")
+    let removeButton = newCourse.append("a")
+      .attr("class", "btn course-remove-button")
       .attr('href', course => {
         // Make sure to convert booleans to integers before creating the URL.
         const url = blockRemoveCourseUrl + "?slug=" + course.slug
           + "&private=" + (course.isPrivate ? 1 : 0);
         return url;
       });
+    
+    // Add the icon to the button.
+    removeButton.append("i")
+      .attr("class", "fa fa-times");
   }
 
   // Merge the newly created elements with the existing ones to get all.
@@ -338,6 +343,13 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
         }
       }
 
+      // Mark a block if it has unmet prerequisites and add a class that will be
+      // toggled by the prerequisite checkbox.
+      if (course.unmetPrerequisiteIDs.length > 0) {
+        classList.push('course--unmet-prerequisites');
+        classList.push('course--warning');
+      }
+
       return classList.join(' ');
     })
     .style("height", course => {
@@ -356,6 +368,44 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
       const top = course.firstRowIndex * scale + margin * 3;
       return top + "px";
     });
+
+  // Add a warning icon to the course blocks that have unmet prerequisites.
+  const warningIconSelection = course.selectAll(".course-warning-icon")
+    .data(course => {
+      if (course.unmetPrerequisiteIDs.length > 0) {
+        // The content of the data array is irrelevant since we only want to add
+        // an icon, but we need some data to be present to trigger the enter and
+        // exit selections.
+        return [course];
+      } else {
+        return [];
+      }
+    });
+  
+  // Remove old warning icons.
+  warningIconSelection.exit()
+    .remove();
+  
+  // Add missing warning icons.
+  warningIconSelection.enter().append("i")
+    .attr("class", "course-warning-icon fa fa-exclamation-triangle")
+    .attr("aria-hidden", "true")
+
+
+  // Add a tooltip to the course blocks with unmet prerequisites and initialize
+  // the tooltips.
+  // XXX: Right now the data-toggle and data-placement attributes are added to
+  // all course blocks, but this shouldn't matter since the tooltip is only
+  // shown for the blocks with the title attribute.
+  course
+    .attr("data-toggle", "tooltip")
+    .attr("data-placement", "left")
+    .attr("title", course => {
+      if (course.unmetPrerequisiteIDs.length > 0) {
+        return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
+      }
+    });
+  $('[data-toggle="tooltip"]').tooltip();
 }
 
 /**

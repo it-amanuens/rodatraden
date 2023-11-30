@@ -1,5 +1,7 @@
 {% load widget_tweaks %}
 
+{% load prerequisite_sorter %}
+
 <div class="modal-header">
   <h3 class="modal-title"><a target="_blank" href="{% url 'course-detail' course.slug %}">{{ course.title }}</a></h3>
   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -8,6 +10,17 @@
 </div>
 
 <div class="modal-body">
+  <div class="row">
+    <div class="col">
+      <div class="card alert-danger mb-3">
+        <h5 class="card-header">Du uppfyller inte förkunskapskraven. Följande kurser saknas:</h5>
+        <div class="card-body">
+          {% include 'rodatraden/prerequisite_list.html' with prerequisites=unmet_prerequisites %}
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-lg-6">
       <div class="card">

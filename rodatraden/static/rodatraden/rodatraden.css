@@ -223,6 +223,23 @@ a:not(.default):hover{
   color: var(--schedule-text-color);
 }
 
+.prerequisite-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.prerequisite-checkbox__input {
+  height: 1em;
+  aspect-ratio: 1;
+}
+
+.prerequisite-checkbox__text {
+  color: initial;
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
 .academic-year {
   display: grid;
   gap: var(--schedule-gap);
@@ -290,6 +307,11 @@ a:not(.default):hover{
   background-color: var(--gray-darker);
 }
 
+.course--warning {
+  border-color: hsl(30, 100%, 42%);
+  background-color: hsl(30, 100%, 35%);
+}
+
 .course-title {
   padding-inline: var(--schedule-padding);
   margin: 0;
@@ -328,6 +350,14 @@ a:not(.default):hover{
 
 .course a:hover {
   color: var(--main-color-light);
+}
+
+.course-warning-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  margin: var(--schedule-margin);
 }
 
 .term-footer {
