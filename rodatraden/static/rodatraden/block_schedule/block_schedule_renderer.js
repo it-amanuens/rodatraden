@@ -275,33 +275,10 @@ export function updateCourseBlocks(courseContainer,
   // Add missing courses to the container.
   let newCourse = courseUpdateSelection.enter().append("div")
   
-  // Add a title to new the courses.
-  let courseTitle = newCourse.append("p")
+  // Add a title to new the courses. The title includes a link that leads to
+  // information about the course. The link will be created later.
+  newCourse.append("p")
     .attr("class", "course-title");
-
-  // The title includes a link that leads to information about the course.
-  courseTitle.append("a")
-    .text(course => {
-      return course.title;
-    })
-    .attr('class', 'courseoccasion-info')
-    .attr('data-id', course => {
-      // Arrays are send by repeating the parameter name in the URL.
-      const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
-      
-      const url = courseoccasionInfoUrl
-                + "?year=" + course.academicYear
-                + "&slug=" + course.slug
-                + unmetURL;
-      return url;
-    });
-
-  // Clicking the title opens a modal with info about the course occasion.
-  $(".courseoccasion-info").each(function () {
-    $(this).modalForm({
-      formURL: $(this).data('id')
-    });
-  });
 
   // Only logged in users can remove courses.
   if (isLoggedIn) {
@@ -344,6 +321,35 @@ export function updateCourseBlocks(courseContainer,
 
   // Merge the newly created elements with the existing ones to get all.
   let course = newCourse.merge(courseUpdateSelection);
+
+  // XXX: Can't seem to change the URL of the modalForm. Therefore I will just
+  // recreate it on a new element.
+  let courseTitle = course.select('.course-title');
+  courseTitle.select('a').remove();
+  
+  
+  courseTitle.append("a")
+    .text(course => {
+      return course.title;
+    })
+    .attr('class', 'courseoccasion-info')
+    .attr('data-id', course => {
+      // Arrays are send by repeating the parameter name in the URL.
+      const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
+      
+      const url = courseoccasionInfoUrl
+                + "?year=" + course.academicYear
+                + "&slug=" + course.slug
+                + unmetURL;
+      return url;
+    });
+
+  // Clicking the title opens a modal with info about the course occasion.
+  $(".courseoccasion-info").each(function () {
+    $(this).modalForm({
+      formURL: $(this).data('id')
+    });
+  });
 
   // Set/update the style of the course blocks.
   // XXX: Many magic numbers are used to style the course blocks.

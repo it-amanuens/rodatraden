@@ -4,14 +4,12 @@ for (const link of document.getElementsByClassName('add-course-link')) {
   link.addEventListener('click', event => {
     event.preventDefault();
     
-    const url = link.getAttribute('href');
+    const addCourseOccasionUrl = link.getAttribute('href');
 
-    fetch(url, {
+    fetch(addCourseOccasionUrl, {
       method: 'GET'
     })
-    .then(response => response.text())
-    .then(text => {
-      console.log(text);
+    .then(() => {
       // Close the modal by simulating clicking outisde of it. This way makes
       // sure the modal closes itself properly.
       document.getElementById('modal').click();
