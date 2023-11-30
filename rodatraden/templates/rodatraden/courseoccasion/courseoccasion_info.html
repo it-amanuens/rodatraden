@@ -10,6 +10,7 @@
 </div>
 
 <div class="modal-body">
+  {% if unmet_prerequisites %}
   <div class="row">
     <div class="col">
       <div class="card alert-danger mb-3">
@@ -20,6 +21,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <div class="row">
     <div class="col-lg-6">
