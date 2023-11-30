@@ -343,6 +343,13 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
         }
       }
 
+      // Mark a block if it has unmet prerequisites and add a class that will be
+      // toggled by the prerequisite checkbox.
+      if (course.unmetPrerequisiteIDs.length > 0) {
+        classList.push('course--unmet-prerequisites');
+        classList.push('course--warning');
+      }
+
       return classList.join(' ');
     })
     .style("height", course => {
@@ -395,7 +402,7 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
     .attr("data-placement", "left")
     .attr("title", course => {
       if (course.unmetPrerequisiteIDs.length > 0) {
-        return "Förkunskapskrav ej uppfyllda";
+        return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
       }
     });
   $('[data-toggle="tooltip"]').tooltip();

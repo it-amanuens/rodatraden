@@ -24,16 +24,27 @@ function sendPrerequisiteCheckState(url, shouldEnable) {
  */
 function updatePrerequisiteWarnings() {
   const checkbox = document.getElementById('prerequisite-checkbox');
+  const courses = document.getElementsByClassName(
+    'course--unmet-prerequisites'
+  );
   const icons = document.getElementsByClassName('course-warning-icon');
 
   if (checkbox.checked) {
     $('.course[data-toggle="tooltip"]').tooltip('enable');
+
+    for (const course of courses) {
+      course.classList.add('course--warning');
+    }
 
     for (const icon of icons) {
       icon.classList.remove('d-none');
     }
   } else {
     $('.course[data-toggle="tooltip"]').tooltip('disable');
+
+    for (const course of courses) {
+      course.classList.remove('course--warning');
+    }
 
     for (const icon of icons) {
       icon.classList.add('d-none');

@@ -307,6 +307,11 @@ a:not(.default):hover{
   background-color: var(--gray-darker);
 }
 
+.course--warning {
+  border-color: hsl(30, 100%, 42%);
+  background-color: hsl(30, 100%, 35%);
+}
+
 .course-title {
   padding-inline: var(--schedule-padding);
   margin: 0;
