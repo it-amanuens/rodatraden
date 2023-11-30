@@ -30,6 +30,33 @@ export default class CourseOccasion {
   }
 
   /**
+   * Gets all private and non-private courses in the block-schedule from
+   * external script tags and return them as a single collection.
+   * 
+   * @param {string} elementID - The ID of the script tag containing the courses.
+   * @returns All courses, private and non-private in no particular order.
+   */
+  static fromElement(elementID) {
+    /** @type {CourseOccasion[]} */
+    let courseOccasions = [];
+
+    const courseOccasionsAsJSON = JSON.parse(
+      document.getElementById(elementID).textContent
+    );
+
+    for (const occasion of courseOccasionsAsJSON) {
+      courseOccasions.push(this.fromJSON(occasion));
+    }
+
+    // Update which prerequisites are unmet for each course.
+    for (const occasion of courseOccasions) {
+      occasion.updateUnmetPrerequisites(courseOccasions);
+    }
+
+    return courseOccasions;
+  }
+
+  /**
    * @param {string} title 
    * @param {string} slug 
    * @param {number} ects 

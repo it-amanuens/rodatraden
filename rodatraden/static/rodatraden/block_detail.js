@@ -216,32 +216,6 @@ function getEarlierCourseIDs(start_year, start_week, courseOccasions) {
 }
 
 /**
- * Gets all private and non-private courses in the block-schedule from external
- * script tags and return them as a single collection.
- * 
- * @returns All courses, private and non-private in no particular order.
- */
-function loadCoursesFromElement() {
-  /** @type {CourseOccasion[]} */
-  let courseOccasions = [];
-
-  const courseOccasionsAsJSON = JSON.parse(
-    document.getElementById('course-occasions-data').textContent
-  );
-
-  for (const occasion of courseOccasionsAsJSON) {
-    courseOccasions.push(CourseOccasion.fromJSON(occasion));
-  }
-
-  // Update which prerequisites are unmet for each course.
-  for (const occasion of courseOccasions) {
-    occasion.updateUnmetPrerequisites(courseOccasions);
-  }
-
-  return courseOccasions;
-}
-
-/**
  * Determines if the window is narrow or not.
  * 
  * @returns True if the window is too narrow to fit the terms on the same row.
@@ -273,7 +247,7 @@ function main() {
     }
   );
 
-  const courseOccasions = loadCoursesFromElement();
+  const courseOccasions = CourseOccasion.fromElement('course-occasions-data');
 
   // The block schedule renderer will populate this container with elements.
   const academicYearContainer = document.getElementById('academic-year-container');
