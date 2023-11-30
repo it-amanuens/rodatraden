@@ -515,6 +515,12 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
  */
 export function updatePrerequisiteWarnings() {
   const checkbox = document.getElementById('prerequisite-checkbox');
+
+  // Do nothing if the checkbox doesn't exist.
+  if (!checkbox) {
+    return;
+  }
+
   const courses = document.getElementsByClassName(
     'course--unmet-prerequisites'
   );
