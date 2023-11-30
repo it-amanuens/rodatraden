@@ -374,7 +374,6 @@ export function updateCourseBlocks(courseContainer,
       // toggled by the prerequisite checkbox.
       if (course.unmetPrerequisiteIDs.length > 0) {
         classList.push('course--unmet-prerequisites');
-        classList.push('course--warning');
       }
 
       return classList.join(' ');
@@ -413,26 +412,27 @@ export function updateCourseBlocks(courseContainer,
   warningIconSelection.exit()
     .remove();
   
-  // Add missing warning icons.
+  // Add missing warning icons and hide it initially.
   warningIconSelection.enter().append("i")
-    .attr("class", "course-warning-icon fa fa-exclamation-triangle")
+    .attr("class", "course-warning-icon fa fa-exclamation-triangle d-none")
     .attr("aria-hidden", "true")
 
 
   // Add a tooltip to the course blocks with unmet prerequisites and initialize
   // the tooltips.
-  // XXX: Right now the data-toggle and data-placement attributes are added to
-  // all course blocks, but this shouldn't matter since the tooltip is only
-  // shown for the blocks with the title attribute.
+  // The attributes are added to all course blocks, but this doesn't matter
+  // since the tooltip is only shown for the blocks if the title attribute
+  // contains something.
+  // NOTE: The "data-toggle" attribute is missing on purpose. This is so that
+  // the tooltip isn't enabled when "$('[dat-toggle="tooltip"]').tooltip()" is
+  // called somewhere else.
   course
-    .attr("data-toggle", "tooltip")
     .attr("data-placement", "left")
     .attr("title", course => {
       if (course.unmetPrerequisiteIDs.length > 0) {
         return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
       }
     });
-  $('[data-toggle="tooltip"]').tooltip();
 }
 
 /**
@@ -527,9 +527,9 @@ export function updatePrerequisiteWarnings() {
   const icons = document.getElementsByClassName('course-warning-icon');
 
   if (checkbox.checked) {
-    $('.course[data-toggle="tooltip"]').tooltip('enable');
-
     for (const course of courses) {
+      course.setAttribute('data-toggle', 'tooltip');
+      $(course).tooltip('enable');
       course.classList.add('course--warning');
     }
 
@@ -537,9 +537,9 @@ export function updatePrerequisiteWarnings() {
       icon.classList.remove('d-none');
     }
   } else {
-    $('.course[data-toggle="tooltip"]').tooltip('disable');
-
     for (const course of courses) {
+      course.removeAttribute('data-toggle');
+      $(course).tooltip('disable');
       course.classList.remove('course--warning');
     }
 
