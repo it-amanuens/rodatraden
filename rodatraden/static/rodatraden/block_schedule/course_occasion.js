@@ -9,11 +9,8 @@ export default class CourseOccasion {
    * Create a Course instance from JSON data.
    * 
    * @param {any} json - Course as a JSON object.
-   * @param {boolean} isPrivate - True if the course (course-occasion) is user-created.
    */
-  static fromJSON(json, isPrivate) {
-    // XXX: isPrivate should be taken from JSON data and not as a parameter.
-
+  static fromJSON(json) {
     // Convert prerequisites from JSON to Prerequisite instances.
     const prerequisites = json?.prerequisites?.map(prerequisite => {
       return Prerequisite.fromJSON(prerequisite);
@@ -26,7 +23,7 @@ export default class CourseOccasion {
       json.year,
       json.start,
       json.weeks,
-      isPrivate,
+      json.isPrivate,
       json?.courseID,
       prerequisites
     );

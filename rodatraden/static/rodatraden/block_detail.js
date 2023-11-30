@@ -223,30 +223,22 @@ function getEarlierCourseIDs(start_year, start_week, courseOccasions) {
  */
 function loadCoursesFromElement() {
   /** @type {CourseOccasion[]} */
-  let courses = [];
+  let courseOccasions = [];
 
-  const coursesAsJSON = JSON.parse(
+  const courseOccasionsAsJSON = JSON.parse(
     document.getElementById('course-occasions-data').textContent
   );
-  const privateCoursesAsJSON = JSON.parse(
-    document.getElementById('private-courses-data').textContent
-  );
 
-  for (const course of coursesAsJSON) {
-    const isPrivate = false;
-    courses.push(CourseOccasion.fromJSON(course, isPrivate));
-  }
-  for (const course of privateCoursesAsJSON) {
-    const isPrivate = true;
-    courses.push(CourseOccasion.fromJSON(course, isPrivate));
+  for (const occasion of courseOccasionsAsJSON) {
+    courseOccasions.push(CourseOccasion.fromJSON(occasion));
   }
 
   // Update which prerequisites are unmet for each course.
-  for (const course of courses) {
-    course.updateUnmetPrerequisites(courses);
+  for (const occasion of courseOccasions) {
+    occasion.updateUnmetPrerequisites(courseOccasions);
   }
 
-  return courses;
+  return courseOccasions;
 }
 
 /**

@@ -1053,19 +1053,28 @@ def block_detail(request, username, slug):
         # XXX: The variables name will be confusingly similar until I figure out how category_sum works.
         categories_sum = [float(sum) for sum in category_sum.values()]
 
+        course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
+        prinvate_courses_json = [course.as_json() for course in block.privatecourses.all()]
+
+        # Since both private and non-private occasions will be sent together we
+        # need mark them so that they can be distinguished later.
+        for occasion in course_occasions_json:
+            occasion['isPrivate'] = False
+        for occasion in prinvate_courses_json:
+            occasion['isPrivate'] = True
+
         context = {
-                'this_block': block,
-                'start_year': block.start_year,
-                'course_occasions': [course.as_json() for course in block.courseoccasions.all()],
-                'private_courses': [course.as_json() for course in block.privatecourses.all()],
-                'categories_title': categories_title,
-                'categories_ects': categories_ects,
-                'categories_sum': categories_sum,
-                'total_ects': block.total_course_ects(),
-                'logged_in': (request.user.is_authenticated and
-                request.user.username == block.user.username) or
-                (request.user.is_staff and not block.private)
-                }
+            'this_block': block,
+            'start_year': block.start_year,
+            'course_occasions': course_occasions_json + prinvate_courses_json,
+            'categories_title': categories_title,
+            'categories_ects': categories_ects,
+            'categories_sum': categories_sum,
+            'total_ects': block.total_course_ects(),
+            'logged_in': (request.user.is_authenticated and
+            request.user.username == block.user.username) or
+            (request.user.is_staff and not block.private)
+        }
 
         return render(request, 'rodatraden/block/block_detail.html', context)
 
