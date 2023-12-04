@@ -488,7 +488,7 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
     newButton
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "left")
-      .attr('data-id', button => {
+      .attr('data-url', button => {
         // XXX: Why use the start weeks 0, 10, 20 and 30 when the period number
         // would do? The code would be clearer if the server did the week
         // converersion instead.
@@ -501,10 +501,54 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
 
     // Show a pop-up modal with a list of courses to add when the user clicks
     // on a button.
-    $(".add-course").each(function () {
-      $(this).modalForm({
-        formURL: $(this).data('id')
-      });
+    newButton.on("click", function() {
+      const url = this.getAttribute('data-url');
+
+      fetch(url, {
+        method: 'GET'
+      })
+      .then(response => response.text())
+      .then(html => {
+        const modal = document.getElementById('modal');
+        const modalContent = modal.querySelector('.modal-content');
+
+        // Parse the HTML string to a DOM element and replace the modal content.
+        const parser = new DOMParser();
+        const modalDocument = parser.parseFromString(html, 'text/html');
+        modalContent.innerHTML = modalDocument.body.innerHTML;
+
+        // Override the "add course" links with AJAX calls so there is no page reload.
+        for (const link of document.getElementsByClassName('add-course-link')) {
+          link.addEventListener('click', event => {
+            event.preventDefault();
+            
+            const addCourseOccasionUrl = link.getAttribute('href');
+        
+            fetch(addCourseOccasionUrl, {
+              method: 'GET'
+            })
+            .then(() => {
+              // Close the modal by simulating clicking outisde of it. This should
+              // close the modal properly.
+              document.getElementById('modal').click();
+            })
+            .catch(error => console.error(error));
+          });
+        }
+        
+        // Make the modal visible.
+        const body = document.querySelector('body');
+        body.classList.add('modal-open');
+        modal.classList.add('show');
+        modal.style.display = 'block';
+
+        // Add backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        body.appendChild(backdrop);
+
+      })
+      .catch(error => console.error(error));
     });
 
   // Otherwise just add a filler spanning the full width.

@@ -272,6 +272,15 @@ function main() {
     // close. If that is the case, there is a chance a course occasion was
     // added, so we need to get them and update the block-schedule.
     if (event.target === event.currentTarget) {
+      // Hide modal.
+      const modal = document.getElementById('modal');
+      modal.style.display = 'none';
+      modal.classList.remove('show');
+
+      // Remove backdrop
+      const backdrop = document.querySelector('.modal-backdrop');
+      backdrop.parentNode.removeChild(backdrop);
+
       blockSchedule.downloadCourses(blockGetCoursesUrl);
     }
   });
