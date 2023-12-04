@@ -509,7 +509,8 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
       })
       .then(response => response.text())
       .then(html => {
-        const modal = document.getElementById('modal');
+        /** @type { HTMLDialogElement } */
+        const modal = document.getElementById('native-modal');
         const modalContent = modal.querySelector('.modal-content');
 
         // Parse the HTML string to a DOM element and replace the modal content.
@@ -517,7 +518,8 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
         const modalDocument = parser.parseFromString(html, 'text/html');
         modalContent.innerHTML = modalDocument.body.innerHTML;
 
-        // Override the "add course" links with AJAX calls so there is no page reload.
+        // Override the "add course" links with AJAX calls so there is no page
+        // reload.
         for (const link of document.getElementsByClassName('add-course-link')) {
           link.addEventListener('click', event => {
             event.preventDefault();
@@ -527,25 +529,25 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
             fetch(addCourseOccasionUrl, {
               method: 'GET'
             })
+            // TODO: Get the courses as a response here instead of downloading
+            // the courses later. Wasn't possible before when the script was in
+            // the template.
             .then(() => {
-              // Close the modal by simulating clicking outisde of it. This should
-              // close the modal properly.
-              document.getElementById('modal').click();
+              // Fade the modal before closing it.
+              modal.classList.add('closing');
+              modal.addEventListener(
+                'animationend',
+                () => {
+                  modal.classList.remove('closing');
+                  modal.close();
+                }
+              );
             })
             .catch(error => console.error(error));
           });
         }
-        
-        // Make the modal visible.
-        const body = document.querySelector('body');
-        body.classList.add('modal-open');
-        modal.classList.add('show');
-        modal.style.display = 'block';
 
-        // Add backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'modal-backdrop fade show';
-        body.appendChild(backdrop);
+        modal.showModal();
 
       })
       .catch(error => console.error(error));

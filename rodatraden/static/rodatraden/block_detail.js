@@ -267,21 +267,25 @@ function main() {
   setupPrerequisiteCheckbox(prerequisiteCheckUrl);
 
   // Make sure to reload the block-schedule if any course occasions are added.
-  document.getElementById('modal').addEventListener('click', event => {
+  /** @type { HTMLDialogElement } */
+  const modal = document.getElementById('native-modal');
+  modal.addEventListener('click', event => {
     // We only care for clicks outside of the modal that causes the modal to
     // close. If that is the case, there is a chance a course occasion was
     // added, so we need to get them and update the block-schedule.
     if (event.target === event.currentTarget) {
-      // Hide modal.
-      const modal = document.getElementById('modal');
-      modal.style.display = 'none';
-      modal.classList.remove('show');
-
-      // Remove backdrop
-      const backdrop = document.querySelector('.modal-backdrop');
-      backdrop.parentNode.removeChild(backdrop);
-
       blockSchedule.downloadCourses(blockGetCoursesUrl);
+      
+      // Fade the modal before closing it.
+      modal.classList.add('closing');
+      modal.addEventListener(
+        'animationend',
+        () => {
+          modal.classList.remove('closing');
+          modal.close();
+        },
+        { once: true }
+      );
     }
   });
 }

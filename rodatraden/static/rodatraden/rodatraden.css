@@ -143,14 +143,112 @@ a:not(.default):hover{
   background-color: var(--main-color);
 }
 
-/* Generic properties */
 
+/* Mimic the modalForm plugin usign the native <dialog> element */
+
+/* Since ::backdrop doesn't inherit anything, so the custom property needs to be
+ * defined for it as well. See this answer:
+ * https://stackoverflow.com/a/63322762/10844442
+ */
+ .native-modal,
+ .native-modal::backdrop {
+   --modal-fade-duration: 0.15s;
+   --modal-slide-duration: calc(2 * var(--modal-fade-duration));
+ }
+
+.native-modal {
+  /* Must set max-width to access full width of page. See this answer:
+   * https://stackoverflow.com/a/75024226/10844442.
+   * Same for max-height.
+   */
+  max-width: 100vw;
+  max-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+
+  opacity: 0;
+}
+
+.native-modal::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+/* Scroll modal instead of body. */
+body:has(dialog[open]) {
+  overflow: hidden;
+  /* Made sure the content won't shift when the scrollbar is removed. */
+  /* The width is set by Javascript. */
+  padding-right: var(--scrollbar-width);
+}
+
+/* First fade in the background. Then fade in the modal while it slides down.
+ * "forwards" is used to keep the opacity at 1 after the animation is done.
+ */
+ .native-modal[open]::backdrop {
+  animation: fade-in var(--modal-fade-duration) linear;
+}
+.native-modal[open] {
+  animation: fade-in var(--modal-fade-duration) linear var(--modal-fade-duration) forwards;
+}
+.native-modal[open] > .modal-dialog {
+  animation: slide-down var(--modal-slide-duration) ease-out var(--modal-fade-duration);
+}
+
+/* When closing, fade and slide up the modal. */
+.native-modal.closing {
+  animation: fade-out var(--modal-fade-duration) linear;
+}
+.native-modal.closing > .modal-dialog {
+  animation: slide-up var(--modal-slide-duration) ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50px);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-50px);
+  }
+  to {
+    transform: translateY(0);
+  }
+
+}
+
+/* Custom modal table */
+
+/* Generic properties */
 .rt-column--number,
 .rt-column--last {
   text-align: end;
 }
-
-/* Custom modal table */
 
 .rt-modal-table__header {
   display: grid;
