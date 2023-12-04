@@ -90,8 +90,6 @@ urlpatterns = [
         views.add_course_to_block, name='block-add-course'),
     path('blockscheman/<str:block_username>/<slug:block_slug>/tabort/',
         views.remove_course_from_block, name='block-remove-course'),
-    path('blockscheman/<str:block_username>/<slug:block_slug>/laddaned/',
-        views.get_courses_from_block, name='block-get-courses'),
 
     path('blockscheman/<str:username>/<slug:slug>/kravcheck/',
         views.updatePrerequisiteCheck, name='update-prerequisite-check'),

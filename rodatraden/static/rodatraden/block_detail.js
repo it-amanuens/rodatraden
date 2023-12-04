@@ -270,12 +270,8 @@ function main() {
   /** @type { HTMLDialogElement } */
   const modal = document.getElementById('native-modal');
   modal.addEventListener('click', event => {
-    // We only care for clicks outside of the modal that causes the modal to
-    // close. If that is the case, there is a chance a course occasion was
-    // added, so we need to get them and update the block-schedule.
+    // Only clicks outside the modal content closes the modal.
     if (event.target === event.currentTarget) {
-      blockSchedule.downloadCourses(blockGetCoursesUrl);
-      
       // Fade the modal before closing it.
       modal.classList.add('closing');
       modal.addEventListener(

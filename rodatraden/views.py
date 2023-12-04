@@ -1207,8 +1207,17 @@ def add_course_to_block(request: HttpRequest, block_username, block_slug):
         course = get_object_or_404(CourseOccasion, slug=course_occasion_slug)
         block.courseoccasions.add(course)
 
-    # Just return an empty response if everything went well.
-    return HttpResponse('')
+    # Return the updated set of private and non-private course occasions in the
+    # block schedule as a single JSON array.
+    course_occasions = block.courseoccasions.all()
+    private_courses = block.privatecourses.all()
+    course_occasions_json = [course.as_json() for course in course_occasions]
+    private_courses_json = [course.as_json() for course in private_courses]
+    # NOTE: "safe=False" is completely safe to use. See this answer for an
+    # explaination:
+    # https://stackoverflow.com/a/70204451/10844442
+    return JsonResponse(course_occasions_json + private_courses_json,
+                        safe=False)
 
 
 @login_required
@@ -1233,31 +1242,6 @@ def remove_course_from_block(request: HttpRequest, block_username: str, block_sl
         occasion = get_object_or_404(CourseOccasion, slug=course_occasion_slug)
         block.courseoccasions.remove(occasion)
 
-    # Return the updated set of private and non-private course occasions in the
-    # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
-    # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
-    # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
-
-
-@login_required
-def get_courses_from_block(request: HttpRequest, block_username, block_slug):
-    """Get all course occasions in a block."""
-
-    block = get_object_or_404(Block, user__username=block_username, slug=block_slug)
-
-    # Only admins are allowed to edit non-owned schedules.
-    is_allowed_to_edit = (request.user.is_staff
-                          or request.user.username == block.user.username)
-    if not is_allowed_to_edit:
-        raise PermissionDenied
-    
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
     course_occasions = block.courseoccasions.all()

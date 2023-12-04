@@ -449,8 +449,9 @@ export function updateCourseBlocks(courseContainer,
  * @param {*} term - D3 selection of all terms.
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} blockCourseListUrl - URL to get a list of courses to add.
+ * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
-export function addFooter(term, isLoggedIn, blockCourseListUrl) {
+export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
   // Create a D3 update selection by binding relevant data for the footer. We
   // don't need to use a key here since there's only one footer per term.
   let footerUpdateSelection = term.selectAll(".term-footer")
@@ -483,8 +484,6 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
       .text("Lägg till kurs");
     
     // Setup data for the pop-up modal.
-    // XXX: The page is refreshed each time a course is added. Could this be
-    // solved by instead sending an AJAX request?
     newButton
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "left")
@@ -529,10 +528,14 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
             fetch(addCourseOccasionUrl, {
               method: 'GET'
             })
-            // TODO: Get the courses as a response here instead of downloading
-            // the courses later. Wasn't possible before when the script was in
-            // the template.
-            .then(() => {
+            .then(response => response.json())
+            .then(courseOccasionsJSON => {
+              const courseOccasions = courseOccasionsJSON.map(occasion => {
+                return CourseOccasion.fromJSON(occasion);
+              });
+
+              blockSchedule.updateCourses(courseOccasions);
+
               // Fade the modal before closing it.
               modal.classList.add('closing');
               modal.addEventListener(
@@ -540,7 +543,8 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
                 () => {
                   modal.classList.remove('closing');
                   modal.close();
-                }
+                },
+                { once: true }
               );
             })
             .catch(error => console.error(error));

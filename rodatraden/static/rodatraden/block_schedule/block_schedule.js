@@ -180,7 +180,12 @@ export default class BlockSchedule {
     );
 
     // Add a footer to all new terms.
-    renderer.addFooter(termSelection, this.#isLoggedIn, this.#blockCourseListUrl);
+    renderer.addFooter(
+      termSelection,
+      this.#isLoggedIn,
+      this.#blockCourseListUrl,
+      this
+    );
     
     // Update the prerequisite warnings for all courses.
     renderer.updatePrerequisiteWarnings();
