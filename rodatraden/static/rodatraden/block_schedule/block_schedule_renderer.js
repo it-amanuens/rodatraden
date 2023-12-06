@@ -331,7 +331,7 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
 
       // Mark a block if it is only a portion of a course, as well as which
       // term the block belongs to.
-      if (course.length !== course.weeks) {
+      if (course.visibleWeeks !== course.weeks) {
         const springWeekStart = 20;
 
         classList.push('course-split');
@@ -357,7 +357,7 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
       return height + "px";
     })
     .style("width", course => {
-      const width = course.length / termWeekCount * 100 - 0.5;
+      const width = course.visibleWeeks / termWeekCount * 100 - 0.5;
       return width + "%";
     })
     .style("margin-left", course => {
