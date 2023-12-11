@@ -26,7 +26,7 @@ function groupCoursesByYear(courses) {
 /**
  * Adds empty years if needed to make sure that the first five years exists.
  * 
- * @param {Map<number, Course[]>} coursesByYear
+ * @param {Map<number, CourseOccasion[]>} coursesByYear
  * @param {number} startYear - Start year specified by the user when creating the block-schedule.
  */
 function addFirstFiveYearsIfMissing(coursesByYear, startYear) {
@@ -41,7 +41,7 @@ function addFirstFiveYearsIfMissing(coursesByYear, startYear) {
  * Adds empty years if needed to make sure that there are no missing years
  * between existing years.
  * 
- * @param {Map<number, Course[]>} coursesByYear
+ * @param {Map<number, CourseOccasion[]>} coursesByYear
  */
 function addMissingGapYears(coursesByYear) {
   const firstYear = Math.min(...coursesByYear.keys());
@@ -59,7 +59,7 @@ function addMissingGapYears(coursesByYear) {
  * useful data is also calculated that will be used when rendering the block-
  * schedule.
  * 
- * @param {Map<number, Course[]>} coursesByYear
+ * @param {Map<number, CourseOccasion[]>} coursesByYear
  * @param {boolean} shouldSplitCourses - True if courses that overlap terms should be split into two course-blocks.
  * @returns {AcademicYear[]}
  */
@@ -86,30 +86,53 @@ function groupCoursesByTerm(coursesByYear, shouldSplitCourses) {
 export default class BlockScheduleData {
   /**
    * @param {number} startYear - Start year specified by the user when creating the block-schedule.
-   * @param {any[]} courses - List of courses formatted as JSON.
+   * @param {CourseOccasion[]} courses - List of course occasions.
    * @param {boolean} shouldSplitCourses - True if courses that overlap terms should be split into two course-blocks.
    */
   constructor(startYear, courses, shouldSplitCourses) {
     this.#startYear = startYear;
     this.#courses = courses;
+    this.#shouldSplitCourses = shouldSplitCourses;
 
-    this.update(shouldSplitCourses);
+    this.update();
   }
 
   /**
-   * Updates the block-schedule's data. Splits courses that overlap both the
-   * fall and spring term if requested.
+   * Overwrites the courses with new ones and updates the block-schedule data.
    * 
-   * @param {boolean} shouldSplitCourses - True if courses that overlap terms should be split into two course-blocks.
+   * @param {CourseOccasion[]} courses 
    */
-  update(shouldSplitCourses) {
+  updateCourses(courses) {
+    this.#courses = courses;
+    this.update();
+  }
+
+  /**
+   * Overwrites the split-courses setting and updates the block-schedule data.
+   * 
+   * @param {boolean} shouldSplitCourses 
+   */
+  updateSplit(shouldSplitCourses) {
+    this.#shouldSplitCourses = shouldSplitCourses;
+    this.update();
+  }
+
+  /**
+   * Updates the block-schedule data by formatting it suitable for rendering.
+   */
+  update() {
+    // Update which prerequisites are unmet for each course.
+    for (const occasion of this.#courses) {
+      occasion.updateUnmetPrerequisites(this.#courses);
+    }
+
     let coursesByYear = groupCoursesByYear(this.#courses);
 
     // Add missing years.
     addFirstFiveYearsIfMissing(coursesByYear, this.#startYear);
     addMissingGapYears(coursesByYear);
 
-    this.#academicYears = groupCoursesByTerm(coursesByYear, shouldSplitCourses);
+    this.#academicYears = groupCoursesByTerm(coursesByYear, this.#shouldSplitCourses);
   }
 
   /**
@@ -147,6 +170,9 @@ export default class BlockScheduleData {
   #startYear;
   /** @type {CourseOccasion[]} */
   #courses;
+  /** @type {boolean} */
+  #shouldSplitCourses;
+
   /** @type {AcademicYear[]} */
   #academicYears = [];
 }

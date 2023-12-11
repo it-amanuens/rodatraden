@@ -1,4 +1,5 @@
 import AcademicYear from "./academic_year.js";
+import BlockSchedule from "./block_schedule.js";
 import CourseOccasion from "./course_occasion.js";
 
 /**
@@ -246,9 +247,15 @@ export function updateCourseContainer(term, scale, margin) {
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
+ * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
-export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
-                            courseoccasionInfoUrl, blockRemoveCourseUrl) {
+export function updateCourseBlocks(courseContainer,
+                                   scale,
+                                   margin,
+                                   isLoggedIn,
+                                   courseoccasionInfoUrl,
+                                   blockRemoveCourseUrl,
+                                   blockSchedule) {
   // Number of weeks in a term.
   const termWeekCount = 20;
 
@@ -268,11 +275,59 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
   // Add missing courses to the container.
   let newCourse = courseUpdateSelection.enter().append("div")
   
-  // Add a title to new the courses.
-  let courseTitle = newCourse.append("p")
+  // Add a title to new the courses. The title includes a link that leads to
+  // information about the course. The link will be created later.
+  newCourse.append("p")
     .attr("class", "course-title");
 
-  // The title includes a link that leads to information about the course.
+  // Only logged in users can remove courses.
+  if (isLoggedIn) {
+    // Add a button to remove the course.
+    let removeButton = newCourse.append("button")
+      .attr("class", "btn course-remove-button");
+    
+    // Remove the course using AJAX when the button is clicked.
+    removeButton
+      .on("click", course => {
+        // XXX: Often the tooltip stays on the screen permanently after the
+        // course is deleted. We therefore delete it explicitly.
+        const tooltip = document.querySelector('.tooltip');
+        if (tooltip) {
+          tooltip.remove();
+        }
+
+        const url = blockRemoveCourseUrl
+                  + "?slug=" + course.slug
+                  + "&private=" + (course.isPrivate ? 1 : 0);
+
+        fetch(url, {
+          method: 'GET'
+        })
+        .then(response => response.json())
+        .then(courseOccasionsJSON => {
+          const courseOccasions = courseOccasionsJSON.map(occasion => {
+            return CourseOccasion.fromJSON(occasion);
+          });
+
+          blockSchedule.updateCourses(courseOccasions);
+        })
+        .catch(error => console.error(error));
+      });
+    
+    // Add the icon to the button.
+    removeButton.append("i")
+      .attr("class", "fa fa-times");
+  }
+
+  // Merge the newly created elements with the existing ones to get all.
+  let course = newCourse.merge(courseUpdateSelection);
+
+  // XXX: Can't seem to change the URL of the modalForm. Therefore I will just
+  // recreate it on a new element.
+  let courseTitle = course.select('.course-title');
+  courseTitle.select('a').remove();
+  
+  
   courseTitle.append("a")
     .text(course => {
       return course.title;
@@ -295,28 +350,6 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
       formURL: $(this).data('id')
     });
   });
-
-  // Only logged in users can remove courses.
-  if (isLoggedIn) {
-    // Add a button to remove the course.
-    // XXX: The page is refreshed each time a course is deleted. Could this be
-    // solved by instead sending an AJAX request?
-    let removeButton = newCourse.append("a")
-      .attr("class", "btn course-remove-button")
-      .attr('href', course => {
-        // Make sure to convert booleans to integers before creating the URL.
-        const url = blockRemoveCourseUrl + "?slug=" + course.slug
-          + "&private=" + (course.isPrivate ? 1 : 0);
-        return url;
-      });
-    
-    // Add the icon to the button.
-    removeButton.append("i")
-      .attr("class", "fa fa-times");
-  }
-
-  // Merge the newly created elements with the existing ones to get all.
-  let course = newCourse.merge(courseUpdateSelection);
 
   // Set/update the style of the course blocks.
   // XXX: Many magic numbers are used to style the course blocks.
@@ -347,7 +380,6 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
       // toggled by the prerequisite checkbox.
       if (course.unmetPrerequisiteIDs.length > 0) {
         classList.push('course--unmet-prerequisites');
-        classList.push('course--warning');
       }
 
       return classList.join(' ');
@@ -386,26 +418,27 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
   warningIconSelection.exit()
     .remove();
   
-  // Add missing warning icons.
+  // Add missing warning icons and hide it initially.
   warningIconSelection.enter().append("i")
-    .attr("class", "course-warning-icon fa fa-exclamation-triangle")
+    .attr("class", "course-warning-icon fa fa-exclamation-triangle d-none")
     .attr("aria-hidden", "true")
 
 
   // Add a tooltip to the course blocks with unmet prerequisites and initialize
   // the tooltips.
-  // XXX: Right now the data-toggle and data-placement attributes are added to
-  // all course blocks, but this shouldn't matter since the tooltip is only
-  // shown for the blocks with the title attribute.
+  // The attributes are added to all course blocks, but this doesn't matter
+  // since the tooltip is only shown for the blocks if the title attribute
+  // contains something.
+  // NOTE: The "data-toggle" attribute is missing on purpose. This is so that
+  // the tooltip isn't enabled when "$('[dat-toggle="tooltip"]').tooltip()" is
+  // called somewhere else.
   course
-    .attr("data-toggle", "tooltip")
     .attr("data-placement", "left")
     .attr("title", course => {
       if (course.unmetPrerequisiteIDs.length > 0) {
         return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
       }
     });
-  $('[data-toggle="tooltip"]').tooltip();
 }
 
 /**
@@ -416,8 +449,9 @@ export function updateCourseBlocks(courseContainer, scale, margin, isLoggedIn,
  * @param {*} term - D3 selection of all terms.
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} blockCourseListUrl - URL to get a list of courses to add.
+ * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
-export function addFooter(term, isLoggedIn, blockCourseListUrl) {
+export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
   // Create a D3 update selection by binding relevant data for the footer. We
   // don't need to use a key here since there's only one footer per term.
   let footerUpdateSelection = term.selectAll(".term-footer")
@@ -450,12 +484,10 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
       .text("Lägg till kurs");
     
     // Setup data for the pop-up modal.
-    // XXX: The page is refreshed each time a course is added. Could this be
-    // solved by instead sending an AJAX request?
     newButton
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "left")
-      .attr('data-id', button => {
+      .attr('data-url', button => {
         // XXX: Why use the start weeks 0, 10, 20 and 30 when the period number
         // would do? The code would be clearer if the server did the week
         // converersion instead.
@@ -468,10 +500,61 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
 
     // Show a pop-up modal with a list of courses to add when the user clicks
     // on a button.
-    $(".add-course").each(function () {
-      $(this).modalForm({
-        formURL: $(this).data('id')
-      });
+    newButton.on("click", function() {
+      const url = this.getAttribute('data-url');
+
+      fetch(url, {
+        method: 'GET'
+      })
+      .then(response => response.text())
+      .then(html => {
+        /** @type { HTMLDialogElement } */
+        const modal = document.getElementById('native-modal');
+        const modalContent = modal.querySelector('.modal-content');
+
+        // Parse the HTML string to a DOM element and replace the modal content.
+        const parser = new DOMParser();
+        const modalDocument = parser.parseFromString(html, 'text/html');
+        modalContent.innerHTML = modalDocument.body.innerHTML;
+
+        // Override the "add course" links with AJAX calls so there is no page
+        // reload.
+        for (const link of document.getElementsByClassName('add-course-link')) {
+          link.addEventListener('click', event => {
+            event.preventDefault();
+            
+            const addCourseOccasionUrl = link.getAttribute('href');
+        
+            fetch(addCourseOccasionUrl, {
+              method: 'GET'
+            })
+            .then(response => response.json())
+            .then(courseOccasionsJSON => {
+              const courseOccasions = courseOccasionsJSON.map(occasion => {
+                return CourseOccasion.fromJSON(occasion);
+              });
+
+              blockSchedule.updateCourses(courseOccasions);
+
+              // Fade the modal before closing it.
+              modal.classList.add('closing');
+              modal.addEventListener(
+                'animationend',
+                () => {
+                  modal.classList.remove('closing');
+                  modal.close();
+                },
+                { once: true }
+              );
+            })
+            .catch(error => console.error(error));
+          });
+        }
+
+        modal.showModal();
+
+      })
+      .catch(error => console.error(error));
     });
 
   // Otherwise just add a filler spanning the full width.
@@ -479,5 +562,45 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl) {
     footer
       .append("div")
       .attr("class", "term-footer-filler");
+  }
+}
+
+/**
+ * Shows or hides warning icons and tooltips depending on the state of the
+ * prerequisite checkbox.
+ */
+export function updatePrerequisiteWarnings() {
+  const checkbox = document.getElementById('prerequisite-checkbox');
+
+  // Do nothing if the checkbox doesn't exist.
+  if (!checkbox) {
+    return;
+  }
+
+  const courses = document.getElementsByClassName(
+    'course--unmet-prerequisites'
+  );
+  const icons = document.getElementsByClassName('course-warning-icon');
+
+  if (checkbox.checked) {
+    for (const course of courses) {
+      course.setAttribute('data-toggle', 'tooltip');
+      $(course).tooltip('enable');
+      course.classList.add('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.remove('d-none');
+    }
+  } else {
+    for (const course of courses) {
+      course.removeAttribute('data-toggle');
+      $(course).tooltip('disable');
+      course.classList.remove('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.add('d-none');
+    }
   }
 }

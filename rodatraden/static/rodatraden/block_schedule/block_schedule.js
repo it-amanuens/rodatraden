@@ -1,10 +1,11 @@
 import BlockScheduleData from './block_schedule_data.js';
 import * as renderer from './block_schedule_renderer.js';
+import CourseOccasion from './course_occasion.js';
 
 export default class BlockSchedule {
   /**
    * @param {number} startYear - Start year specified by the user when creating the block-schedule.
-   * @param {any[]} courses - List of courses formatted as JSON.
+   * @param {CourseOccasion[]} courses - List of course occasions.
    * @param {HTMLElement} academicYearContainer - Container for all the academic years. Each year has headers, a set of courses and a footer. 
    * @param {boolean} shouldStackTerms - True if terms should be split and stacked vertically.
    * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
@@ -59,7 +60,9 @@ export default class BlockSchedule {
 
   /**
    * Adds the feature to revaluate on window resize whether or not to stack the
-   * terms. Uses the given callback function to determine if a change occured.
+   * terms and redraw the block-schedule.
+   * 
+   * Uses the given callback function to determine if a change occured.
    * 
    * @param {function(): boolean} shouldStackTermsCallback - Returns true if terms should be split and stacked vertically.
    */
@@ -70,11 +73,40 @@ export default class BlockSchedule {
       
       // Update only if a change occured.
       if (this.#shouldStackTerms !== didStackTerms) {
-        this.#coursesData.update(this.#shouldStackTerms);
-
+        this.#coursesData.updateSplit(this.#shouldStackTerms);
         this.#update();
       }
     });
+  }
+
+  /**
+   * Updates the courses in the block-schedule and redraws it.
+   * 
+   * @param {CourseOccasion[]} courses - List of course occasions.
+   */
+  updateCourses(courses) {
+    this.#coursesData.updateCourses(courses);
+    this.#update();
+  }
+
+  /**
+   * Downloads and update the courses in block-schedule and redraws it.
+   * 
+   * @param {string} downloadUrl - URL to download courses from.
+   */
+  downloadCourses(downloadUrl) {
+    fetch(downloadUrl, {
+      method: 'GET'
+    })
+    .then(response => response.json())
+    .then(courseOccasionsJSON => {
+      const courseOccasions = courseOccasionsJSON.map(occasion => {
+        return CourseOccasion.fromJSON(occasion);
+      });
+
+      this.updateCourses(courseOccasions);
+      
+    })
   }
 
   /** @type {BlockScheduleData} */
@@ -98,7 +130,7 @@ export default class BlockSchedule {
   #scale = 3;
 
   /**
-   * Updates block-schedule DOM elements based on the global course data. This
+   * Updates block-schedule DOM elements based on the course data. This
    * function should be called every time data is changed, for example when
    * adding/removing an academic year or course. The DOM elements are then
    * updated accordingly.
@@ -143,10 +175,19 @@ export default class BlockSchedule {
       this.#margin,
       this.#isLoggedIn,
       this.#courseoccasionInfoUrl,
-      this.#blockRemoveCourseUrl
+      this.#blockRemoveCourseUrl,
+      this
     );
 
     // Add a footer to all new terms.
-    renderer.addFooter(termSelection, this.#isLoggedIn, this.#blockCourseListUrl);
+    renderer.addFooter(
+      termSelection,
+      this.#isLoggedIn,
+      this.#blockCourseListUrl,
+      this
+    );
+    
+    // Update the prerequisite warnings for all courses.
+    renderer.updatePrerequisiteWarnings();
   }
 }

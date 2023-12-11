@@ -49,8 +49,7 @@ function loadSchedulesFromElement(isBaseBlock) {
     let courseOccasions = [];
 
     for (const course of schedule['courseOccasions']) {
-      const isPrivate = false;
-      courseOccasions.push(CourseOccasion.fromJSON(course, isPrivate));
+      courseOccasions.push(CourseOccasion.fromJSON(course));
     }
 
     schedules.push(new BarebonesBlockSchedule(title, startYear, courseOccasions));

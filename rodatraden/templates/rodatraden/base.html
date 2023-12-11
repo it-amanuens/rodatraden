@@ -69,6 +69,13 @@
         {% include "rodatraden/footer.html" %}
     </main>
 
+    <!-- Native modal -->
+    <dialog class ="native-modal" tabindex="-1" role="dialog" id="native-modal">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content"></div>
+      </div>
+    </dialog>
+
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -81,32 +88,39 @@
     <script src="https://kit.fontawesome.com/c6e9b99eeb.js"></script>
 
     <script type="text/javascript">
-        $(function () {
-          /* Send the user report */
-          $(".send-report").each(function () {
-            $(this).modalForm({formURL: $(this).data('id')});
-          });
-
-          {% if user.is_staff %}
-          /* Open modal for creation form */
-          $(".add-item").each(function () {
-            $(this).modalForm({formURL: $(this).data('id')});
-          });
-
-          /* Open modal for update form */
-          $(".update-item").each(function () {
-            $(this).modalForm({formURL: $(this).data('id')});
-          });
-
-          /* Open modal for delete form */
-          $(".delete-item").each(function () {
-            $(this).modalForm({
-              formURL: $(this).data('id'),
-              isDeleteForm: true
-            });
-          })
-          {% endif %}
+      $(function () {
+        /* Send the user report */
+        $(".send-report").each(function () {
+          $(this).modalForm({formURL: $(this).data('id')});
         });
+
+        {% if user.is_staff %}
+        /* Open modal for creation form */
+        $(".add-item").each(function () {
+          $(this).modalForm({formURL: $(this).data('id')});
+        });
+
+        /* Open modal for update form */
+        $(".update-item").each(function () {
+          $(this).modalForm({formURL: $(this).data('id')});
+        });
+
+        /* Open modal for delete form */
+        $(".delete-item").each(function () {
+          $(this).modalForm({
+            formURL: $(this).data('id'),
+            isDeleteForm: true
+          });
+        })
+        {% endif %}
+      });
+
+      // Calculate the scrollbar width and make it accessible in CSS.
+      const scrollbarWidth = window.innerWidth
+                           - document.documentElement.offsetWidth;
+      document.documentElement.style.setProperty('--scrollbar-width',
+                                                 scrollbarWidth + 'px');
+      
     </script>
 
     <!-- Extra javascript -->

@@ -1,5 +1,11 @@
 import CourseOccasion from "./block_schedule/course_occasion.js";
 import BlockSchedule from './block_schedule/block_schedule.js';
+import { updatePrerequisiteWarnings } from './block_schedule/block_schedule_renderer.js';
+
+// To be able to update the block-schedule at a later time, it has to be defined
+// outside of any function. This way its lifetime will persist.
+/** @type {BlockSchedule} */
+let blockSchedule;
 
 /**
  * Sends a request to the server to enable or disable the prerequisite check.
@@ -16,40 +22,6 @@ function sendPrerequisiteCheckState(url, shouldEnable) {
     method: 'GET'
   })
   .catch(error => console.error(error));
-}
-
-/**
- * Shows or hides warning icons and tooltips depending on the state of the
- * prerequisite checkbox.
- */
-function updatePrerequisiteWarnings() {
-  const checkbox = document.getElementById('prerequisite-checkbox');
-  const courses = document.getElementsByClassName(
-    'course--unmet-prerequisites'
-  );
-  const icons = document.getElementsByClassName('course-warning-icon');
-
-  if (checkbox.checked) {
-    $('.course[data-toggle="tooltip"]').tooltip('enable');
-
-    for (const course of courses) {
-      course.classList.add('course--warning');
-    }
-
-    for (const icon of icons) {
-      icon.classList.remove('d-none');
-    }
-  } else {
-    $('.course[data-toggle="tooltip"]').tooltip('disable');
-
-    for (const course of courses) {
-      course.classList.remove('course--warning');
-    }
-
-    for (const icon of icons) {
-      icon.classList.add('d-none');
-    }
-  }
 }
 
 /**
@@ -216,40 +188,6 @@ function getEarlierCourseIDs(start_year, start_week, courseOccasions) {
 }
 
 /**
- * Gets all private and non-private courses in the block-schedule from external
- * script tags and return them as a single collection.
- * 
- * @returns All courses, private and non-private in no particular order.
- */
-function loadCoursesFromElement() {
-  /** @type {CourseOccasion[]} */
-  let courses = [];
-
-  const coursesAsJSON = JSON.parse(
-    document.getElementById('course-occasions-data').textContent
-  );
-  const privateCoursesAsJSON = JSON.parse(
-    document.getElementById('private-courses-data').textContent
-  );
-
-  for (const course of coursesAsJSON) {
-    const isPrivate = false;
-    courses.push(CourseOccasion.fromJSON(course, isPrivate));
-  }
-  for (const course of privateCoursesAsJSON) {
-    const isPrivate = true;
-    courses.push(CourseOccasion.fromJSON(course, isPrivate));
-  }
-
-  // Update which prerequisites are unmet for each course.
-  for (const course of courses) {
-    course.updateUnmetPrerequisites(courses);
-  }
-
-  return courses;
-}
-
-/**
  * Determines if the window is narrow or not.
  * 
  * @returns True if the window is too narrow to fit the terms on the same row.
@@ -281,7 +219,7 @@ function main() {
     }
   );
 
-  const courseOccasions = loadCoursesFromElement();
+  const courseOccasions = CourseOccasion.fromElement('course-occasions-data');
 
   // The block schedule renderer will populate this container with elements.
   const academicYearContainer = document.getElementById('academic-year-container');
@@ -296,6 +234,7 @@ function main() {
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
+  const blockGetCoursesUrl = stringDataset.blockGetCoursesUrl;
   const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
@@ -304,7 +243,7 @@ function main() {
 
   // Create a block schedule which renders it automatically in the specified
   // container.
-  const blockSchedule = new BlockSchedule(
+  blockSchedule = new BlockSchedule(
     startYear,
     courseOccasions,
     academicYearContainer,
@@ -326,7 +265,25 @@ function main() {
 
   // Setup and update prerequisite checkbox.
   setupPrerequisiteCheckbox(prerequisiteCheckUrl);
-  updatePrerequisiteWarnings();
+
+  // Make sure to reload the block-schedule if any course occasions are added.
+  /** @type { HTMLDialogElement } */
+  const modal = document.getElementById('native-modal');
+  modal.addEventListener('click', event => {
+    // Only clicks outside the modal content closes the modal.
+    if (event.target === event.currentTarget) {
+      // Fade the modal before closing it.
+      modal.classList.add('closing');
+      modal.addEventListener(
+        'animationend',
+        () => {
+          modal.classList.remove('closing');
+          modal.close();
+        },
+        { once: true }
+      );
+    }
+  });
 }
 
 // Run main function when the script is loaded.
