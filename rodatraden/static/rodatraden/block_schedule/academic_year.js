@@ -12,7 +12,7 @@ function sortCoursesByStartAndLength(courses) {
   courses.sort((a, b) => {
     const areSimultaneous = a.start == b.start;
     if (areSimultaneous) {
-      return b.length - a.length;
+      return b.weeks - a.weeks;
     } else {
       return a.start - b.start;
     }
@@ -45,19 +45,30 @@ function splitCoursesOverTermBoundary(courses) {
   const springWeekStart = Term.springWeekStart;
 
   for (let course of courses) {
-    const courseEnd = course.start + course.length - 1;
+    const courseEnd = course.start + course.weeks - 1;
 
-    if (course.start < springWeekStart && courseEnd >= springWeekStart) {
-      let courseSpringCopy = { ...course };
+    const isStartingInFall = course.start < springWeekStart;
+    const isEndingInSpring = courseEnd >= springWeekStart;
+    if (isStartingInFall && isEndingInSpring) {
+      let courseSpringCopy = course.clone();
 
       courseSpringCopy.start = springWeekStart;
 
       const weekOverlap = courseEnd - springWeekStart + 1;
-      course.length -= weekOverlap;
-      courseSpringCopy.length = weekOverlap;
+      course.visibleWeeks = course.weeks - weekOverlap;
+      courseSpringCopy.visibleWeeks = weekOverlap;
 
       courses.push(courseSpringCopy);
     }
+  }
+}
+
+/**
+ * Reset the length of all course occasion blocks to their original length.
+ */
+function resetBlockLengths(courses) {
+  for (let course of courses) {
+    course.visibleWeeks = course.weeks;
   }
 }
 
@@ -79,6 +90,8 @@ export default class AcademicYear {
   constructor(year, courses = [], shouldSplitCourses = false) {
     if (shouldSplitCourses) {
       splitCoursesOverTermBoundary(courses);
+    } else{
+      resetBlockLengths(courses);
     }
 
     generateCoursePositions(courses);

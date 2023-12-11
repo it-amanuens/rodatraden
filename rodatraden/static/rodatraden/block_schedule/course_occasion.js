@@ -73,8 +73,23 @@ export default class CourseOccasion {
     this.prerequisites = prerequisites;
 
     this.termStart = this.start;
-    // TODO: Replace all mentions of "length" with "weeks".
-    this.length = this.weeks;
+    this.visibleWeeks = this.weeks;
+  }
+
+  /**
+   * Returns a copy of the course occasion.
+   * 
+   * @returns {CourseOccasion} Copy of the course occasion.
+   */
+  clone() {
+    let clone = new CourseOccasion();
+
+    // Copy all properties.
+    for (const key in this) {
+      clone[key] = this[key];
+    }
+
+    return clone;
   }
 
   /** @type {string} */
@@ -110,7 +125,7 @@ export default class CourseOccasion {
   /** @type {number} */
   termStart;
   /** @type {number} */
-  length;
+  visibleWeeks;
 
   /** @type {number} */
   firstRowIndex = 0;
