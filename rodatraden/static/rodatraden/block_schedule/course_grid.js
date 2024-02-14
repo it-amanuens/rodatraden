@@ -16,7 +16,7 @@ export default class CourseGrid {
     const courseLastRowIndex = firstRowIndex + courseHeight - 1;
 
     for (let rowIndex = firstRowIndex; rowIndex <= courseLastRowIndex; ++rowIndex) {
-      this.#grid[rowIndex].fill(true, course.start, course.start + course.length);
+      this.#grid[rowIndex].fill(true, course.start, course.start + course.visibleWeeks);
     }
 
     return firstRowIndex;
@@ -49,7 +49,7 @@ export default class CourseGrid {
     }
 
     // The course shouldn't exceed the end of the row.
-    const courseEnd = course.start + course.length - 1;
+    const courseEnd = course.start + course.visibleWeeks - 1;
     if (courseEnd >= this.#grid[0].length) {
       console.error("Can't fit a course that extends beyond the width of the grid.");
       return false;
