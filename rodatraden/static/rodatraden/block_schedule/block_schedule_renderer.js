@@ -319,6 +319,17 @@ export function updateCourseBlocks(courseContainer,
       .attr("class", "fa fa-times");
   }
 
+  // Make a unique identifier of the course occasion available in the DOM.
+  newCourse.attr('data-slug', course => course.slug);
+
+  // Make the course blocks draggable only if they aren't private.
+  // TODO: Allow dragging for private course occasions when become movable.
+  newCourse.attr("draggable", course => !course.isPrivate);
+
+  // Make ghost status available in DOM. This way it is independent of class
+  // name used for styling.
+  newCourse.attr('data-ghost', course => course.isGhost);
+
   // Merge the newly created elements with the existing ones to get all.
   let course = newCourse.merge(courseUpdateSelection);
 
@@ -360,6 +371,11 @@ export function updateCourseBlocks(courseContainer,
       // Mark a block if it is private.
       if (course.isPrivate) {
         classList.push('course--private');
+      }
+
+      // Mark temporary targets spawned during a drag-and-drop action.
+      if (course.isGhost) {
+        classList.push('course--ghost');
       }
 
       // Mark a block if it is only a portion of a course, as well as which

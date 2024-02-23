@@ -80,12 +80,32 @@ export default class BlockSchedule {
   }
 
   /**
-   * Updates the courses in the block-schedule and redraws it.
+   * Overwrites the courses in the block-schedule and redraws it.
    * 
    * @param {CourseOccasion[]} courses - List of course occasions.
    */
   updateCourses(courses) {
     this.#coursesData.updateCourses(courses);
+    this.#update();
+  }
+
+  /**
+   * Adds courses to the block-schedule and redraws it.
+   * 
+   * @param {CourseOccasion[]} courses - List of course occasions.
+   */
+  addCourses(courses) {
+    this.#coursesData.addCourses(courses);
+    this.#update();
+  }
+
+  /**
+   * Removes courses from the block-schedule and redraws it.
+   * 
+   * @param {string[]} courseSlugs - List of slugs for course occasions.
+   */
+  removeCourses(courseSlugs) {
+    this.#coursesData.removeCourses(courseSlugs);
     this.#update();
   }
 
@@ -107,6 +127,15 @@ export default class BlockSchedule {
       this.updateCourses(courseOccasions);
       
     })
+  }
+
+  /**
+   * Returns the inclusive span of years that the block-schedule covers, not to be confused with the AcademicYear class.
+   * 
+   * @returns {number[]} First and last year of the block-schedule as numbers.
+   */
+  getYearSpan() {
+    return this.#coursesData.getYearSpan();
   }
 
   /** @type {BlockScheduleData} */

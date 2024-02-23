@@ -233,8 +233,9 @@ function main() {
   const isLoggedIn = stringDataset.isLoggedIn === 'True';
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
+  const blockReplaceCourseUrl = stringDataset.blockReplaceCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
-  const blockGetCoursesUrl = stringDataset.blockGetCoursesUrl;
+  const blockGetRelatedOccasionsUrl = stringDataset.blockGetRelatedOccasionsUrl;
   const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
@@ -282,6 +283,92 @@ function main() {
         },
         { once: true }
       );
+    }
+  });
+
+  // Spawn targets for drag-and-drop.
+  academicYearContainer.addEventListener('dragstart', event => {
+    // Get slug from data attribute.
+    const course_occasion_slug = event.target.dataset.slug;
+    event.dataTransfer.setData('text/plain', course_occasion_slug);
+    event.dataTransfer.effectAllowed = 'move';
+    
+    const url = blockGetRelatedOccasionsUrl
+    + "?slug=" + course_occasion_slug;
+    
+    fetch(url, {
+      method: 'GET'
+    })
+    .then(response => response.json())
+    .then(courseOccasionsJSON => {
+      const [firstYear, lastYear] = blockSchedule.getYearSpan();
+      
+      /** @type {CourseOccasion[]} */
+      const courseOccasions = courseOccasionsJSON
+      .map(occasion => {
+        return CourseOccasion.fromJSON(occasion);
+      })
+      // Filter out course occasions that are not within the block schedule.
+      .filter(occasion => {
+        return occasion.academicYear >= firstYear && occasion.academicYear <= lastYear;
+      });
+      
+      const ghosts = courseOccasions.map(occasion => occasion.createGhost());
+      blockSchedule.addCourses(ghosts);
+    })
+    .catch(error => console.error(error));
+  });
+
+  academicYearContainer.addEventListener('dragenter', event => {
+    if (event.target.dataset.ghost ==='true') {
+      event.dataTransfer.dropEffect = 'move';
+      //event.preventDefault();
+    }
+  });
+
+  academicYearContainer.addEventListener('dragover', event => {
+    if (event.target.dataset.ghost ==='true') {
+      event.preventDefault();
+    }
+  });
+
+  academicYearContainer.addEventListener('dragend', event => {
+    // Select all ghosts.
+    const ghosts = academicYearContainer.querySelectorAll('[data-ghost="true"]');
+    const ghostSlugs = Array.from(ghosts).map(ghost => ghost.dataset.slug);
+    blockSchedule.removeCourses(ghostSlugs);
+    
+    if (event.dataTransfer.dropEffect === 'move') {
+      const thisSlug = event.target.dataset.slug;
+      blockSchedule.removeCourses([thisSlug]);
+    }
+
+  });
+
+  academicYearContainer.addEventListener('drop', event => {
+    if (event.target.dataset.ghost ==='true') {
+      // Prevent the ghost that will become a regular course from disappearing.
+      event.target.dataset.ghost = 'false';
+      
+      event.preventDefault();
+      const slugToAdd = event.target.dataset.slug;
+      const slugToRemove = event.dataTransfer.getData('text/plain');
+
+      const url = blockReplaceCourseUrl
+      + "?slugToRemove=" + slugToRemove + "&slugToAdd=" + slugToAdd;
+      
+      fetch(url, {
+        method: 'GET'
+      })
+      .then(response => response.json())
+      .then(courseOccasionsJSON => {
+        const courseOccasions = courseOccasionsJSON.map(occasion => {
+          return CourseOccasion.fromJSON(occasion);
+        });
+
+        blockSchedule.updateCourses(courseOccasions);
+      })
+      .catch(error => console.error(error));
     }
   });
 }

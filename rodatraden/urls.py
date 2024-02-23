@@ -90,9 +90,13 @@ urlpatterns = [
         views.add_course_to_block, name='block-add-course'),
     path('blockscheman/<str:block_username>/<slug:block_slug>/tabort/',
         views.remove_course_from_block, name='block-remove-course'),
+    path('blockscheman/<str:block_username>/<slug:block_slug>/bytut/',
+        views.replace_course_in_block, name='block-replace-course'),
+    path('blockscheman/<str:block_username>/<slug:block_slug>/hittafler/',
+        views.get_related_course_occasions, name='block-get-related-course-occasions'),
 
     path('blockscheman/<str:username>/<slug:slug>/kravcheck/',
-        views.updatePrerequisiteCheck, name='update-prerequisite-check'),
+        views.update_prerequisite_check, name='update-prerequisite-check'),
 
     # Profiles
     path('profiler/', views.ProfileList.as_view(), name='profile-list'),
