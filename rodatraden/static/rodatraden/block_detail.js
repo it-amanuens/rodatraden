@@ -252,7 +252,9 @@ function main() {
     isLoggedIn,
     courseoccasionInfoUrl,
     blockRemoveCourseUrl,
+    blockReplaceCourseUrl,
     blockCourseListUrl,
+    blockGetRelatedOccasionsUrl,
     margin,
     scale
   );
@@ -267,11 +269,12 @@ function main() {
   // Setup and update prerequisite checkbox.
   setupPrerequisiteCheckbox(prerequisiteCheckUrl);
 
-  // Make sure to reload the block-schedule if any course occasions are added.
+  // Enable closing the modal by clicking outside the content box.
   /** @type { HTMLDialogElement } */
   const modal = document.getElementById('native-modal');
   modal.addEventListener('click', event => {
-    // Only clicks outside the modal content closes the modal.
+    // Only clicks outside the modal content closes the modal. The modal itself
+    // spans the whole window which is how we detect clicks outside the content.
     if (event.target === event.currentTarget) {
       // Fade the modal before closing it.
       modal.classList.add('closing');
@@ -281,94 +284,9 @@ function main() {
           modal.classList.remove('closing');
           modal.close();
         },
+        // Run the amination only once.
         { once: true }
       );
-    }
-  });
-
-  // Spawn targets for drag-and-drop.
-  academicYearContainer.addEventListener('dragstart', event => {
-    // Get slug from data attribute.
-    const course_occasion_slug = event.target.dataset.slug;
-    event.dataTransfer.setData('text/plain', course_occasion_slug);
-    event.dataTransfer.effectAllowed = 'move';
-    
-    const url = blockGetRelatedOccasionsUrl
-    + "?slug=" + course_occasion_slug;
-    
-    fetch(url, {
-      method: 'GET'
-    })
-    .then(response => response.json())
-    .then(courseOccasionsJSON => {
-      const [firstYear, lastYear] = blockSchedule.getYearSpan();
-      
-      /** @type {CourseOccasion[]} */
-      const courseOccasions = courseOccasionsJSON
-      .map(occasion => {
-        return CourseOccasion.fromJSON(occasion);
-      })
-      // Filter out course occasions that are not within the block schedule.
-      .filter(occasion => {
-        return occasion.academicYear >= firstYear && occasion.academicYear <= lastYear;
-      });
-      
-      const ghosts = courseOccasions.map(occasion => occasion.createGhost());
-      blockSchedule.addCourses(ghosts);
-    })
-    .catch(error => console.error(error));
-  });
-
-  academicYearContainer.addEventListener('dragenter', event => {
-    if (event.target.dataset.ghost ==='true') {
-      event.dataTransfer.dropEffect = 'move';
-      //event.preventDefault();
-    }
-  });
-
-  academicYearContainer.addEventListener('dragover', event => {
-    if (event.target.dataset.ghost ==='true') {
-      event.preventDefault();
-    }
-  });
-
-  academicYearContainer.addEventListener('dragend', event => {
-    // Select all ghosts.
-    const ghosts = academicYearContainer.querySelectorAll('[data-ghost="true"]');
-    const ghostSlugs = Array.from(ghosts).map(ghost => ghost.dataset.slug);
-    blockSchedule.removeCourses(ghostSlugs);
-    
-    if (event.dataTransfer.dropEffect === 'move') {
-      const thisSlug = event.target.dataset.slug;
-      blockSchedule.removeCourses([thisSlug]);
-    }
-
-  });
-
-  academicYearContainer.addEventListener('drop', event => {
-    if (event.target.dataset.ghost ==='true') {
-      // Prevent the ghost that will become a regular course from disappearing.
-      event.target.dataset.ghost = 'false';
-      
-      event.preventDefault();
-      const slugToAdd = event.target.dataset.slug;
-      const slugToRemove = event.dataTransfer.getData('text/plain');
-
-      const url = blockReplaceCourseUrl
-      + "?slugToRemove=" + slugToRemove + "&slugToAdd=" + slugToAdd;
-      
-      fetch(url, {
-        method: 'GET'
-      })
-      .then(response => response.json())
-      .then(courseOccasionsJSON => {
-        const courseOccasions = courseOccasionsJSON.map(occasion => {
-          return CourseOccasion.fromJSON(occasion);
-        });
-
-        blockSchedule.updateCourses(courseOccasions);
-      })
-      .catch(error => console.error(error));
     }
   });
 }

@@ -11,7 +11,9 @@ export default class BlockSchedule {
    * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
    * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
    * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
+   * @param {string} blockReplaceCourseUrl - URL to replace a course occasion.blockGetRelatedOccasionsUrl
    * @param {string} blockCourseListUrl - URL to get a list of courses to add.
+   * @param {string} blockGetRelatedOccasionsUrl - URL to get a list of other course occasions related to the same course.
    * @param {number} scale - Scale used to calculating size and position.
    * @param {number} margin - Margin used to calculating size and position.
    */
@@ -22,7 +24,9 @@ export default class BlockSchedule {
               isLoggedIn,
               courseoccasionInfoUrl,
               blockRemoveCourseUrl,
+              blockReplaceCourseUrl,
               blockCourseListUrl,
+              blockGetRelatedOccasionsUrl,
               margin,
               scale) {
     this.#coursesData = new BlockScheduleData(startYear, courses, shouldStackTerms);
@@ -32,13 +36,15 @@ export default class BlockSchedule {
     this.#isLoggedIn = isLoggedIn;
     this.#courseoccasionInfoUrl = courseoccasionInfoUrl;
     this.#blockRemoveCourseUrl = blockRemoveCourseUrl;
+    this.#blockReplaceCourseUrl = blockReplaceCourseUrl;
     this.#blockCourseListUrl = blockCourseListUrl;
+    this.#blockGetRelatedOccasionsUrl = blockGetRelatedOccasionsUrl;
 
     this.#margin = margin;
     this.#scale = scale;
 
-    // Create the block-schedule.
-    this.#update();
+    this.#render();
+    this.#setupDragAndDrop();
   }
 
   /**
@@ -54,7 +60,7 @@ export default class BlockSchedule {
     button.addEventListener('click', () => {
       this.#coursesData.addAcademicYear();
       
-      this.#update();
+      this.#render();
     });
   }
 
@@ -74,7 +80,7 @@ export default class BlockSchedule {
       // Update only if a change occured.
       if (this.#shouldStackTerms !== didStackTerms) {
         this.#coursesData.updateSplit(this.#shouldStackTerms);
-        this.#update();
+        this.#render();
       }
     });
   }
@@ -86,27 +92,7 @@ export default class BlockSchedule {
    */
   updateCourses(courses) {
     this.#coursesData.updateCourses(courses);
-    this.#update();
-  }
-
-  /**
-   * Adds courses to the block-schedule and redraws it.
-   * 
-   * @param {CourseOccasion[]} courses - List of course occasions.
-   */
-  addCourses(courses) {
-    this.#coursesData.addCourses(courses);
-    this.#update();
-  }
-
-  /**
-   * Removes courses from the block-schedule and redraws it.
-   * 
-   * @param {string[]} courseSlugs - List of slugs for course occasions.
-   */
-  removeCourses(courseSlugs) {
-    this.#coursesData.removeCourses(courseSlugs);
-    this.#update();
+    this.#render();
   }
 
   /**
@@ -129,15 +115,6 @@ export default class BlockSchedule {
     })
   }
 
-  /**
-   * Returns the inclusive span of years that the block-schedule covers, not to be confused with the AcademicYear class.
-   * 
-   * @returns {number[]} First and last year of the block-schedule as numbers.
-   */
-  getYearSpan() {
-    return this.#coursesData.getYearSpan();
-  }
-
   /** @type {BlockScheduleData} */
   #coursesData;
   /** @type {HTMLElement} */
@@ -151,7 +128,11 @@ export default class BlockSchedule {
   /** @type {string} */
   #blockRemoveCourseUrl;
   /** @type {string} */
+  #blockReplaceCourseUrl;
+  /** @type {string} */
   #blockCourseListUrl;
+  /** @type {string} */
+  #blockGetRelatedOccasionsUrl;
 
   /** @type {number} */
   #margin = 1;
@@ -164,7 +145,7 @@ export default class BlockSchedule {
    * adding/removing an academic year or course. The DOM elements are then
    * updated accordingly.
    */
-  #update() {
+  #render() {
     const transitionDuration = 500;
 
     // Start by removing old academic years, adding new and empty ones while
@@ -218,5 +199,133 @@ export default class BlockSchedule {
     
     // Update the prerequisite warnings for all courses.
     renderer.updatePrerequisiteWarnings();
+  }
+
+  /**
+   * Adds courses to the block-schedule and redraws it.
+   * 
+   * @param {CourseOccasion[]} courses - List of course occasions.
+   */
+  #addCourses(courses) {
+    this.#coursesData.addCourses(courses);
+    this.#render();
+  }
+
+  /**
+   * Removes courses from the block-schedule and redraws it.
+   * 
+   * @param {string[]} courseSlugs - List of slugs for course occasions.
+   */
+  #removeCourses(courseSlugs) {
+    this.#coursesData.removeCourses(courseSlugs);
+    this.#render();
+  }
+
+  /**
+   * Setups drag-and-drop for the block-schedule by creating the necessary
+   * event listeners.
+   */
+  #setupDragAndDrop() {
+    // 
+    this.#academicYearContainer.addEventListener('dragstart', event => {
+      // Get slug from data attribute.
+      const course_occasion_slug = event.target.dataset.slug;
+
+      // Ignore elements without a slug since these are not course blocks.
+      if (!course_occasion_slug) {
+        return;
+      }
+
+      // Make sure the drop target knows what was being dragged.
+      event.dataTransfer.setData('text/plain', course_occasion_slug);
+      event.dataTransfer.effectAllowed = 'move';
+      
+      // Spawn targets for drag-and-drop.
+      const url = this.#blockGetRelatedOccasionsUrl
+      + "?slug=" + course_occasion_slug;
+      fetch(url, {
+        method: 'GET'
+      })
+      .then(response => response.json())
+      .then(courseOccasionsJSON => {
+        const [firstYear, lastYear] = this.#coursesData.getYearSpan();
+        
+        /** @type {CourseOccasion[]} */
+        const courseOccasions = courseOccasionsJSON
+        .map(occasion => {
+          return CourseOccasion.fromJSON(occasion);
+        })
+        // Filter out course occasions that do not fit in the block schedule.
+        .filter(occasion => {
+          return occasion.academicYear >= firstYear
+                 && occasion.academicYear <= lastYear;
+        });
+        
+        const ghosts = courseOccasions.map(occasion => occasion.createGhost());
+        this.#addCourses(ghosts);
+      })
+      .catch(error => console.error(error));
+    });
+
+    // Show the correct drag effect.
+    this.#academicYearContainer.addEventListener('dragenter', event => {
+      if (event.target.dataset.ghost ==='true') {
+        event.dataTransfer.dropEffect = 'move';
+      }
+    });
+
+    // Prevent the default dragover event to allow for drop.
+    this.#academicYearContainer.addEventListener('dragover', event => {
+      if (event.target.dataset.ghost ==='true') {
+        event.preventDefault();
+      }
+    });
+
+    // Replace the temporary ghost with the dropped course occasion.
+    this.#academicYearContainer.addEventListener('drop', event => {
+      if (event.target.dataset.ghost ==='true') {
+        event.preventDefault();
+
+        // XXX: This might be a race condition. Prevent the ghost that will
+        // become a regular course from being removed by the dragend event
+        // before the new course occasion has been fully rendered. This prevents
+        // the block blinking out of existence and reappearing slightly after.
+        event.target.dataset.ghost = 'false';
+
+        const slugToAdd = event.target.dataset.slug;
+        const slugToRemove = event.dataTransfer.getData('text/plain');
+
+        // Replace the course occasions not only visually.
+        const url = this.#blockReplaceCourseUrl
+        + "?slugToRemove=" + slugToRemove + "&slugToAdd=" + slugToAdd;
+        fetch(url, {
+          method: 'GET'
+        })
+        .then(response => response.json())
+        .then(courseOccasionsJSON => {
+          const courseOccasions = courseOccasionsJSON.map(occasion => {
+            return CourseOccasion.fromJSON(occasion);
+          });
+
+          this.updateCourses(courseOccasions);
+        })
+        .catch(error => console.error(error));
+      }
+    });
+
+    // Remove drop targets (ghosts) when the drag is completed.
+    this.#academicYearContainer.addEventListener('dragend', event => {
+      const ghosts = event.currentTarget.querySelectorAll(
+        '[data-ghost="true"]'
+      );
+      const ghostSlugs = Array.from(ghosts).map(ghost => ghost.dataset.slug);
+      this.#removeCourses(ghostSlugs);
+      
+      // Remove the course occasion visually if it was successfully moved.
+      if (event.dataTransfer.dropEffect === 'move') {
+        const thisSlug = event.target.dataset.slug;
+        this.#removeCourses([thisSlug]);
+      }
+    });
   }
 }
