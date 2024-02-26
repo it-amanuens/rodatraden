@@ -151,6 +151,10 @@ export default class BlockScheduleData {
    * Updates the block-schedule data by formatting it suitable for rendering.
    */
   update() {
+    // Sort the course occasions by title so that their placement in the
+    // block-schedule is predictable.
+    this.#courses.sort((a, b) => a.title.localeCompare(b.title));
+
     // Update which prerequisites are unmet for each course.
     for (const occasion of this.#courses) {
       occasion.updateUnmetPrerequisites(this.#courses);

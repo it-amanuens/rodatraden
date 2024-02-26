@@ -313,19 +313,22 @@ export default class BlockSchedule {
       }
     });
 
-    // Remove drop targets (ghosts) when the drag is completed.
+    // Remove drop targets when the drag is completed.
     this.#academicYearContainer.addEventListener('dragend', event => {
       const ghosts = event.currentTarget.querySelectorAll(
         '[data-ghost="true"]'
       );
-      const ghostSlugs = Array.from(ghosts).map(ghost => ghost.dataset.slug);
-      this.#removeCourses(ghostSlugs);
+      
+      // Remove the ghosts.
+      const slugsToRemove = Array.from(ghosts).map(ghost => ghost.dataset.slug);
       
       // Remove the course occasion visually if it was successfully moved.
       if (event.dataTransfer.dropEffect === 'move') {
         const thisSlug = event.target.dataset.slug;
-        this.#removeCourses([thisSlug]);
+        slugsToRemove.push(thisSlug);
       }
+
+      this.#removeCourses(slugsToRemove);
     });
   }
 }

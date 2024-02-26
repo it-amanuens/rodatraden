@@ -28,6 +28,7 @@ function getCourseContainerMinHeight(scale, margin) {
 /**
  * Calculates the height needed to contain alla courses in the term.
  * 
+ * @param {CourseOccasion[]} coursesSameAcademicYear
  * @param {number} scale - Scale used to calculating size and position.
  * @param {number} margin - Margin used to calculating size and position.
  * @returns Height needed contain all given courses.
