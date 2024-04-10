@@ -88,13 +88,15 @@ export default class AcademicYear {
    * @param {CourseOccasion[]} courses - Courses corresponding to the academic year.
    */
   constructor(year, courses = [], shouldSplitCourses = false) {
-    if (shouldSplitCourses) {
-      splitCoursesOverTermBoundary(courses);
-    } else{
-      resetBlockLengths(courses);
-    }
+    if (courses.length !== 0) {
+      if (shouldSplitCourses) {
+        splitCoursesOverTermBoundary(courses);
+      } else{
+        resetBlockLengths(courses);
+      }
 
-    generateCoursePositions(courses);
+      generateCoursePositions(courses);
+    }
 
     this.#year = year;
     this.fall = Term.createFall(year, courses);

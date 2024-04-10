@@ -108,6 +108,36 @@ export default class BlockScheduleData {
   }
 
   /**
+   * Appends new courses to the existing ones and updates the block-schedule
+   * data.
+   * 
+   * @param {CourseOccasion[]} courses
+   */
+  addCourses(courses) {
+    // Only add courses if they are not already in the list by comparing slugs.
+    const currentSlugs = this.#courses.map(course => course.slug);
+    const newCourses = courses.filter(course =>
+      !currentSlugs.includes(course.slug)
+    );
+
+    this.#courses = this.#courses.concat(newCourses);
+    this.update();
+  }
+
+  /**
+   * Removes courses from the existing ones and updates the block-schedule data.
+   * 
+   * @param {string[]} courseSlugs - List of slugs for course occasions.
+   */
+  removeCourses(courseSlugs) {
+    const remainingCourses = this.#courses.filter(course =>
+      !courseSlugs.includes(course.slug)
+    );
+    this.#courses = remainingCourses;
+    this.update();
+  }
+
+  /**
    * Overwrites the split-courses setting and updates the block-schedule data.
    * 
    * @param {boolean} shouldSplitCourses 
@@ -121,6 +151,10 @@ export default class BlockScheduleData {
    * Updates the block-schedule data by formatting it suitable for rendering.
    */
   update() {
+    // Sort the course occasions by title so that their placement in the
+    // block-schedule is predictable.
+    this.#courses.sort((a, b) => a.title.localeCompare(b.title));
+
     // Update which prerequisites are unmet for each course.
     for (const occasion of this.#courses) {
       occasion.updateUnmetPrerequisites(this.#courses);
@@ -157,6 +191,17 @@ export default class BlockScheduleData {
 
     // Create and add the new empty academic year.
     this.#academicYears.push(new AcademicYear(year));
+  }
+
+  /**
+   * Returns the inclusive span of years that the block-schedule covers, not to be confused with the AcademicYear class.
+   * 
+   * @returns {number[]} First and last year of the block-schedule as numbers.
+   */
+  getYearSpan() {
+    const firstYear = this.#startYear;
+    const lastYear = this.#startYear + this.#academicYears.length - 1;
+    return [firstYear, lastYear];
   }
 
   /**

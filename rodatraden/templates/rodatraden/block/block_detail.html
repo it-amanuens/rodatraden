@@ -143,6 +143,8 @@
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
+          data-block-replace-course-url="{% url 'block-replace-course' this_block.user this_block.slug %}"
+          data-block-get-related-occasions-url="{% url 'block-get-related-course-occasions' this_block.user this_block.slug %}"
           data-prerequisite-check-url="{% url 'update-prerequisite-check' this_block.user this_block.slug %}"
   ></script>
 

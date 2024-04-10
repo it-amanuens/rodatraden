@@ -233,8 +233,9 @@ function main() {
   const isLoggedIn = stringDataset.isLoggedIn === 'True';
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
+  const blockReplaceCourseUrl = stringDataset.blockReplaceCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
-  const blockGetCoursesUrl = stringDataset.blockGetCoursesUrl;
+  const blockGetRelatedOccasionsUrl = stringDataset.blockGetRelatedOccasionsUrl;
   const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
@@ -251,7 +252,9 @@ function main() {
     isLoggedIn,
     courseoccasionInfoUrl,
     blockRemoveCourseUrl,
+    blockReplaceCourseUrl,
     blockCourseListUrl,
+    blockGetRelatedOccasionsUrl,
     margin,
     scale
   );
@@ -266,11 +269,12 @@ function main() {
   // Setup and update prerequisite checkbox.
   setupPrerequisiteCheckbox(prerequisiteCheckUrl);
 
-  // Make sure to reload the block-schedule if any course occasions are added.
+  // Enable closing the modal by clicking outside the content box.
   /** @type { HTMLDialogElement } */
   const modal = document.getElementById('native-modal');
   modal.addEventListener('click', event => {
-    // Only clicks outside the modal content closes the modal.
+    // Only clicks outside the modal content closes the modal. The modal itself
+    // spans the whole window which is how we detect clicks outside the content.
     if (event.target === event.currentTarget) {
       // Fade the modal before closing it.
       modal.classList.add('closing');
@@ -280,6 +284,7 @@ function main() {
           modal.classList.remove('closing');
           modal.close();
         },
+        // Run the amination only once.
         { once: true }
       );
     }

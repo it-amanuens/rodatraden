@@ -74,6 +74,8 @@ export default class CourseOccasion {
 
     this.termStart = this.start;
     this.visibleWeeks = this.weeks;
+
+    this.isGhost = false;
   }
 
   /**
@@ -106,7 +108,6 @@ export default class CourseOccasion {
   weeks;
   /** @type {boolean} */
   isPrivate;
-
   /** 
    * ID of the related course. Null if the course is private. This is used when
    * determining if prerequisites are met.
@@ -115,6 +116,12 @@ export default class CourseOccasion {
   courseID;
   /** @type {Prerequisite[]} */
   prerequisites;
+  /** 
+   * True if this is a temporary target spawned during a drag-and-drop action.
+   * 
+   * @type {boolean} */
+  isGhost;
+
   /** 
    * IDs of all unmet prerequisites.
    * 
@@ -192,5 +199,17 @@ export default class CourseOccasion {
         this.unmetPrerequisiteIDs.push(prerequisite.id);
       }
     }
+  }
+
+  /**
+   * Create a ghost form of the course. The ghost form is used to visualize
+   * a possible drag-and-drop target.
+   * 
+   * @returns Ghost form of the course.
+   */
+  createGhost() {
+    const ghost = this.clone();
+    ghost.isGhost = true;
+    return ghost;
   }
 }

@@ -1256,7 +1256,62 @@ def remove_course_from_block(request: HttpRequest, block_username: str, block_sl
 
 
 @login_required
-def updatePrerequisiteCheck(request: HttpRequest, username, slug):
+def replace_course_in_block(request: HttpRequest, block_username: str, block_slug: str):
+    """Remove a course from a block and add another."""
+
+    slug_to_remove = request.GET.get('slugToRemove', '')
+    slug_to_add = request.GET.get('slugToAdd', '')
+
+    block = get_object_or_404(Block, user__username=block_username, slug=block_slug)
+
+    # Only admins are allowed to edit non-owned schedules.
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
+
+    occasion_to_remove = get_object_or_404(CourseOccasion, slug=slug_to_remove)
+    occasion_to_add = get_object_or_404(CourseOccasion, slug=slug_to_add)
+    block.courseoccasions.remove(occasion_to_remove)
+    block.courseoccasions.add(occasion_to_add)
+
+    # Return the updated set of private and non-private course occasions in the
+    # block schedule as a single JSON array.
+    course_occasions = block.courseoccasions.all()
+    private_courses = block.privatecourses.all()
+    course_occasions_json = [course.as_json() for course in course_occasions]
+    private_courses_json = [course.as_json() for course in private_courses]
+    # NOTE: "safe=False" is completely safe to use. See this answer for an
+    # explaination:
+    # https://stackoverflow.com/a/70204451/10844442
+    return JsonResponse(course_occasions_json + private_courses_json,
+                        safe=False)
+
+
+@login_required
+def get_related_course_occasions(request: HttpRequest, block_username: str, block_slug: str):
+    """Get all course occasions related to the same course as the specified
+    course occasion."""
+
+    course_occasion_slug = request.GET.get('slug', '')
+
+    block = get_object_or_404(Block, user__username=block_username, slug=block_slug)
+
+    occasion = get_object_or_404(CourseOccasion, slug=course_occasion_slug)
+    course = occasion.course
+
+    # Ignore the course occasion included in the request.
+    course_occasions = course.courseoccasion_set.exclude(slug=course_occasion_slug)
+    course_occasions_json = [occasion.as_json() for occasion in course_occasions]
+
+    # NOTE: "safe=False" is completely safe to use. See this answer for an
+    # explaination:
+    # https://stackoverflow.com/a/70204451/10844442
+    return JsonResponse(course_occasions_json, safe=False)
+
+
+@login_required
+def update_prerequisite_check(request: HttpRequest, username, slug):
     """Update if the prerequisites should be verified for the block or not."""
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
