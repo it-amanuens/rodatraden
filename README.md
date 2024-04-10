@@ -1,8 +1,8 @@
 ![Röda Tråden](./rodatraden/static/rodatraden/RTheader.svg)
 
-The fourth version of Röda Tråden written in Django!
+The fourth version of Röda Tråden, now written in Django!
 
-More information is coming soon!
+Röda tråden is a website primarily used by students at Umeå University to navigate and organize their study materials. The website provides a structured and overview platform where students can find course information, schedules, learning materials, and other relevant information for their studies. It is designed to help students in their academic journey by bringing everything they need together in one place.
 
 ## About Django
 
@@ -21,8 +21,8 @@ to get an idea of how the framework is structured.
 
 For the beginner, I will here quickly describe how to download and install this
 repository. The first case is for local development. The second case is for
-production on your own site. **Note**: This guide will be tailored towards
-Linux-users, as I really only ever use Linux. With some quick searching I found
+production on your site. **Note**: This guide will be tailored towards
+Linux users, as I only ever use Linux. With some quick searching, I found
 [this article](https://hostadvice.com/how-to/how-to-install-django-on-windows/)
 which might help with installation on Windows.
 
@@ -31,24 +31,23 @@ which might help with installation on Windows.
 1. Clone this repository to your computer by `git clone
    https://github.com/blwh/rodatraden/`.
 
-2. You should at the very least install `virtalenv` and, preferably,
-   `virtualenvwrapper` too.  A useful installation guide can be found
+2. At the very least, you should install `virtalenv` and, preferably,
+   `virtualenvwrapper` as well.  A useful installation guide can be found
    [here](http://www.indjango.com/python-install-virtualenv-and-virtualenvwrapper/).
 
 3. With this installed, make a new virtual environment with a suitable name.
    *Make sure that the Python version is at least 3.6+*
 
-4. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf` and
-   copy the file `settings-template.py` to `settings.py` and edit the file with
+4. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf`, copy the file `settings-template.py` to `settings.py`, and edit the file with
    your favorite editor.
 
 5. Since this is for local development, not much has to be changed. However, the
    variable `DATABASES` has to be changed to suit your setup. Django supports a
-   myriad of databases. This project is configured for MySQL, and a guide of how
-   to setup a local MySQL-server can be found
+   myriad of databases. This project is configured for MySQL, and a guide on how
+   to set up a local MySQL-server can be found
    [here](https://dev.mysql.com/doc/mysql-getting-started/en/).
 
-6. After your database is setup, change the settings in the `settings.py` file
+6. After your database is set up, change the settings in the `settings.py` file
    and save.
 
 7. In your virtual environment, install all of the required packages by running
@@ -58,7 +57,7 @@ which might help with installation on Windows.
    makemigrations` in the cloned repository. After this, migrate to the database
    by running `python manage.py migrate`.
 
-9. If everything went well and it is all setup, start the server by running
+9. If everything went well and it is all set up, start the server by running
    `python manage.py runserver`. Your local version should then be accessible
    via 127.0.0.1:8000 in your browser. Congratulations!
 
@@ -68,7 +67,7 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 
 1. Follow steps 1-4 in the local development section.
 
-2. Setup a media folder in e.g. `var/www/` named `media` with a folder inside
+2. Set up a media folder e.g. `var/www/` named `media` with a folder inside
    called `profiles`. The user `www-data` should have read and write access to
    this folder. This could be done by adding a group to the folders where
    `www-data` is included, and run `chmod 770 -R media`.
@@ -78,7 +77,7 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 
     * Change the `SECRET_KEY` to a random 20-30 character string.
     * Set `DEBUG=False`.
-    * Add the server adress to `ALLOWED_HOSTS`.
+    * Add the server address to `ALLOWED_HOSTS`.
     * Add database information in the variable `DATABASES`.
     * Set the `MEDIA_ROOT` variable to the writeable media folder setup in step
       2.
@@ -104,11 +103,11 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 Potential future improvements,
 
 - [X] All staff can change any block
-- [X] Copy all courseoccasions from one year to another year
-- [ ] Make the blocks nicer
+- [X] Copy all course occasions from one year to another year
+- [X] Make the blocks nicer
 - [ ] Make it so users can see their pending reports
 - [ ] Associate Profiles with Exams
 - [X] Automatic generation of 'examensbilagan'
-- [ ] Search function for whole site
+- [ ] Search function for the whole site
 - [x] Redirect to created object after creation
-- [ ] Re-implement the prerequisite hint on blocks
+- [X] Re-implement the prerequisite hint on blocks
