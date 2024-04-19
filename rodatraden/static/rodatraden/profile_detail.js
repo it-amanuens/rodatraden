@@ -193,6 +193,13 @@ function isNarrowWindow() {
   return window.innerWidth < windowWidthThreshold;
 }
 
+/**
+ * Render the barebones versions of block schedules related to the profile.
+ * 
+ * @param {BarebonesBlockSchedule[]} schedules 
+ * @param {string} courseoccasionInfoUrl 
+ * @param {number[]} containerIds 
+ */
 function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
   // We want the whole academic year together on a single row.
   const shouldStackTerms = false;
@@ -202,7 +209,9 @@ function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
 
   // These will be unused since the user is logged out.
   const blockRemoveCourseUrl = null;
+  const blockReplaceCourseUrl = null;
   const blockCourseListUrl = null;
+  const blockGetRelatedOccasionsUrl = null;
 
   // Margin and scale affects the rendered blocks appearance.
   const margin = 0.5;
@@ -226,7 +235,9 @@ function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
       isLoggedIn,
       courseoccasionInfoUrl,
       blockRemoveCourseUrl,
+      blockReplaceCourseUrl,
       blockCourseListUrl,
+      blockGetRelatedOccasionsUrl,
       margin,
       scale
     );
