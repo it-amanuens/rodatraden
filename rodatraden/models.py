@@ -228,9 +228,18 @@ class Profile(models.Model):
 
     __original_title = None
 
-    # This field is only true for one profile, the base block.
-    # XXX: A better solution would be to create a specific base block model.
-    is_base_block = models.BooleanField(default=False, verbose_name='Är basblock')
+    # Select how the block schedule should be rendered.
+    # XXX: The base block should be its own model, and not have to be a profile
+    # piggybacking of the view settings.
+    class BlockScheduleViewSetting(models.TextChoices):
+        base = 'base', 'Visa endast basblock'
+        extended = 'extended', 'Exkludera basblock'
+        custom = 'custom', 'Visa alla kurser'
+    
+    block_schedule_view_setting = models.CharField(max_length=50,
+            verbose_name='Visningsinställning för blockscheman',
+            choices=BlockScheduleViewSetting.choices,
+            default=BlockScheduleViewSetting.base.value)
 
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""

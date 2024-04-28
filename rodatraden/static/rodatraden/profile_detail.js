@@ -28,11 +28,9 @@ class BarebonesBlockSchedule {
  * Gets all block schedules related to the profile from an external script tag
  * and return them as a single collection.
  * 
- * @param {boolean} isBaseBlock - True if the profile is the base block.
- * 
  * @returns All block schdeules in no particular order.
  */
-function loadSchedulesFromElement(isBaseBlock) {
+function loadSchedulesFromElement() {
   /** @type {BarebonesBlockSchedule[]} */
   let schedules = [];
 
@@ -300,12 +298,15 @@ function main() {
   // Get variables from data parameters in a script tag.
   const stringDataset = document.getElementById('string-data').dataset;
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
-  const isBaseBlock = stringDataset.isBaseBlock === 'True';
+  const blockScheduleViewSetting = stringDataset.blockScheduleViewSetting;
+
+  // Determine if the blocks are based on the base block or not.
+  const usesBaseBlock = blockScheduleViewSetting === 'extended';
 
   // Courses loaded from the content of an external script tag.
-  const schedules = loadSchedulesFromElement(isBaseBlock);
+  const schedules = loadSchedulesFromElement();
 
-  if (!isBaseBlock) {
+  if (usesBaseBlock) {
     // add placeholder block for courses in the base block.
     addBaseBlockPlaceholder(schedules);
   }
@@ -318,7 +319,7 @@ function main() {
 
   renderSchedules(schedules, courseoccasionInfoUrl, containerIds);
 
-  if (!isBaseBlock) {
+  if (usesBaseBlock) {
     adjustPlaceholderBlocks();
   }
   adjustTermHeaders();

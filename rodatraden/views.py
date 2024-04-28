@@ -619,11 +619,11 @@ class ProfileDetail(DetailView):
         # schedules of a profile.
         blocks_json = []
         for block in blocks:
-            if self.object.is_base_block:
-                course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
-            else:
+            if self.object.block_schedule_view_setting == self.object.BlockScheduleViewSetting.extended:
                 elective_course_occasions = get_public_elective_course_occasions(block)
                 course_occasions_json = [occasion.as_json() for occasion in elective_course_occasions]
+            else:
+                course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
 
             blocks_json.append({
                 'title': block.title,

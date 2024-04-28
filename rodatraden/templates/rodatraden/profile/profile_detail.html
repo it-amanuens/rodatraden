@@ -54,10 +54,12 @@
   </template>
 
   <template id="block-schedule-template">
-    {% if profile.is_base_block %}
+    {% if profile.block_schedule_view_setting == profile.BlockScheduleViewSetting.base %}
     <div class="block-schedule block-schedule--profile block-schedule--only-base">
-    {% else %}
+    {% elif profile.block_schedule_view_setting == profile.BlockScheduleViewSetting.extended %}
     <div class="block-schedule block-schedule--profile block-schedule--only-elective">
+    {% else %}
+    <div class="block-schedule block-schedule--profile">
     {% endif %}
       <div id="academic-year-container" class="academic-year-container"></div>
     </div>
@@ -164,7 +166,7 @@
 {{ blocks|json_script:"blocks-data" }}
 <script id='string-data'
         data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
-        data-is-base-block="{{ profile.is_base_block }}"
+        data-block-schedule-view-setting="{{ profile.block_schedule_view_setting }}"
 ></script>
 
 <!-- Main script for this page. -->
