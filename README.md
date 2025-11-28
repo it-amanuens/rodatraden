@@ -1,3 +1,7 @@
+# Archived and moved to Teknisk Fysik
+
+**This is the original repo for Röda Tråden. Since I am no longer involved in the project, this version is archived and the current working version is a fork of this repo, owned by the IT-amanuensis.**
+
 ![Röda Tråden](./rodatraden/static/rodatraden/RTheader.svg)
 
 The fourth version of Röda Tråden, now written in Django!
