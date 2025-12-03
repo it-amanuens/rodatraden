@@ -29,7 +29,7 @@ which might help with installation on Windows.
 ### Local development
 
 1. Clone this repository to your computer by `git clone
-   https://github.com/blwh/rodatraden/`.
+   https://github.com/it-amanuens/rodatraden/`.
 
 2. At the very least, you should install `virtalenv` and, preferably,
    `virtualenvwrapper` as well.  A useful installation guide can be found
@@ -60,6 +60,11 @@ which might help with installation on Windows.
 9. If everything went well and it is all set up, start the server by running
    `python manage.py runserver`. Your local version should then be accessible
    via 127.0.0.1:8000 in your browser. Congratulations!
+
+10. Take down the project again to create the new superuser (ctrl + c to shutdown server). 
+    This user is used for manage the instance and setup courses and can be created with:
+    `python manage.py createsuperuser`
+    Restart the server (step 9).
 
 ### Production
 
@@ -98,6 +103,11 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
    runserver` and use a proxy to redirect requests to `127.0.0.1`, but I can't
    give more detail than that.
 
+
+## Backups of the data
+Under development, see TODO list
+
+
 ## Improvements
 
 Potential future improvements,
@@ -111,3 +121,10 @@ Potential future improvements,
 - [ ] Search function for the whole site
 - [x] Redirect to created object after creation
 - [X] Re-implement the prerequisite hint on blocks
+
+## TODO list
+
+- [ ] Test the backup / migration system should preferably implemented using the existing django backup that can be run with `python manage.py dumpdata -o backup.json`
+- [ ] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
+- [ ] Add optional summercourses (maybe as period 5 and 6?) 
+ 
