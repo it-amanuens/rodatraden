@@ -10,3 +10,4 @@ django-recaptcha  # Recaptcha for user creation
 openpyxl  # Managing excel files
 Pillow  # Not sure to be frank
 psycopg2  # Postgresql
+crispy-bootstrap5 # required for new django version

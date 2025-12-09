@@ -34,3 +34,7 @@ activate
 
 # Testing stuff
 testing
+data.json
+mydatabase
+requirements-freeze.txt
+media.zip

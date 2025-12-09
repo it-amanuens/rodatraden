@@ -107,6 +107,20 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
 ## Backups of the data
 Under development, see TODO list
 
+# To create a backup (run on production server)
+1. python -Xutf8 ./manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission --indent 2 -o data.json
+(more info can be found here: https://www.coderedcorp.com/blog/how-to-dump-your-django-database-and-load-it-into-/)
+
+2. We then have to copy over the media folder (if the images uploaded to Rödatråden should be saved). Easy methode is just to zip and send over the media folder. 
+
+# To restore a backup
+1. When setting up the new instance, first run python manage.py migrate to create the new migration table.
+
+2. Restore user data using python manage.py loaddata data.json
+
+3. Extract the media folder to same directory (project-root/media/)
+
+
 
 ## Improvements
 
@@ -127,4 +141,4 @@ Potential future improvements,
 - [ ] Test the backup / migration system should preferably implemented using the existing django backup that can be run with `python manage.py dumpdata -o backup.json`
 - [ ] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
 - [ ] Add optional summercourses (maybe as period 5 and 6?) 
- 
+- [ ] Cleanup xlsx files, they are not cleaning up correctly. 

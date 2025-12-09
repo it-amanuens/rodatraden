@@ -25,7 +25,7 @@ SECRET_KEY = 'thisdoesntmatterindevelopment'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1','localhost']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'bootstrap_modal_forms',
     'widget_tweaks',
     'captcha',
+    'crispy_bootstrap5',
 
     # Standard with django
     'django.contrib.admin',
@@ -169,7 +170,7 @@ LOGOUT_REDIRECT_URL = 'index'  # Where to send after logout
 LOGIN_URL = '/anvandare/login/'  # Url for login
 
 # Crispy forms
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # Recaptcha
 RECAPTCHA_PUBLIC_KEY = ''
