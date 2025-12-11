@@ -202,7 +202,7 @@ class ReportCreate(BSModalCreateView):
 class ReportList(LoginRequiredMixin, PermissionRequiredMixin, SingleTableView):
     """List view for reports."""
 
-    permission_required = 'rodatraden.show_report'
+    permission_required = 'rodatraden.view_report'
     model = Report
     table_class = ReportTable
     template_name = 'rodatraden/report/report_list.html'
