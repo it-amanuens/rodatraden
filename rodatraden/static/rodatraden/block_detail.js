@@ -272,21 +272,35 @@ function main() {
   // Enable closing the modal by clicking outside the content box.
   /** @type { HTMLDialogElement } */
   const modal = document.getElementById('native-modal');
+
+  // Helper function to close the modal with fade animation.
+  function closeModalWithAnimation() {
+    modal.classList.add('closing');
+    modal.addEventListener(
+      'animationend',
+      () => {
+        modal.classList.remove('closing');
+        modal.close();
+      },
+      // Run the animation only once.
+      { once: true }
+    );
+  }
+
   modal.addEventListener('click', event => {
     // Only clicks outside the modal content closes the modal. The modal itself
     // spans the whole window which is how we detect clicks outside the content.
     if (event.target === event.currentTarget) {
-      // Fade the modal before closing it.
-      modal.classList.add('closing');
-      modal.addEventListener(
-        'animationend',
-        () => {
-          modal.classList.remove('closing');
-          modal.close();
-        },
-        // Run the amination only once.
-        { once: true }
-      );
+      closeModalWithAnimation();
+      return;
+    }
+
+    // Handle clicks on elements with data-dismiss="modal" (close buttons).
+    // This makes Bootstrap-style close buttons work with native <dialog>.
+    const dismissButton = event.target.closest('[data-dismiss="modal"]');
+    if (dismissButton) {
+      event.preventDefault();
+      closeModalWithAnimation();
     }
   });
 }
