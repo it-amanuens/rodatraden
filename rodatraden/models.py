@@ -904,13 +904,19 @@ class Block(models.Model):
         """Sum the total ects for the block.
 
         Loops over all courseoccasions and adds together the total ECTS for the
-        block.
+        block. If the same course appears multiple times (e.g., when a student
+        retakes a course), it is only counted once.
         """
 
         ects_sum = 0
+        counted_course_ids = set()
 
         for courseoccasion in self.courseoccasions.all():
-            ects_sum += courseoccasion.course.ects
+            course_id = courseoccasion.course.id
+            # Only count each course once, even if multiple occasions exist
+            if course_id not in counted_course_ids:
+                ects_sum += courseoccasion.course.ects
+                counted_course_ids.add(course_id)
 
         for privatecourse in self.privatecourses.all():
             ects_sum += privatecourse.ects
@@ -921,13 +927,20 @@ class Block(models.Model):
         """Sum all ects per categories for a block.
         
         Loops over all of the courses and private courses in the block and sums
-        the total ects together.
+        the total ects together. If the same course appears multiple times
+        (e.g., when a student retakes a course), it is only counted once.
 
         Keyword arguments:
         category_sum -- dict with category keys
         """
+        counted_course_ids = set()
+
         for courseoccasion in self.courseoccasions.all():
-            courseoccasion.category_ects(category_sum)
+            course_id = courseoccasion.course.id
+            # Only count each course once, even if multiple occasions exist
+            if course_id not in counted_course_ids:
+                courseoccasion.category_ects(category_sum)
+                counted_course_ids.add(course_id)
 
         for privatecourse in self.privatecourses.all():
             privatecourse.category_ects(category_sum)
