@@ -11,9 +11,19 @@ class CourseFilter(django_filters.FilterSet):
     parameter self.data which is used to sort the courses based on the GET
     request parameter 'sort'."""
 
+    # Use a custom filter method to handle courses with the same name but
+    # different ECTS. The dropdown shows Course.__str__() (which includes HP
+    # for duplicates), and we filter by the course's primary key.
     title = django_filters.ModelChoiceFilter(
-        queryset=Course.objects.all().order_by('title'), empty_label='Kursnamn'
+        queryset=Course.objects.all().order_by('title'), empty_label='Kursnamn',
+        method='filter_by_course'
     )
+
+    def filter_by_course(self, queryset, name, value):
+        """Filter by the selected course's primary key."""
+        if value:
+            return queryset.filter(pk=value.pk)
+        return queryset
     categories = django_filters.ModelChoiceFilter(
         queryset=Category.objects.all().order_by('title'), empty_label='Kategori'
     )
