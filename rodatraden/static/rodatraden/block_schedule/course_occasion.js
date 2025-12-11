@@ -129,6 +129,13 @@ export default class CourseOccasion {
    */
   unmetPrerequisiteIDs = [];
 
+  /**
+   * True if this course already appears earlier in the schedule (retake).
+   * 
+   * @type {boolean}
+   */
+  isRetake = false;
+
   /** @type {number} */
   termStart;
   /** @type {number} */
@@ -199,6 +206,44 @@ export default class CourseOccasion {
         this.unmetPrerequisiteIDs.push(prerequisite.id);
       }
     }
+  }
+
+  /**
+   * Update whether this course is a retake (same course appears earlier in schedule).
+   * Private courses are never considered retakes since they don't share a courseID.
+   * 
+   * @param {CourseOccasion[]} courseOccasions - Course occasions in schedule.
+   */
+  updateRetakeStatus(courseOccasions) {
+    // Private courses can't be retakes (no shared courseID)
+    if (this.isPrivate || this.courseID === null) {
+      this.isRetake = false;
+      return;
+    }
+
+    // Check if the same course (by courseID) appears earlier in the schedule
+    for (const other of courseOccasions) {
+      // Skip self, private courses, and courses without IDs
+      if (other === this || other.isPrivate || other.courseID === null) {
+        continue;
+      }
+
+      // Only consider courses with the same courseID
+      if (other.courseID !== this.courseID) {
+        continue;
+      }
+
+      // Check if the other course starts before this one
+      if (other.academicYear < this.academicYear) {
+        this.isRetake = true;
+        return;
+      } else if (other.academicYear === this.academicYear && other.start < this.start) {
+        this.isRetake = true;
+        return;
+      }
+    }
+
+    this.isRetake = false;
   }
 
   /**
