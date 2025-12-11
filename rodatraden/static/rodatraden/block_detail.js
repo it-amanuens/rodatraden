@@ -85,6 +85,9 @@ function setupSections() {
   });
 }
 
+// Store the chart instance globally so we can update it later.
+let categorySumChart = null;
+
 /**
  * Creates a horizontal bar-chart that shows point sums for each category.
  * There are two bars for each category: one bar with the sum of all courses
@@ -108,8 +111,8 @@ function createCategorySumChart() {
     colors: ['var(--gray)', 'var(--main-color)']
   });  
 
-  // Create the actual chart.
-  Highcharts.chart('chart', {
+  // Create the actual chart and store the reference.
+  categorySumChart = Highcharts.chart('chart', {
     chart: {
       type: 'bar'
     },
@@ -154,6 +157,34 @@ function createCategorySumChart() {
       }
     ]
   });
+}
+
+/**
+ * Updates the category sum chart and total HP by fetching new data from the server.
+ * Call this function after adding or removing courses from the block schedule.
+ * 
+ * @param {string} categorySumsUrl - URL to fetch updated category sums and total ECTS.
+ */
+function updateCategorySumChart(categorySumsUrl) {
+  if (!categorySumsUrl) {
+    return;
+  }
+
+  fetch(categorySumsUrl)
+    .then(response => response.json())
+    .then(data => {
+      // Update the "Summa" series (index 1) with new data.
+      if (categorySumChart) {
+        categorySumChart.series[1].setData(data.categorySums, true);
+      }
+      
+      // Update the total HP display.
+      const totalEctsElement = document.querySelector('.text-center > .lead');
+      if (totalEctsElement) {
+        totalEctsElement.textContent = 'Total hp: ' + data.totalEcts;
+      }
+    })
+    .catch(error => console.error('Error updating category chart:', error));
 }
 
 /**
@@ -236,6 +267,7 @@ function main() {
   const blockReplaceCourseUrl = stringDataset.blockReplaceCourseUrl;
   const blockCourseListUrl = stringDataset.blockCourseListUrl;
   const blockGetRelatedOccasionsUrl = stringDataset.blockGetRelatedOccasionsUrl;
+  const blockCategorySumsUrl = stringDataset.blockCategorySumsUrl;
   const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
 
   // Margin and scale affects the rendered blocks appearance.
@@ -258,6 +290,13 @@ function main() {
     margin,
     scale
   );
+
+  // Set up callback to update the category chart when courses change.
+  if (blockCategorySumsUrl) {
+    blockSchedule.setOnCoursesChangedCallback(() => {
+      updateCategorySumChart(blockCategorySumsUrl);
+    });
+  }
 
   // Setup the button to add more years to the block-schedule.
   blockSchedule.setupAddYearButton('block-schedule-add-year');
