@@ -202,7 +202,7 @@ class ReportCreate(BSModalCreateView):
 class ReportList(LoginRequiredMixin, PermissionRequiredMixin, SingleTableView):
     """List view for reports."""
 
-    permission_required = 'rodatraden.show_report'
+    permission_required = 'rodatraden.view_report'
     model = Report
     table_class = ReportTable
     template_name = 'rodatraden/report/report_list.html'
@@ -1308,6 +1308,42 @@ def get_related_course_occasions(request: HttpRequest, block_username: str, bloc
     # explaination:
     # https://stackoverflow.com/a/70204451/10844442
     return JsonResponse(course_occasions_json, safe=False)
+
+
+def get_block_category_sums(request: HttpRequest, block_username: str, block_slug: str):
+    """Get the current category sums and total ECTS for a block schedule.
+    
+    This is used to update the category chart and total HP after adding/removing
+    courses without requiring a full page reload.
+    """
+
+    block = get_object_or_404(Block, user__username=block_username, slug=block_slug)
+
+    # Respect the same privacy rules as the block detail view.
+    if block.private:
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+        elif request.user.username != block.user.username:
+            return JsonResponse({'error': 'Access denied'}, status=403)
+
+    # Get all categories for the block exam
+    categories = CategoryExam.objects.filter(exam=block.exam)
+
+    # Build dict with category titles as keys
+    category_sum = dict.fromkeys([category.category.title for category in
+        categories], 0)
+    
+    # Get sum from block
+    block.total_category_ects(category_sum)
+
+    # Return the sums as a list and the total ECTS
+    categories_sum = [float(sum) for sum in category_sum.values()]
+    total_ects = block.total_course_ects()
+
+    return JsonResponse({
+        'categorySums': categories_sum,
+        'totalEcts': float(total_ects)
+    })
 
 
 @login_required

@@ -93,6 +93,22 @@ export default class BlockSchedule {
   updateCourses(courses) {
     this.#coursesData.updateCourses(courses);
     this.#render();
+    
+    // Call the callback if one has been set.
+    if (this.#onCoursesChangedCallback) {
+      this.#onCoursesChangedCallback();
+    }
+  }
+
+  /**
+   * Sets a callback to be called whenever courses are changed (added, removed,
+   * or replaced). This can be used to update other parts of the page that
+   * depend on the course data, such as the category sum chart.
+   * 
+   * @param {Function} callback - Function to call when courses change.
+   */
+  setOnCoursesChangedCallback(callback) {
+    this.#onCoursesChangedCallback = callback;
   }
 
   /**
@@ -133,6 +149,8 @@ export default class BlockSchedule {
   #blockCourseListUrl;
   /** @type {string} */
   #blockGetRelatedOccasionsUrl;
+  /** @type {Function|null} */
+  #onCoursesChangedCallback = null;
 
   /** @type {number} */
   #margin = 1;

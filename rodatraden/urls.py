@@ -94,6 +94,8 @@ urlpatterns = [
         views.replace_course_in_block, name='block-replace-course'),
     path('blockscheman/<str:block_username>/<slug:block_slug>/hittafler/',
         views.get_related_course_occasions, name='block-get-related-course-occasions'),
+    path('blockscheman/<str:block_username>/<slug:block_slug>/kategorisummor/',
+        views.get_block_category_sums, name='block-category-sums'),
 
     path('blockscheman/<str:username>/<slug:slug>/kravcheck/',
         views.update_prerequisite_check, name='update-prerequisite-check'),
