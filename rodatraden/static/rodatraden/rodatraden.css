@@ -414,6 +414,28 @@ body:has(dialog[open]) {
   opacity: 0.4;
 }
 
+/* Striped pattern for retake courses */
+.course--retake {
+  background: repeating-linear-gradient(
+    -45deg,
+    hsl(352, 100%, 28%),
+    hsl(352, 100%, 28%) 5px,
+    hsl(352, 100%, 38%) 5px,
+    hsl(352, 100%, 38%) 10px
+  );
+}
+
+/* Striped pattern for private retake courses */
+.course--retake.course--private {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--gray-darker),
+    var(--gray-darker) 5px,
+    var(--gray-dark) 5px,
+    var(--gray-dark) 10px
+  );
+}
+
 /* Make sure nothing inside the course block interferes with the drag events. */
 .course--ghost > * {
   pointer-events: none;
@@ -465,6 +487,21 @@ body:has(dialog[open]) {
   right: 0;
 
   margin: var(--schedule-margin);
+}
+
+.course-retake-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  margin: var(--schedule-margin);
+  font-size: 0.7em;
+  opacity: 0.8;
+}
+
+/* Move retake icon left if warning icon is also present */
+.course--unmet-prerequisites .course-retake-icon {
+  right: 1.2em;
 }
 
 .term-footer {

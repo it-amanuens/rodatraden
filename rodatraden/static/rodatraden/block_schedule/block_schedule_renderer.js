@@ -399,6 +399,11 @@ export function updateCourseBlocks(courseContainer,
         classList.push('course--unmet-prerequisites');
       }
 
+      // Mark a block if it's a retake of a course that appears earlier.
+      if (course.isRetake) {
+        classList.push('course--retake');
+      }
+
       return classList.join(' ');
     })
     .style("height", course => {
@@ -440,21 +445,57 @@ export function updateCourseBlocks(courseContainer,
     .attr("class", "course-warning-icon fa fa-exclamation-triangle d-none")
     .attr("aria-hidden", "true")
 
+  // Add a retake icon to course blocks that are retakes.
+  const retakeIconSelection = course.selectAll(".course-retake-icon")
+    .data(course => {
+      if (course.isRetake) {
+        return [course];
+      } else {
+        return [];
+      }
+    });
+  
+  // Remove old retake icons.
+  retakeIconSelection.exit()
+    .remove();
+  
+  // Add missing retake icons.
+  retakeIconSelection.enter().append("i")
+    .attr("class", "course-retake-icon fa fa-redo")
+    .attr("aria-hidden", "true")
+
 
   // Add a tooltip to the course blocks with unmet prerequisites and initialize
   // the tooltips.
   // The attributes are added to all course blocks, but this doesn't matter
   // since the tooltip is only shown for the blocks if the title attribute
   // contains something.
-  // NOTE: The "data-toggle" attribute is missing on purpose. This is so that
-  // the tooltip isn't enabled when "$('[dat-toggle="tooltip"]').tooltip()" is
-  // called somewhere else.
+  // NOTE: The "data-toggle" attribute is missing on purpose for unmet
+  // prerequisites. This is so that the tooltip isn't enabled when
+  // "$('[data-toggle="tooltip"]').tooltip()" is called somewhere else.
+  // For retakes, we always show the tooltip.
   course
     .attr("data-placement", "left")
+    .attr("data-toggle", course => {
+      // Only enable tooltip automatically for retakes (not for unmet prerequisites)
+      if (course.isRetake && course.unmetPrerequisiteIDs.length === 0) {
+        return "tooltip";
+      }
+      return null;
+    })
     .attr("title", course => {
       if (course.unmetPrerequisiteIDs.length > 0) {
         return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
       }
+      if (course.isRetake) {
+        return "Omregistrering";
+      }
+    });
+  
+  // Initialize tooltips for retake courses
+  course.filter(course => course.isRetake && course.unmetPrerequisiteIDs.length === 0)
+    .each(function() {
+      $(this).tooltip();
     });
 }
 

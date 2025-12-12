@@ -160,6 +160,11 @@ export default class BlockScheduleData {
       occasion.updateUnmetPrerequisites(this.#courses);
     }
 
+    // Update retake status for each course.
+    for (const occasion of this.#courses) {
+      occasion.updateRetakeStatus(this.#courses);
+    }
+
     let coursesByYear = groupCoursesByYear(this.#courses);
 
     // Add missing years.
