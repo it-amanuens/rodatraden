@@ -1156,6 +1156,16 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         block.courseoccasions.values_list('course__id', flat=True)
     )
 
+    # Get course IDs that START BEFORE this period (for prerequisite checking).
+    # A course meets a prerequisite if it has started before the new course.
+    courses_started_before = set()
+    for co in block.courseoccasions.all():
+        # Check if this course occasion starts before the period we're adding to
+        if co.academic_year.year < year:
+            courses_started_before.add(co.course.id)
+        elif co.academic_year.year == year and co.time_period.week < start:
+            courses_started_before.add(co.course.id)
+
     # Get course-occasions starting in the given period and not already in the
     # block, ordered by title.
     courseoccasions = CourseOccasion.objects.filter(
@@ -1172,6 +1182,15 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     courseoccasions = list(courseoccasions)
     for co in courseoccasions:
         co.already_taking = co.course.id in already_taking_course_ids
+        
+        # Check if prerequisites are met
+        co.has_unmet_prerequisites = False
+        for prereq in co.course.prerequisites.all():
+            # A prerequisite is met if ANY of the equivalent courses have started
+            equivalent_ids = set(prereq.equivalent_courses.values_list('id', flat=True))
+            if not equivalent_ids.intersection(courses_started_before):
+                co.has_unmet_prerequisites = True
+                break
 
     # Sort so courses not already being taken come first
     courseoccasions.sort(key=lambda co: (co.already_taking, co.course.title))
@@ -1188,9 +1207,11 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     ).order_by('title')
 
     # Private courses don't have a shared course ID, so they can't be "retakes"
+    # and don't have prerequisites
     privatecourses = list(privatecourses)
     for pc in privatecourses:
         pc.already_taking = False
+        pc.has_unmet_prerequisites = False
 
     context = {
         'b_slug': slug,

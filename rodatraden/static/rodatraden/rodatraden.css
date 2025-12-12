@@ -314,6 +314,12 @@ body:has(dialog[open]) {
   border-radius: 3px;
 }
 
+/* Warning icon for unmet prerequisites in course list */
+.course-row__warning-icon {
+  color: hsl(30, 100%, 42%);
+  margin-left: 0.3em;
+}
+
 /* Tweaks for the block schedule list modal */
 
 .rt-modal-table__header--block-schedule-list,
