@@ -34,7 +34,7 @@ activate
 
 # Testing stuff
 testing
-data.json
+/data
 mydatabase
 requirements-freeze.txt
 media.zip
