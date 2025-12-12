@@ -1,13 +1,16 @@
-<li class='rt-modal-table__row'>
+<li class='rt-modal-table__row{% if courseoccasion.already_taking %} rt-modal-table__row--already-taking{% endif %}'>
   <div class='course-row__main'>
     <span>
       <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}{% if is_private %}&private=1{% endif %}"
           class="add-course-link"
           aria-label="Lägg till {{ course.title }} {{ course.ects }} högskolepoäng"
-          title="Lägg till">
+          title="{% if courseoccasion.already_taking %}Lägg till (omregistrering){% else %}Lägg till{% endif %}">
         {{ course.title }}
       </a>
       <span class='course-row__ects' aria-hidden="true">{{ course.ects }} hp</span>
+      {% if courseoccasion.already_taking %}
+      <span class='course-row__retake-badge'>Omregistrering</span>
+      {% endif %}
     </span>
     <span class='rt-column--number'>{{ courseoccasion.weeks }}</span>
     <span class='rt-column--number'>{{ courseoccasion.pace }}%</span>

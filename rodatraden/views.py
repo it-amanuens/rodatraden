@@ -1150,6 +1150,12 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         if (block.user.username != request.user.username):
             return redirect(reverse('index'))
 
+    # Get course IDs (not occasion IDs) that are already in the block anywhere.
+    # This is used to mark courses as "already taking" (potential retakes).
+    already_taking_course_ids = set(
+        block.courseoccasions.values_list('course__id', flat=True)
+    )
+
     # Get course-occasions starting in the given period and not already in the
     # block, ordered by title.
     courseoccasions = CourseOccasion.objects.filter(
@@ -1157,11 +1163,18 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         time_period__week__gte=start,
         time_period__week__lt=start+10
     ).exclude(
-        # This is a reverse lookup. A course-occasion doesn't have a block, but
-        # a block has course-occasions. If this block includes the
-        # course-occasion then it is excluded.
+        # Exclude course occasions already in THIS slot
         block__id=block.id
     ).order_by('course__title')
+
+    # Annotate each course occasion with whether the user is already taking
+    # this course (in another slot) - potential retake
+    courseoccasions = list(courseoccasions)
+    for co in courseoccasions:
+        co.already_taking = co.course.id in already_taking_course_ids
+
+    # Sort so courses not already being taken come first
+    courseoccasions.sort(key=lambda co: (co.already_taking, co.course.title))
 
     # Get private course-occasions starting in the given period and not already
     # in the block, ordered by title.
@@ -1171,9 +1184,13 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         start__gte=start,
         start__lt=start+10
     ).exclude(
-        # This is also a reverse lookup just like for course-occasions.
         block__id=block.id
     ).order_by('title')
+
+    # Private courses don't have a shared course ID, so they can't be "retakes"
+    privatecourses = list(privatecourses)
+    for pc in privatecourses:
+        pc.already_taking = False
 
     context = {
         'b_slug': slug,
