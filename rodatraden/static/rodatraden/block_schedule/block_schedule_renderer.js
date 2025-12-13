@@ -1,6 +1,44 @@
 import AcademicYear from "./academic_year.js";
 import BlockSchedule from "./block_schedule.js";
 import CourseOccasion from "./course_occasion.js";
+/**
+ * Initializes the search functionality for the course list modal.
+ * Filters course rows based on the search input.
+ * 
+ * @param {HTMLDialogElement} modal - The modal element containing the course list.
+ */
+function initCourseListSearch(modal) {
+  const searchInputs = modal.querySelectorAll('.rt-modal-table__search-input');
+  
+  searchInputs.forEach(searchInput => {
+    const table = searchInput.closest('.rt-modal-table');
+    const rows = table.querySelectorAll('.rt-modal-table__row');
+    const noResults = table.querySelector('.rt-modal-table__no-results');
+    
+    searchInput.addEventListener('input', () => {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const courseTitle = row.textContent.toLowerCase();
+        const isMatch = courseTitle.includes(searchTerm);
+        
+        row.style.display = isMatch ? '' : 'none';
+        if (isMatch) visibleCount++;
+      });
+      
+      // Show "no results" message if nothing matches
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 && searchTerm !== '' ? 'block' : 'none';
+      }
+    });
+  });
+  
+  // Focus the first search input when modal opens
+  if (searchInputs.length > 0) {
+    searchInputs[0].focus();
+  }
+}
 
 /**
  * Calculates the height needed for 100% pace to be used as a min height. This
@@ -610,7 +648,8 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
         }
 
         modal.showModal();
-
+        // Initialize search functionality for the course list modal
+        initCourseListSearch(modal);
       })
       .catch(error => console.error(error));
     });

@@ -1,4 +1,11 @@
 <div class='rt-modal-table'>
+  <div class='rt-modal-table__search'>
+    <input type='text' 
+           class='form-control rt-modal-table__search-input' 
+           placeholder='Sök kurs...'
+           aria-label='Sök bland kurser'>
+  </div>
+
   <div class='rt-modal-table__header
               rt-modal-table__header--course-list'>
       <span>Kursnamn</span>
@@ -19,4 +26,5 @@
 
     {% endfor %}
   </ul>
+  <p class='rt-modal-table__no-results' style='display: none;'>Inga kurser matchar sökningen.</p>
 </div>
