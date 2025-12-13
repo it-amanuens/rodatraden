@@ -36,7 +36,7 @@ import openpyxl
 import os
 import math
 import re
-from django.views.static import serve
+from io import BytesIO
 from django.utils.crypto import get_random_string
 from operator import itemgetter
 from rodatraden import validator
@@ -1035,13 +1035,19 @@ def block_detail(request: HttpRequest, username, slug):
                 ws[coursecredit_pos].value = item[1]
                 count = count + 1
 
-        # save file
-        id = get_random_string(length=15)
-        path_to_file = settings.MEDIA_ROOT + '/excel/' + id + '.xlsm'
-        wb.save(path_to_file)
-
-        return serve(request, os.path.basename(path_to_file),
-                     os.path.dirname(path_to_file))
+        # Save workbook to memory buffer instead of file (no cleanup needed)
+        from io import BytesIO
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        # Return the file as a download response
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.ms-excel.sheet.macroEnabled.12'
+        )
+        response['Content-Disposition'] = f'attachment; filename="ISP_{block.slug}.xlsm"'
+        return response
     else:
         # Get all categories for the block exam and build dict with those as
         # keys
