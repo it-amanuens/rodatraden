@@ -194,6 +194,12 @@ class ReportCreate(BSModalCreateView):
     template_name = 'rodatraden/report/report_create.html'
     success_message = 'Tack för din hjälp!'
 
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.request.user.is_authenticated:
+            initial['from_email'] = self.request.user.email
+        return initial
+
     def get_success_url(self):
         # Return to last page
         return self.request.META['HTTP_REFERER']
