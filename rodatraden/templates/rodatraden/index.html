@@ -4,7 +4,12 @@
 {% block title %}Hem{% endblock %}
 
 {% block page_title %}
+{% now "n" as current_month %}
+{% if current_month == "12" %}
+<img src="{% static 'rodatraden/RTheaderJul.svg' %}" class="img-fluid"/>
+{% else %}
 <img src="{% static 'rodatraden/RTheader.svg' %}" class="img-fluid"/>
+{% endif %}
 {% endblock %}
 
 {% block content %}

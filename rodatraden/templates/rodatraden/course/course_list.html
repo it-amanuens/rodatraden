@@ -171,8 +171,9 @@ page is named "courses" in the context. For readability this is aliased back to
 <script type="text/javascript">
 
   $(function() {
-    $("form :input").change(function() {
-      $("form:first").submit();
+    // Only listen to changes on the filter form, and submit that specific form
+    $(".rt-table-filters :input").change(function() {
+      $(".rt-table-filters").submit();
     });
     $(".course-list-filter").select2({ width: 'style' });
   });

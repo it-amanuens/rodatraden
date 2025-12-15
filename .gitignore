@@ -34,10 +34,15 @@ activate
 
 # Testing stuff
 testing
-data.json
+/data
 mydatabase
 requirements-freeze.txt
 media.zip
 MarcsTodo.txt
 db
 data2025-12-11.json
+<<<<<<< HEAD
+=======
+Dockerfile
+>>>>>>> d2b542812b908344665e4854c8f67628a3337ff6
+data.json

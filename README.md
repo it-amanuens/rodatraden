@@ -31,37 +31,32 @@ which might help with installation on Windows.
 1. Clone this repository to your computer by `git clone
    https://github.com/it-amanuens/rodatraden/`.
 
-2. At the very least, you should install `virtalenv` and, preferably,
-   `virtualenvwrapper` as well.  A useful installation guide can be found
-   [here](http://www.indjango.com/python-install-virtualenv-and-virtualenvwrapper/).
+2. Install a venv in the root path directory of the repository by executing `python -m venv env` and then activate the venv. On linux you can activate the venv by running `source env/bin/activate`
 
-3. With this installed, make a new virtual environment with a suitable name.
-   *Make sure that the Python version is at least 3.6+*
-
-4. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf`, copy the file `settings-template.py` to `settings.py`, and edit the file with
+3. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf`, copy the file `settings-template.py` to `settings.py`, and edit the file with
    your favorite editor.
 
-5. Since this is for local development, not much has to be changed. However, the
+4. Since this is for local development, not much has to be changed. However, the
    variable `DATABASES` has to be changed to suit your setup. Django supports a
    myriad of databases. This project is configured for MySQL, and a guide on how
    to set up a local MySQL-server can be found
    [here](https://dev.mysql.com/doc/mysql-getting-started/en/).
 
-6. After your database is set up, change the settings in the `settings.py` file
+5. After your database is set up, change the settings in the `settings.py` file
    and save.
 
-7. In your virtual environment, install all of the required packages by running
+6. In your virtual environment, install all of the required packages by running
    `pip install -r requirements.txt` in the cloned repository.
 
-8. Make new migrations for your database by running `python manage.py
+7. Make new migrations for your database by running `python manage.py
    makemigrations` in the cloned repository. After this, migrate to the database
    by running `python manage.py migrate`.
 
-9. If everything went well and it is all set up, start the server by running
+8. If everything went well and it is all set up, start the server by running
    `python manage.py runserver`. Your local version should then be accessible
    via 127.0.0.1:8000 in your browser. Congratulations!
 
-10. Take down the project again to create the new superuser (ctrl + c to shutdown server). 
+9. Take down the project again to create the new superuser (ctrl + c to shutdown server). 
     This user is used for manage the instance and setup courses and can be created with:
     `python manage.py createsuperuser`
     Restart the server (step 9).

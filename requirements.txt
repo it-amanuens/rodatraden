@@ -6,8 +6,8 @@ django-filter  # Filtering the lists
 django-bootstrap-modal-forms  # Nice modals for forms
 django-widget-tweaks  # Flexible form widgets
 django-registration  # User registration manager
-django-recaptcha  # Recaptcha for user creation
+django-simple-captcha  # Recaptcha for user creation
 openpyxl  # Managing excel files
 Pillow  # Not sure to be frank
-psycopg2  # Postgresql
+psycopg2-binary  # Postgresql
 crispy-bootstrap5 # required for new django version

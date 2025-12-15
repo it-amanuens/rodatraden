@@ -1,6 +1,6 @@
 from django_registration.forms import RegistrationForm
-from captcha.fields import ReCaptchaField
+from captcha.fields import CaptchaField
 
 
 class RodatradenRegistrationForm(RegistrationForm):
-    recaptcha = ReCaptchaField(label="Jag är en människa!")
+    recaptcha = CaptchaField(label="Jag är en människa!")
