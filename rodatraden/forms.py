@@ -35,18 +35,20 @@ class CourseForm(CategoryFormMixin, PrerequisiteFormMixin, BSModalModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Get all associations between course and category
-        categories = CategoryCourse.objects.filter (
-            course = self.instance
-        )
+        # Get all associations between course and category (only if editing existing)
+        if self.instance.pk:
+            categories = CategoryCourse.objects.filter(
+                course=self.instance
+            )
+            prerequisites = Prerequisite.objects.filter(
+                course=self.instance
+            )
+        else:
+            categories = CategoryCourse.objects.none()
+            prerequisites = Prerequisite.objects.none()
 
         # Build the fields from these categories
         self._build_category_fields(categories)
-
-        # Get all prerequisites for this course.
-        prerequisites = Prerequisite.objects.filter(
-            course = self.instance
-        )
 
         # Setup data needed to render the prerequisite fields.
         self._setup_prerequisites(prerequisites)
@@ -73,10 +75,13 @@ class ExamForm(CategoryFormMixin, BSModalModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Get all associations between course and category
-        categories = CategoryExam.objects.filter (
-            exam = self.instance
-        )
+        # Get all associations between exam and category (only if editing existing)
+        if self.instance.pk:
+            categories = CategoryExam.objects.filter(
+                exam=self.instance
+            )
+        else:
+            categories = CategoryExam.objects.none()
 
         # Build the fields from these categories
         self._build_category_fields(categories)
@@ -94,10 +99,13 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Get all associations between course and category
-        categories = PrivateCourseCategory.objects.filter (
-            private_course = self.instance
-        )
+        # Get all associations between course and category (only if editing existing)
+        if self.instance.pk:
+            categories = PrivateCourseCategory.objects.filter(
+                private_course=self.instance
+            )
+        else:
+            categories = PrivateCourseCategory.objects.none()
 
         # Build the fields from these categories
         self._build_category_fields(categories)
