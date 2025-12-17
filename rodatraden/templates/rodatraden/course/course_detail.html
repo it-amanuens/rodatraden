@@ -35,12 +35,9 @@
         <p class="lead">
           Aktuellt kursbeskrivning finns i kursplanen.
         </p>
-        <form action="https://www.umu.se/student/dina-studier/schema-kursplan-och-kursutvarderingar/hitta-kurs--eller-utbildningsplan/" method="get">
-          <button name="q" value="{{ courseoccasion.course.code }}" type="submit" class="btn
-            btn-rt btn-lg">
-            UMU Kursplanesök
-          </button>
-        </form>
+        <a href="https://www.umu.se/student/kurs-och-utbildningsplan/{{ course.code|lower }}/" target="_blank" class="btn btn-rt btn-lg default">
+          UMU Kursplan
+        </a>
         <hr>
         {% if course.description %}
           {{ course.description | safe }}
