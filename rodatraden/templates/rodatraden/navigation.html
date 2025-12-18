@@ -56,10 +56,23 @@
     <ul class="navbar-nav ml-auto">
       {% if user.is_authenticated %}
         <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="blocks-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Blockscheman</a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="blocks-dropdown">
+            <a class="dropdown-item" href="{% url 'block-list' logged_user %}">
+              <span class="fa fa-plus"></span> Skapa / Hantera
+            </a>
+            {% if user_blocks %}
+            <div class="dropdown-divider"></div>
+            {% for block in user_blocks %}
+              <a class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
+            {% endfor %}
+            {% endif %}
+          </div>
+        </li>
+
+        <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ logged_user }}</a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
-            <a class="dropdown-item" href="{% url 'block-list' logged_user %}">Blockscheman</a>
-            <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Privata kurser</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="{% url 'user-update' user.username user.id %}">Uppdatera användare</a>
@@ -70,17 +83,6 @@
             </form>
           </div>
         </li>
-
-        {% if user_blocks %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="blocks-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Skapade blockscheman</a>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="blocks-dropdown">
-              {% for block in user_blocks %}
-                <a class="dropdown-item" href="{% url 'block-detail' logged_user block.slug %}">{{ block.title }}</a>
-              {% endfor %}
-            </div>
-          </li>
-        {% endif %}
 
       {% else %}
         <li class="nav-item">

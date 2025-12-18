@@ -36,7 +36,7 @@ import openpyxl
 import os
 import math
 import re
-from django.views.static import serve
+from io import BytesIO
 from django.utils.crypto import get_random_string
 from operator import itemgetter
 from rodatraden import validator
@@ -193,6 +193,12 @@ class ReportCreate(BSModalCreateView):
     form_class = ReportForm
     template_name = 'rodatraden/report/report_create.html'
     success_message = 'Tack för din hjälp!'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.request.user.is_authenticated:
+            initial['from_email'] = self.request.user.email
+        return initial
 
     def get_success_url(self):
         # Return to last page
@@ -1029,13 +1035,19 @@ def block_detail(request: HttpRequest, username, slug):
                 ws[coursecredit_pos].value = item[1]
                 count = count + 1
 
-        # save file
-        id = get_random_string(length=15)
-        path_to_file = settings.MEDIA_ROOT + '/excel/' + id + '.xlsm'
-        wb.save(path_to_file)
-
-        return serve(request, os.path.basename(path_to_file),
-                     os.path.dirname(path_to_file))
+        # Save workbook to memory buffer instead of file (no cleanup needed)
+        from io import BytesIO
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        # Return the file as a download response
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.ms-excel.sheet.macroEnabled.12'
+        )
+        response['Content-Disposition'] = f'attachment; filename="ISP_{block.slug}.xlsm"'
+        return response
     else:
         # Get all categories for the block exam and build dict with those as
         # keys
@@ -1156,6 +1168,16 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         block.courseoccasions.values_list('course__id', flat=True)
     )
 
+    # Get course IDs that START BEFORE this period (for prerequisite checking).
+    # A course meets a prerequisite if it has started before the new course.
+    courses_started_before = set()
+    for co in block.courseoccasions.all():
+        # Check if this course occasion starts before the period we're adding to
+        if co.academic_year.year < year:
+            courses_started_before.add(co.course.id)
+        elif co.academic_year.year == year and co.time_period.week < start:
+            courses_started_before.add(co.course.id)
+
     # Get course-occasions starting in the given period and not already in the
     # block, ordered by title.
     courseoccasions = CourseOccasion.objects.filter(
@@ -1172,6 +1194,15 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     courseoccasions = list(courseoccasions)
     for co in courseoccasions:
         co.already_taking = co.course.id in already_taking_course_ids
+        
+        # Check if prerequisites are met
+        co.has_unmet_prerequisites = False
+        for prereq in co.course.prerequisites.all():
+            # A prerequisite is met if ANY of the equivalent courses have started
+            equivalent_ids = set(prereq.equivalent_courses.values_list('id', flat=True))
+            if not equivalent_ids.intersection(courses_started_before):
+                co.has_unmet_prerequisites = True
+                break
 
     # Sort so courses not already being taken come first
     courseoccasions.sort(key=lambda co: (co.already_taking, co.course.title))
@@ -1188,9 +1219,11 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     ).order_by('title')
 
     # Private courses don't have a shared course ID, so they can't be "retakes"
+    # and don't have prerequisites
     privatecourses = list(privatecourses)
     for pc in privatecourses:
         pc.already_taking = False
+        pc.has_unmet_prerequisites = False
 
     context = {
         'b_slug': slug,

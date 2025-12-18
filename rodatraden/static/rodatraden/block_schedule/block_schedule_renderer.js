@@ -1,6 +1,44 @@
 import AcademicYear from "./academic_year.js";
 import BlockSchedule from "./block_schedule.js";
 import CourseOccasion from "./course_occasion.js";
+/**
+ * Initializes the search functionality for the course list modal.
+ * Filters course rows based on the search input.
+ * 
+ * @param {HTMLDialogElement} modal - The modal element containing the course list.
+ */
+function initCourseListSearch(modal) {
+  const searchInputs = modal.querySelectorAll('.rt-modal-table__search-input');
+  
+  searchInputs.forEach(searchInput => {
+    const table = searchInput.closest('.rt-modal-table');
+    const rows = table.querySelectorAll('.rt-modal-table__row');
+    const noResults = table.querySelector('.rt-modal-table__no-results');
+    
+    searchInput.addEventListener('input', () => {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const courseTitle = row.textContent.toLowerCase();
+        const isMatch = courseTitle.includes(searchTerm);
+        
+        row.style.display = isMatch ? '' : 'none';
+        if (isMatch) visibleCount++;
+      });
+      
+      // Show "no results" message if nothing matches
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 && searchTerm !== '' ? 'block' : 'none';
+      }
+    });
+  });
+  
+  // Focus the first search input when modal opens
+  if (searchInputs.length > 0) {
+    searchInputs[0].focus();
+  }
+}
 
 /**
  * Calculates the height needed for 100% pace to be used as a min height. This
@@ -169,7 +207,25 @@ export function addTermHeader(term) {
 }
 
 /**
- * Adds headers for each period to new terms.
+ * Helper function to format study pace text from ECTS sum.
+ * 
+ * @param {number} ectsSum - The sum of ECTS for the period.
+ * @returns {string} Formatted string like "100 % / 15 hp".
+ */
+function formatStudyPaceText(ectsSum) {
+  const roundToOneDecimal = number => Math.round(number * 10) / 10;
+
+  // Studying 15 ECTS during one period means studying at full pace (100%).
+  // The ratio of studied ECTS to full pace ECTS gives the study pace for
+  // that period.
+  const ectsSumFullPace = 15;
+  const studyPace = ectsSum / ectsSumFullPace;
+
+  return Math.round(studyPace * 100) + " % / " + roundToOneDecimal(ectsSum) + " hp";
+}
+
+/**
+ * Adds headers for each period to new terms and updates existing ones.
  * 
  * @param {*} term - D3 selection of all terms.
  */
@@ -184,26 +240,22 @@ export function addPeriodHeaders(term) {
   let newPeriodHeaderContainer = periodHeaderContainerUpdateSelection.enter().append("div")
     .attr("class", "period-header-container");
 
+  // Merge new and existing containers for updating.
+  let allPeriodHeaderContainers = newPeriodHeaderContainer.merge(periodHeaderContainerUpdateSelection);
+
   // Create a D3 update selection by binding an array of ECTS sums. We don't
   // need to use a key here since the periods will never be out of order. We
   // therefore let the index be the default key.
-  let periodHeaderUpdateSelection = newPeriodHeaderContainer.selectAll(".period-header-container")
+  let periodHeaderUpdateSelection = allPeriodHeaderContainers.selectAll(".period-header")
     .data(ectsSumPerPeriod => ectsSumPerPeriod);
 
-  // Add period headers to the new containers.
-  periodHeaderUpdateSelection.enter().append("div")
-    .attr("class", "period-header")
-    .text(ectsSum => {
-      const roundToOneDecimal = number => Math.round(number * 10) / 10;
+  // Add period headers to new containers.
+  let newPeriodHeaders = periodHeaderUpdateSelection.enter().append("div")
+    .attr("class", "period-header");
 
-      // Studying 15 ECTS during one period means studying at full pace (100%).
-      // The ratio of studied ECTS to full pace ECTS gives the study pace for
-      // that period.
-      const ectsSumFullPace = 15;
-      const studyPace = ectsSum / ectsSumFullPace;
-
-      return Math.round(studyPace * 100) + " % / " + roundToOneDecimal(ectsSum) + " hp";
-    });
+  // Merge new and existing period headers and update the text for all.
+  newPeriodHeaders.merge(periodHeaderUpdateSelection)
+    .text(ectsSum => formatStudyPaceText(ectsSum));
 }
 
 /**
@@ -610,7 +662,8 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
         }
 
         modal.showModal();
-
+        // Initialize search functionality for the course list modal
+        initCourseListSearch(modal);
       })
       .catch(error => console.error(error));
     });

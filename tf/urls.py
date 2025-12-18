@@ -23,6 +23,7 @@ from .forms import RodatradenRegistrationForm
 urlpatterns = [
     path('', include('rodatraden.urls')), # Röda tråden
     path('admin/', admin.site.urls), # Admin page
+    path('captcha/', include('captcha.urls')),  # django-simple-captcha
 
     # Authentication
     path('anvandare/register/',

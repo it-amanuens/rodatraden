@@ -255,6 +255,20 @@ body:has(dialog[open]) {
 
   font-weight: bold;
 }
+.rt-modal-table__search {
+  margin-bottom: 0.75rem;
+}
+
+.rt-modal-table__search-input {
+  width: 100%;
+}
+
+.rt-modal-table__no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--gray);
+  font-style: italic;
+}
 
 .rt-modal-table__body {
   /* Reset list style  */
@@ -312,6 +326,12 @@ body:has(dialog[open]) {
   color: white;
   background-color: var(--gray);
   border-radius: 3px;
+}
+
+/* Warning icon for unmet prerequisites in course list */
+.course-row__warning-icon {
+  color: hsl(30, 100%, 42%);
+  margin-left: 0.3em;
 }
 
 /* Tweaks for the block schedule list modal */

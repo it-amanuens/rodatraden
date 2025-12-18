@@ -136,4 +136,4 @@ Potential future improvements,
 - [ ] Test the backup / migration system should preferably implemented using the existing django backup that can be run with `python manage.py dumpdata -o backup.json`
 - [ ] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
 - [ ] Add optional summercourses (maybe as period 5 and 6?) 
-- [ ] Cleanup xlsx files, they are not cleaning up correctly. 
+- [x] Cleanup xlsx files, they are not cleaning up correctly. 

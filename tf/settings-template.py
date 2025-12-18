@@ -171,7 +171,3 @@ LOGIN_URL = '/anvandare/login/'  # Url for login
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
-
-# Recaptcha
-RECAPTCHA_PUBLIC_KEY = ''
-RECAPTCHA_PRIVATE_KEY = ''
