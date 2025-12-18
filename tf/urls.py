@@ -43,4 +43,10 @@ handler500 = 'rodatraden.views.rt500'
 
 # This is added for correct handling of static files
 urlpatterns += staticfiles_urlpatterns()
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Serve media files (also in production for simplicity)
+if settings.MEDIA_ROOT:
+    from django.views.static import serve
+    urlpatterns += [
+        path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
