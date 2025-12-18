@@ -11,3 +11,4 @@ openpyxl  # Managing excel files
 Pillow  # Not sure to be frank
 psycopg2-binary  # Postgresql
 crispy-bootstrap5 # required for new django version
+whitenoise  # Serve static files in production
