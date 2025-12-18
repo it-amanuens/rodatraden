@@ -25,7 +25,7 @@
 <div class="row course-etc p-3 pt-4 mb-2">
   <div class="col-lg">
     {% if filter %}
-      <form action="" method="get" class="form form-inline">
+      <form action="" method="get" class="form form-inline courseoccasion-filter-form">
         {% render_field filter.form.title class+="course-list-filter" %}
         {% render_field filter.form.year class+="course-list-filter-small" %}
         {% render_field filter.form.time_period class+="course-list-filter" %}
@@ -47,8 +47,9 @@
     $(".course-list-filter").select2({ width: '20%' });
     $(".course-list-filter-small").select2({ width: '10%' });
     $(document).ready(function() {
-      $("form :input").change(function() {
-        $("form:first").submit();
+      // Only listen to changes on the filter form, and submit that specific form
+      $(".courseoccasion-filter-form :input").change(function() {
+        $(".courseoccasion-filter-form").submit();
       });
     });
   </script>
