@@ -40,3 +40,4 @@ requirements-freeze.txt
 media.zip
 MarcsTodo.txt
 db
+wfastcgi.log

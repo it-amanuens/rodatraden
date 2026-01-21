@@ -31,7 +31,7 @@ which might help with installation on Windows.
 1. Clone this repository to your computer by `git clone
    https://github.com/it-amanuens/rodatraden/`.
 
-2. Install a venv in the root path directory of the repository by executing `python -m venv env` and then activate the venv. On linux you can activate the venv by running `source env/bin/activate`
+2. Install a venv in the root path directory of the repository by executing `python -m venv venv` and then activate the venv. On linux you can activate the venv by running `source env/bin/activate`. Windows has `.\env\Scripts\activate`
 
 3. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf`, copy the file `settings-template.py` to `settings.py`, and edit the file with
    your favorite editor.
@@ -48,8 +48,8 @@ which might help with installation on Windows.
 6. In your virtual environment, install all of the required packages by running
    `pip install -r requirements.txt` in the cloned repository.
 
-7. Make new migrations for your database by running `python manage.py
-   makemigrations` in the cloned repository. After this, migrate to the database
+7. Make new migrations for your database by running `python manage.py makemigrations`
+   in the cloned repository. After this, migrate to the database
    by running `python manage.py migrate`.
 
 8. If everything went well and it is all set up, start the server by running
@@ -97,6 +97,7 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
    possible deployment method is to run the server with `python manage.py
    runserver` and use a proxy to redirect requests to `127.0.0.1`, but I can't
    give more detail than that.
+   (one more detail, uncomment wfastcgi in requirements.txt on windows)
 
 
 ## Backups of the data

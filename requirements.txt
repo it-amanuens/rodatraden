@@ -12,3 +12,5 @@ Pillow  # Not sure to be frank
 psycopg2-binary  # Postgresql
 crispy-bootstrap5 # required for new django version
 whitenoise  # Serve static files in production
+
+#wfastcgi  # uncomment on windows when using IIS
