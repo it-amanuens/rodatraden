@@ -63,7 +63,10 @@ which might help with installation on Windows.
 
 ### Production
 
-I assume that you already have an http server with e.g. Apache or Nginx and a database setup.
+#### Linux
+
+I assume that you already have an http server with e.g. Apache or Nginx and a database setup. This guide will focus on linux.
+For windows see section lower down
 
 1. Follow steps 1-4 in the local development section.
 
@@ -98,6 +101,70 @@ I assume that you already have an http server with e.g. Apache or Nginx and a da
    runserver` and use a proxy to redirect requests to `127.0.0.1`, but I can't
    give more detail than that.
    (one more detail, uncomment wfastcgi in requirements.txt on windows)
+
+   #### Windows
+#### Windows
+
+I assume that you already have a Windows Server with IIS enabled (including the CGI role service) and Python installed system-wide (for example `C:\Python312`). This guide focuses on deployment using IIS and FastCGI (`wfastcgi`).
+If not, i recomend reading through these two:
+https://www.toptal.com/developers/django/installing-django-on-iis-a-step-by-step-tutorial
+https://blog.devgenius.io/deploy-django-app-to-iis-windows-server-beginners-guide-with-images-3d03b6fd5b7e
+
+This setup has not been fully tested on Windows, so some adjustment is probably neccesary depending on your environment.
+
+1. Follow steps 1-4 in the local development section.
+
+2. Set up a media folder e.g. `C:\inetpub\rodatraden\` named `media` with a folder inside
+   called `profiles`. The IIS application pool user for your site
+   (for example `IIS AppPool\rodatraden`) must have read and write access to
+   this folder. This can be done by running:
+
+   `icacls "C:\inetpub\rodatraden\media" /grant "IIS AppPool\rodatraden":(OI)(CI)M`
+
+3. In the `tf/settings.py`-file more has to be changed than for local
+   development.
+
+   * Change the `SECRET_KEY` to a random 20-30 character string.
+   * Set `DEBUG=False`.
+   * Add the server address or domain to `ALLOWED_HOSTS`.
+   * Add database information in the variable `DATABASES`.
+     If using SQLite, ensure the database file has write permissions.
+   * Set the `MEDIA_ROOT` variable to the writeable media folder setup in step
+     2.
+
+4. Save the `settings.py`-file.
+
+5. Run `python manage.py makemigrations` and `python manage.py migrate` to fill
+   the database.
+
+6. Run `python manage.py collectstatic` to gather all the static files to the
+   site root folder.
+
+7. Everything should be ready to be configured with IIS. Unlike Linux (WSGI),
+   Windows typically uses FastCGI via `wfastcgi`.
+
+   * Install FastCGI support:
+     `pip install wfastcgi`
+
+   * Grant the IIS application pool user read and execute access to the entire
+     project folder (this is especially important for the virtual environment):
+
+     `icacls "C:\inetpub\rodatraden" /grant "IIS AppPool\rodatraden":(OI)(CI)RX`
+
+   * In IIS Manager:
+     * Add a Website pointing to your project root folder.
+     * Add a Module Mapping using the FastCgiModule, pointing the script
+       processor to your virtual environment `python.exe` and `wfastcgi.py`.
+     * Set required environment variables such as `DJANGO_SETTINGS_MODULE`.
+
+   * Since Django does not serve static files in production, create a Virtual
+     Directory in IIS:
+     * Alias: `static`
+     * Physical path: your collected static files folder. `python manage.py collectstatic` to create the static folder.
+     * Also add the media folder to IIS to serve user uploaded files.  
+     
+
+8. Restart IIS and verify that the site loads correctly.
 
 
 ## Backups of the data
