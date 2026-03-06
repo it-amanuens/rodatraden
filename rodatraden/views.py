@@ -1245,7 +1245,7 @@ def block_detail(request: HttpRequest, username, slug):
     # If the block is not private, show without authentication
     if block.private:
         if not request.user.is_authenticated:
-            return redirect(reverse('cas_ng_login'))
+            return redirect(settings.LOGIN_URL)
         elif request.user.username != block.user.username:
             return redirect(reverse('index'))
 
