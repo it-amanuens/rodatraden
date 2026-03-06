@@ -161,22 +161,24 @@ This setup has not been fully tested on Windows, so some adjustment is probably 
      Directory in IIS:
      * Alias: `static`
      * Physical path: your collected static files folder. `python manage.py collectstatic` to create the static folder.
-     * Also add the media folder to IIS to serve user uploaded files.  
-     
+    * Also add the media folder to IIS to serve user uploaded files.  
+
+    Note: if IIS routes `static`/`media` to Python instead of serving files,
+    open the `static` and `media` virtual directories, remove any Python
+    handler, then add a Module Mapping: `Request path=*`, `Module=StaticFileModule`,
+    `Executable=` (blank), `Name=StaticFile`. Enable "Invoke handler only if
+    request is mapped to: File or folder". Ensure "Static Content" is installed.
 
 8. Restart IIS and verify that the site loads correctly.
-
-
 ## Backups of the data
-Under development, see TODO list
 
-# To create a backup (run on production server)
+### To create a backup (run on production server)
 1. `python -Xutf8 ./manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission --indent 2 -o data.json`
 (more info can be found here: https://www.coderedcorp.com/blog/how-to-dump-your-django-database-and-load-it-into-/)
 
 2. We then have to copy over the media folder (if the images uploaded to Rödatråden should be saved). Easy methode is just to zip and send over the media folder. 
 
-# To restore a backup
+### To restore a backup
 1. When setting up the new instance, first run `python manage.py migrate` to create the new migration table.
 
 2. Restore user data using `python manage.py loaddata data.json`
@@ -193,15 +195,25 @@ Potential future improvements,
 - [X] Copy all course occasions from one year to another year
 - [X] Make the blocks nicer
 - [ ] Make it so users can see their pending reports
+      - [ ] Send email to admin when new report is created?
+      - [ ] Make it so users can change their report / delete it
 - [ ] Associate Profiles with Exams
 - [X] Automatic generation of 'examensbilagan'
 - [ ] Search function for the whole site
 - [x] Redirect to created object after creation
 - [X] Re-implement the prerequisite hint on blocks
-
-## TODO list
-
-- [ ] Test the backup / migration system should preferably implemented using the existing django backup that can be run with `python manage.py dumpdata -o backup.json`
+- [ ] Make users able to login with username and email
+   - [ ] Merge users who has different accounts with same email
+- [ ] Add optional summercourses entry (period 5 and 6?). Could be added as a smaller block?
+- [ ] Rebuild the `kurser` / `kurstillfällen` and merge `kurstillfällen` into the `kurser` to make course changes easier
+   - [ ] Design and implement recurrence rules for `Course` (examples: every year, every N years, per läsperiod, custom weeks)
+   - [ ] Provide a migration script to convert existing `CourseOccasion` entries into the new `Course` recurrence model
+   - [ ] Support manual exceptions and overrides (skip a year, add a single extra offering, edit a single occurrence)
+   - [ ] Update API, admin and UI to display and manage recurring offerings and exceptions
+   - [ ] Ensure prerequisites, slugs and existing `Block` / `PrivateCourse` integrations continue to work after the merge
+   - [ ] Add import/export and admin tools to manage recurring offerings and bulk edits
+   - [ ] Add tests and a migration verification tool to validate migrated occurrences
+- [ ] Implement backup and migration system
+   - [x] Added to readme
+   - [ ] scheduled backup of database and send externally?
 - [ ] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
-- [ ] Add optional summercourses (maybe as period 5 and 6?) 
-- [x] Cleanup xlsx files, they are not cleaning up correctly. 
