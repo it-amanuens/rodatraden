@@ -75,7 +75,9 @@
   </div>
 </div>
 
-<div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto" ></div>
+<div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto">
+  <canvas id="category-chart"></canvas>
+</div>
 
 <div id="ISP" class="container" style="min-width: 310px; height: 400px; margin: 0 auto" >
 
@@ -127,10 +129,8 @@
 
 {% block extra_scripts %}
 
-  <!-- highcharts -->
-  <script src="https://code.highcharts.com/highcharts.js"></script>
-  <script src="https://code.highcharts.com/modules/data.js"></script>
-  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <!-- Chart.js -->
+  <script src="{% static 'assets/js/chart.min.js' %}"></script>
 
   <!-- Data that can be used in scripts -->
   {{ categories_title|json_script:"categories-title-data" }}
