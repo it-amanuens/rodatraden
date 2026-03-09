@@ -38,6 +38,16 @@ urlpatterns = [
     path('kurser/<slug:slug>/', views.CourseDetail.as_view(),
         name='course-detail'),
 
+    # Schedule segments
+    path('segment/skapa/', views.SegmentCreate.as_view(),
+        name='segment-create'),
+    path('segment/<int:pk>/andra/', views.SegmentUpdate.as_view(),
+        name='segment-update'),
+    path('segment/<int:pk>/radera/', views.SegmentDelete.as_view(),
+        name='segment-delete'),
+    path('segment/<int:pk>/verkstall/', views.segment_execute,
+        name='segment-execute'),
+
     # Private courses
     path('privata-kurser/<str:username>/', views.PrivateCourseList.as_view(),
         name='privatecourse-list'),

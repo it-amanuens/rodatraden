@@ -3,7 +3,8 @@ import datetime
 from django import forms
 
 from .models import (
-    Course, Block, CourseOccasion, Category, CategoryCourse, Prerequisite, Profile,
+    Course, Block, CourseOccasion, CourseScheduleSegment, Category,
+    CategoryCourse, Prerequisite, Profile,
     AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
     PrivateCourseCategory, User
 )
@@ -144,6 +145,70 @@ class ProfileForm(BSModalModelForm):
     class Meta:
         model = Profile
         exclude = ['title_eng', 'description_eng']
+
+
+class CourseScheduleSegmentForm(BSModalModelForm):
+    """Form for course schedule segments."""
+
+    blacklisted_years = forms.MultipleChoiceField(
+        choices=[],
+        required=False,
+        label='Undantagna år',
+        help_text='Välj år då kursen inte ges i detta segment',
+        widget=forms.SelectMultiple(attrs={'class': 'select2-mult-choice'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-fill course from query param when creating
+        if 'course' in self.request.GET:
+            self.initial['course'] = self.request.GET['course']
+
+        # Year choices from AcademicYear (str keys for ChoiceField compat)
+        year_choices = [
+            (str(x.year), x.title)
+            for x in AcademicYear.objects.all().order_by('year')
+        ]
+        self.fields['start_year'] = forms.ChoiceField(
+            choices=year_choices,
+            label='Startår',
+        )
+        self.fields['end_year'] = forms.ChoiceField(
+            choices=[('', '— Inget slutår —')] + year_choices,
+            required=False,
+            label='Slutår',
+        )
+
+        # Blacklisted years: same year choices as multi-select
+        self.fields['blacklisted_years'].choices = year_choices
+
+        # Pre-fill for existing instances
+        if self.instance.pk:
+            self.initial['start_year'] = str(self.instance.start_year)
+            if self.instance.end_year:
+                self.initial['end_year'] = str(self.instance.end_year)
+            if self.instance.blacklisted_years:
+                self.initial['blacklisted_years'] = [
+                    str(y) for y in self.instance.blacklisted_years
+                ]
+
+    def clean_start_year(self):
+        return int(self.cleaned_data['start_year'])
+
+    def clean_end_year(self):
+        val = self.cleaned_data['end_year']
+        return int(val) if val else None
+
+    def clean_blacklisted_years(self):
+        return [int(y) for y in self.cleaned_data.get('blacklisted_years', [])]
+
+    class Meta:
+        model = CourseScheduleSegment
+        fields = ['course', 'time_period', 'frequency', 'start_year',
+                  'end_year', 'weeks', 'blacklisted_years']
+        widgets = {
+            'course': forms.HiddenInput(),
+        }
 
 
 class CourseOccasionForm(BSModalModelForm):

@@ -9,7 +9,7 @@ Verktyg
 
 {% block content %}
 
-<h2>Kopiera kurstillfällen till nytt år</h2>
+<h2>Kopiera kurstillfällen till nytt år (äldre verktyg)</h2>
 <p>Med detta verktyg så kan du välja kopiera alla kurstillfällen från ett år
 till ett annat. Denna funktion skriver inte över existerande kurstillfällen.</p>
 
@@ -35,4 +35,81 @@ till ett annat. Denna funktion skriver inte över existerande kurstillfällen.</
     <input class='mx-3' type='submit' value='Skicka' name='courseocc_copy'>
   </form>
 </div>
+
+<hr class='my-5'>
+
+<h2>Generera kurstillfällen från kursschema</h2>
+<p>Genererar kurstillfällen automatiskt baserat på kursernas schemaläggningssegment
+(frekvens, perioder, start/slutår, undantagsår) för alla läsår. Skriver inte över existerande kurstillfällen.</p>
+
+<div class='my-3'>
+  <form action={% url 'tools' %} method='post' novalidate>
+    {% csrf_token %}
+    <label class='mx-3'>
+      <input type='checkbox' name='dry_run' value='1'>
+      Verkställ (avmarkerad = förhandsvisning)
+    </label>
+    <input class='mx-3' type='submit' value='Generera för alla år' name='generate_occasions'>
+  </form>
+</div>
+
+{% if generate_results %}
+{% for result in generate_results %}
+{% if result.created or result.skipped_exists or result.removed %}
+<div class='my-3 p-3 border rounded'>
+  <h5>
+    Resultat för {{ result.year }}
+    {% if result.dry_run %}
+      <span class='badge bg-warning text-dark'>Förhandsvisning</span>
+    {% else %}
+      <span class='badge bg-success'>Verkställt</span>
+    {% endif %}
+  </h5>
+
+  <p>
+    <strong>{{ result.created|length }}</strong> kurstillfällen
+    {% if result.dry_run %}skulle skapas{% else %}skapades{% endif %} |
+    <strong>{{ result.skipped_exists|length }}</strong> finns redan
+    {% if result.removed %}
+    | <strong>{{ result.removed|length }}</strong>
+    {% if result.dry_run %}skulle tas bort{% else %}togs bort{% endif %}
+    {% endif %}
+  </p>
+
+  {% if result.created %}
+  <details>
+    <summary>{% if result.dry_run %}Skulle skapas{% else %}Skapade{% endif %} ({{ result.created|length }})</summary>
+    <ul class='list-unstyled ms-3'>
+      {% for item in result.created %}
+      <li>✓ {{ item }}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+
+  {% if result.removed %}
+  <details>
+    <summary>{% if result.dry_run %}Skulle tas bort{% else %}Borttagna{% endif %} ({{ result.removed|length }})</summary>
+    <ul class='list-unstyled ms-3'>
+      {% for item in result.removed %}
+      <li>✗ {{ item }}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+
+  {% if result.skipped_exists %}
+  <details>
+    <summary>Finns redan ({{ result.skipped_exists|length }})</summary>
+    <ul class='list-unstyled ms-3'>
+      {% for item in result.skipped_exists %}
+      <li>— {{ item }}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+</div>
+{% endif %}
+{% endfor %}
+{% endif %}
 {% endblock %}

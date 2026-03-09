@@ -382,8 +382,6 @@ class Course(models.Model):
     # If the course is approved
     approved = models.BooleanField(default=True, blank=True, null=True,
             verbose_name='Godkänd')
-    # I think this is to check if the course will still continue
-    closed = models.BooleanField(default=False, verbose_name='Stängd')
     note = models.CharField(max_length=250, blank=True, null=True)
     homepage_url = models.URLField(blank=True, null=True,
             verbose_name='Hemsida')
@@ -486,6 +484,101 @@ class Course(models.Model):
 
         return category_sum
 
+    def get_segments_for_year(self, year):
+        """Return schedule segments that are active for a given year."""
+        return [
+            seg for seg in self.schedule_segments.all()
+            if seg.is_active_in_year(year)
+        ]
+
+
+class CourseScheduleSegment(models.Model):
+    """A scheduling rule segment for a course.
+
+    Each segment defines a time window during which a course runs with
+    specific parameters. A course can have multiple segments to handle
+    period changes, frequency changes, etc.
+
+    Example: A course runs in LP1 every year from 2002 to 2015, then
+    moves to LP4 from 2015 onwards — modeled as two segments.
+    """
+
+    FREQUENCY_CHOICES = [
+        ('yearly', 'Varje år'),
+        ('odd', 'Udda år'),
+        ('even', 'Jämna år'),
+    ]
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='schedule_segments',
+        verbose_name='Kurs'
+    )
+    start_year = models.IntegerField(
+        verbose_name='Startår',
+        help_text='Första året detta segment gäller'
+    )
+    end_year = models.IntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Slutår',
+        help_text='Sista året detta segment gäller (lämna tomt om det fortsätter)'
+    )
+    frequency = models.CharField(
+        max_length=10,
+        choices=FREQUENCY_CHOICES,
+        default='yearly',
+        verbose_name='Frekvens'
+    )
+    time_period = models.ForeignKey(
+        TimePeriod,
+        on_delete=models.CASCADE,
+        verbose_name='Läsperiod'
+    )
+    weeks = models.IntegerField(
+        default=5,
+        verbose_name='Längd (veckor)'
+    )
+    blacklisted_years = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Undantagna år',
+        help_text='År då kursen inte ges i detta segment, t.ex. [2020, 2023]'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, editable=False,
+            null=False, blank=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
+            blank=False)
+
+    class Meta:
+        verbose_name = 'Schemaläggningssegment'
+        verbose_name_plural = 'Schemaläggningssegment'
+        ordering = ['start_year', 'time_period__week']
+        permissions = [
+            ('can_manage_scheduling', 'Kan hantera schemaläggning'),
+        ]
+
+    def __str__(self):
+        end = self.end_year or '→'
+        return (f'{self.course.title}: {self.time_period.title} '
+                f'{self.start_year}-{end} ({self.get_frequency_display()})')
+
+    def is_active_in_year(self, year):
+        """Check if this segment covers the given year."""
+        if year < self.start_year:
+            return False
+        if self.end_year and year > self.end_year:
+            return False
+        if year in (self.blacklisted_years or []):
+            return False
+        if self.frequency == 'odd' and year % 2 == 0:
+            return False
+        if self.frequency == 'even' and year % 2 == 1:
+            return False
+        return True
+
 
 class Prerequisite(models.Model):
     """Prerequisite for a course.
@@ -560,6 +653,11 @@ class CourseOccasion(models.Model):
     time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
             verbose_name='Läsperiod')
     slug = models.SlugField(max_length=100, unique=True, editable=False)
+    auto_generated = models.BooleanField(
+        default=False,
+        verbose_name='Automatiskt genererad',
+        help_text='Markeras om kurstillfället skapades automatiskt'
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)

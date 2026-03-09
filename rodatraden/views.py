@@ -9,6 +9,7 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin, PermissionRequiredMixin
 )
 from django.contrib.auth import logout
+from django.contrib import messages
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -16,7 +17,8 @@ from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.views.generic.edit import UpdateView
 
 from .models import (
-    Category, Course, CourseOccasion, Block, Prerequisite, User, Profile,
+    Category, Course, CourseOccasion, CourseScheduleSegment, Block,
+    Prerequisite, User, Profile,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
     PrivateCourse, ISPTemplate
 )
@@ -25,7 +27,8 @@ from .tables import (
 )
 from .filters import CourseFilter, CourseOccasionFilter
 from .forms import (
-        CourseForm, BlockForm, ProfileForm, CourseOccasionForm, ExamForm,
+        CourseForm, BlockForm, ProfileForm, CourseOccasionForm,
+        CourseScheduleSegmentForm, ExamForm,
         CategoryForm, ReportForm, PrivateCourseForm, UpdateUserForm,
         DeleteUserForm
 )
@@ -97,8 +100,9 @@ def tools(request: HttpRequest):
         return redirect(reverse('index'))
 
     # Incoming info
+    generate_results = None
     if request.method == 'POST':
-        # Copying courseoccasions tool
+        # Copying courseoccasions tool (legacy)
         if 'courseocc_copy' in request.POST:
             from_acyear = AcademicYear.objects.get(id=request.POST['from'])
             to_acyear = AcademicYear.objects.get(id=request.POST['to'])
@@ -118,14 +122,154 @@ def tools(request: HttpRequest):
                         courseocc.slug = ''
                         courseocc.save()
 
+        # Generate course occasions from scheduling rules
+        if 'generate_occasions' in request.POST:
+            generate_results = _generate_occasions_all_years(request)
+
     # Get all academic years
     acyears = AcademicYear.objects.all().order_by('year')
 
     context = {
             'acyears': acyears,
+            'generate_results': generate_results,
     }
 
     return render(request, 'rodatraden/tools.html', context)
+
+
+def sync_course_occasions(course, dry_run=True):
+    """Compute and optionally apply scheduling changes for a single course.
+
+    Compares the expected CourseOccasions (derived from the course's
+    schedule segments) against what actually exists in the database.
+
+    Returns a dict with keys:
+        - created: list of dicts {year_title, period_title}
+        - skipped_exists: list of dicts {year_title, period_title}
+        - removed: list of dicts {year_title, period_title}
+    """
+    academic_years = AcademicYear.objects.all().order_by('year')
+    created = []
+    skipped_exists = []
+    removed = []
+
+    for academic_year in academic_years:
+        year = academic_year.year
+        segments = course.get_segments_for_year(year)
+
+        # --- Create missing CourseOccasions ---
+        for segment in segments:
+            exists = CourseOccasion.objects.filter(
+                course=course,
+                academic_year=academic_year,
+                time_period=segment.time_period,
+            ).exists()
+
+            entry = {
+                'year_title': academic_year.title,
+                'period_title': segment.time_period.title,
+            }
+
+            if exists:
+                skipped_exists.append(entry)
+                continue
+
+            if not dry_run:
+                CourseOccasion.objects.create(
+                    course=course,
+                    academic_year=academic_year,
+                    time_period=segment.time_period,
+                    weeks=segment.weeks,
+                    official=True,
+                    auto_generated=True,
+                )
+            created.append(entry)
+
+        # --- Remove orphaned auto-generated CourseOccasions ---
+        for co in CourseOccasion.objects.filter(
+            course=course,
+            academic_year=academic_year,
+            auto_generated=True,
+        ).select_related('time_period'):
+            covered = any(
+                seg.time_period_id == co.time_period_id
+                for seg in segments
+            )
+            if not covered:
+                removed.append({
+                    'year_title': academic_year.title,
+                    'period_title': co.time_period.title,
+                })
+                if not dry_run:
+                    co.delete()
+
+    return {
+        'created': created,
+        'skipped_exists': skipped_exists,
+        'removed': removed,
+    }
+
+
+def _generate_occasions_all_years(request):
+    """Generate CourseOccasion rows from scheduling segments for all years.
+
+    Uses sync_course_occasions per course, then aggregates results by year.
+    """
+    dry_run = 'dry_run' not in request.POST  # checkbox unchecked = dry run
+
+    # Collect results per year
+    year_results = {}
+
+    for course in Course.objects.filter(
+        schedule_segments__isnull=False
+    ).distinct().order_by('title'):
+        result = sync_course_occasions(course, dry_run=dry_run)
+
+        for entry in result['created']:
+            yr = entry['year_title']
+            year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
+            year_results[yr]['created'].append(
+                f'{course.title} — {entry["period_title"]}')
+
+        for entry in result['skipped_exists']:
+            yr = entry['year_title']
+            year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
+            year_results[yr]['skipped_exists'].append(
+                f'{course.title} — {entry["period_title"]}')
+
+        for entry in result['removed']:
+            yr = entry['year_title']
+            year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
+            year_results[yr]['removed'].append(
+                f'{course.title} — {entry["period_title"]}')
+
+    # Also check for orphaned auto_generated occasions from courses with no segments
+    for co in CourseOccasion.objects.filter(
+        auto_generated=True,
+    ).exclude(
+        course__schedule_segments__isnull=False,
+    ).select_related('course', 'time_period', 'academic_year'):
+        yr = co.academic_year.title
+        year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
+        year_results[yr]['removed'].append(
+            f'{co.course.title} — {co.time_period.title}')
+        if not dry_run:
+            co.delete()
+
+    # Convert to list sorted by year title
+    results = []
+    for yr in sorted(year_results.keys()):
+        data = year_results[yr]
+        if data['created'] or data['skipped_exists'] or data['removed']:
+            results.append({
+                'year': yr,
+                'dry_run': dry_run,
+                'created': data['created'],
+                'skipped_exists': data['skipped_exists'],
+                'removed': data['removed'],
+            })
+
+    return results
 
 
 ##########
@@ -452,6 +596,91 @@ class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin,
     template_name = 'rodatraden/course/course_confirm_delete.html'
     success_message = 'Kursen togs bort utan problem'
     success_url = reverse_lazy('course-list')
+
+############################
+# COURSE SCHEDULE SEGMENTS #
+############################
+
+class SegmentCreate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalCreateView):
+    """Creation view for schedule segments."""
+
+    permission_required = 'rodatraden.can_manage_scheduling'
+    model = CourseScheduleSegment
+    form_class = CourseScheduleSegmentForm
+    template_name = 'rodatraden/segment/segment_create.html'
+    success_message = 'Schemaläggningssegment skapat'
+
+    def get_success_url(self):
+        return reverse('course-detail', kwargs={
+            'slug': self.object.course.slug
+        })
+
+
+class SegmentUpdate(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalUpdateView):
+    """Update view for schedule segments."""
+
+    permission_required = 'rodatraden.can_manage_scheduling'
+    model = CourseScheduleSegment
+    form_class = CourseScheduleSegmentForm
+    template_name = 'rodatraden/segment/segment_update.html'
+    success_message = 'Schemaläggningssegment uppdaterat'
+
+    def get_success_url(self):
+        return reverse('course-detail', kwargs={
+            'slug': self.object.course.slug
+        })
+
+
+class SegmentDelete(LoginRequiredMixin, PermissionRequiredMixin,
+        BSModalDeleteView):
+    """Delete view for schedule segments."""
+
+    permission_required = 'rodatraden.can_manage_scheduling'
+    model = CourseScheduleSegment
+    template_name = 'rodatraden/segment/segment_confirm_delete.html'
+    success_message = 'Schemaläggningssegment raderat'
+
+    def get_success_url(self):
+        return reverse('course-detail', kwargs={
+            'slug': self.object.course.slug
+        })
+
+
+@login_required
+def segment_execute(request, pk):
+    """Preview or apply scheduling sync for a single course.
+
+    GET  → returns the preview modal with dry-run results.
+    POST → applies changes and redirects back to the course detail page.
+    """
+    course = get_object_or_404(Course, pk=pk)
+
+    if not request.user.has_perm('rodatraden.can_manage_scheduling'):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        result = sync_course_occasions(course, dry_run=False)
+        n_created = len(result['created'])
+        n_removed = len(result['removed'])
+        parts = []
+        if n_created:
+            parts.append(f'{n_created} kurstillfällen skapades')
+        if n_removed:
+            parts.append(f'{n_removed} kurstillfällen togs bort')
+        msg = ', '.join(parts) if parts else 'Inga ändringar behövdes'
+        messages.success(request, f'Schemaläggning verkställd: {msg}.')
+        return redirect(reverse('course-detail', kwargs={'slug': course.slug}))
+
+    # GET — dry-run preview
+    result = sync_course_occasions(course, dry_run=True)
+    context = {
+        'course': course,
+        'result': result,
+    }
+    return render(request, 'rodatraden/segment/segment_execute.html', context)
+
 
 ###################
 # COURSEOCCASIONS #

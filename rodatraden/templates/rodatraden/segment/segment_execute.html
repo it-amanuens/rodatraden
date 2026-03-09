@@ -1,0 +1,57 @@
+<form method="post" action="{% url 'segment-execute' course.pk %}">
+  {% csrf_token %}
+
+  <div class="modal-header">
+    <h3 class="modal-title">Verkställ schemaläggning</h3>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <p><strong>{{ course.title }}</strong></p>
+
+    {% if not result.created and not result.removed %}
+      <p class="text-success">Inga ändringar behövs — allt är redan synkroniserat.</p>
+    {% else %}
+
+      {% if result.created %}
+      <h6>Kurstillfällen att skapa ({{ result.created|length }})</h6>
+      <ul class="list-unstyled ms-3" style="max-height: 200px; overflow-y: auto;">
+        {% for item in result.created %}
+        <li>✓ {{ item.year_title }} — {{ item.period_title }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if result.removed %}
+      <h6>Kurstillfällen att ta bort ({{ result.removed|length }})</h6>
+      <ul class="list-unstyled ms-3" style="max-height: 200px; overflow-y: auto;">
+        {% for item in result.removed %}
+        <li>✗ {{ item.year_title }} — {{ item.period_title }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if result.skipped_exists %}
+      <details>
+        <summary>Finns redan ({{ result.skipped_exists|length }})</summary>
+        <ul class="list-unstyled ms-3" style="max-height: 200px; overflow-y: auto;">
+          {% for item in result.skipped_exists %}
+          <li>— {{ item.year_title }} — {{ item.period_title }}</li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+
+    {% endif %}
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    {% if result.created or result.removed %}
+    <button type="submit" class="btn btn-rt">Verkställ</button>
+    {% endif %}
+  </div>
+
+</form>
