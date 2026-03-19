@@ -8,8 +8,15 @@ $(function() {
     }
 
     // Initialize data-next if not set
-    if (!$template.data('next')) {
-      $template.data('next', 0);
+    // The template row is also submitted (as an empty row), so we must
+    // start numbering new rows after the template's index to avoid name
+    // collisions (which would cause the template's blank values to override
+    // the first added row on the server side).
+    if (typeof $template.data('next') === 'undefined') {
+      const templateName = $template.find('select').attr('name') || '';
+      const match = templateName.match(/^category_(\d+)_/);
+      const next = match ? parseInt(match[1], 10) + 1 : 0;
+      $template.data('next', next);
     }
 
     const n = $template.data('next');
