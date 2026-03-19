@@ -106,56 +106,56 @@ function createCategorySumChart() {
     document.getElementById('categories-sum-data').textContent
   );
 
-  // Set global chart options.
-  Highcharts.setOptions({
-    colors: ['var(--gray)', 'var(--main-color)']
-  });  
+  // Get the CSS variable values for consistent styling.
+  const style = getComputedStyle(document.documentElement);
+  const grayColor = style.getPropertyValue('--gray').trim() || '#808080';
+  const mainColor = style.getPropertyValue('--main-color').trim() || '#c0392b';
 
-  // Create the actual chart and store the reference.
-  categorySumChart = Highcharts.chart('chart', {
-    chart: {
-      type: 'bar'
+  // Create the Chart.js horizontal bar chart and store the reference.
+  const ctx = document.getElementById('category-chart').getContext('2d');
+  categorySumChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: categoriesTitle,
+      datasets: [
+        {
+          label: 'Krav',
+          data: categoriesEcts,
+          backgroundColor: grayColor
+        },
+        {
+          label: 'Summa',
+          data: categoriesSum,
+          backgroundColor: mainColor
+        }
+      ]
     },
-    title: {
-      text: ''
-    },
-    xAxis: {
-      categories: categoriesTitle
-    },
-    yAxis: {
-      min: 0,
-      tickInterval: 7.5,
-      title: {
-        text: 'Poäng per kategori'
-      }
-    },
-    tooltip: {
-      headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-      pointFormat: '<tr><td style="font-size:12px;color:{series.color};padding:0">{series.name}:</td>'
-        + '<td style="font-size:12px;padding:0"><b>{point.y:.1f} hp</b></td></tr>',
-      footerFormat: '</table>',
-      shared: true,
-      useHTML: true
-    },
-    plotOptions: {
-      column: {
-        pointPadding: 0.2,
-        borderWidth: 0
-      }
-    },
-    credits: {
-      enabled: false
-    },
-    series: [
-      {
-        name: 'Krav',
-        data: categoriesEcts
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 7.5
+          },
+          title: {
+            display: true,
+            text: 'Poäng per kategori'
+          }
+        }
       },
-      {
-        name: 'Summa',
-        data: categoriesSum
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + context.parsed.x.toFixed(1) + ' hp';
+            }
+          }
+        }
       }
-    ]
+    }
   });
 }
 
@@ -173,9 +173,10 @@ function updateCategorySumChart(categorySumsUrl) {
   fetch(categorySumsUrl)
     .then(response => response.json())
     .then(data => {
-      // Update the "Summa" series (index 1) with new data.
+      // Update the "Summa" dataset (index 1) with new data.
       if (categorySumChart) {
-        categorySumChart.series[1].setData(data.categorySums, true);
+        categorySumChart.data.datasets[1].data = data.categorySums;
+        categorySumChart.update();
       }
       
       // Update the total HP display.
