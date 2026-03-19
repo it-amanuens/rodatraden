@@ -219,10 +219,11 @@ Potential future improvements,
 - [ ] Make users able to login with username and email
    - [ ] Merge users who has different accounts with same email
 - [ ] Add optional summercourses entry (period 5 and 6?). Could be added as a smaller block?
+   -  There is a branch with experimental summer course!
 - [ ] Rebuild the `kurser` / `kurstillfällen` and merge `kurstillfällen` into the `kurser` to make course changes easier
-   - [ ] Design and implement recurrence rules for `Course` (examples: every year, every N years, per läsperiod, custom weeks)
-   - [ ] Provide a migration script to convert existing `CourseOccasion` entries into the new `Course` recurrence model
-   - [ ] Support manual exceptions and overrides (skip a year, add a single extra offering, edit a single occurrence)
+   - [x] Design and implement recurrence rules for `Course` (examples: every year, every N years, per läsperiod, custom weeks)
+   - [x] Provide a migration script to convert existing `CourseOccasion` entries into the new `Course` recurrence model
+   - [x] Support manual exceptions and overrides (skip a year, add a single extra offering, edit a single occurrence)
    - [ ] Update API, admin and UI to display and manage recurring offerings and exceptions
    - [ ] Ensure prerequisites, slugs and existing `Block` / `PrivateCourse` integrations continue to work after the merge
    - [ ] Add import/export and admin tools to manage recurring offerings and bulk edits
@@ -230,4 +231,8 @@ Potential future improvements,
 - [ ] Implement backup and migration system
    - [x] Added to readme
    - [ ] scheduled backup of database and send externally?
-- [ ] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
+- [x] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
+- [ ] Better code?
+   - [ ] Use same category_form code for private course as for the public courses? Currently we have separate code for both, changes will thus have to be updated in both.  rodatraden\static\rodatraden\course\form_categories.js and rodatraden\static\rodatraden\course\form_categories.js
+      - [ ] We also dont save category on a newly created course. You have to edit it a second time?. 
+   - [ ] There is two category options for real corses. First is broken (and should be removed?) second one works. 

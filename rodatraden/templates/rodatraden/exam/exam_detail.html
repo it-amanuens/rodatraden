@@ -43,7 +43,7 @@
           {% for category in exam.categoryexam_set.all %}
           <tr>
             <td>
-            <a href="{% url 'category-detail' category.id %}"
+            <a href="{% url 'category-detail' category.category.slug %}"
             style="font-weight:bold;">{{ category.category.title }}</a>
             </td>
             <td>{{ category.ects }}</td>

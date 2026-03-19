@@ -1,54 +1,47 @@
-/**
- * JavaScript for handling dynamic category fields in forms.
- * Used by private course and exam forms to add/remove category inputs.
- */
+/* Helper code for forms with dynamic categories */
 
 $(function() {
-  // Add a new category field by cloning the hidden template
-  $('.add-category').click(function() {
-    // Find the hidden template row (last category field with d-none class)
-    const template = $('.category-list-new');
-    
-    if (template.length) {
-      // Clone the template
-      const newField = template.clone();
-      
-      // Remove the template classes so it's visible
-      newField.removeClass('category-list-new d-none');
-      
-      // Update the field name/id to be unique
-      const fieldCount = $('.form-group.row.px-3:not(.d-none)').length;
-      const input = newField.find('input, select');
-      
-      input.each(function() {
-        const name = $(this).attr('name');
-        const id = $(this).attr('id');
-        
-        if (name) {
-          // Update name with new index
-          $(this).attr('name', name.replace(/_\d+$/, '_' + fieldCount));
-        }
-        if (id) {
-          // Update id with new index
-          $(this).attr('id', id.replace(/_\d+$/, '_' + fieldCount));
-        }
-        
-        // Clear the value
-        $(this).val('');
-      });
-      
-      // Insert before the template
-      newField.insertBefore(template);
+  $('.add-category').on('click', function() {
+    const $template = $('.category-list-new');
+    if (!$template.length) {
+      return;
     }
+
+    // Initialize data-next if not set
+    if (!$template.data('next')) {
+      $template.data('next', 0);
+    }
+
+    const n = $template.data('next');
+    const $clone = $template.clone(true, true);
+
+    // Update the clone with the current index
+    $clone.find('select')
+      .val('')
+      .attr('name', `category_${n}_0`)
+      .attr('id', `id_category_${n}_0`);
+
+    $clone.find('input')
+      .val('')
+      .attr('name', `category_${n}_1`)
+      .attr('id', `id_category_${n}_1`);
+
+    // Increment the template's next index
+    $template.data('next', n + 1);
+
+    // Remove template classes and insert
+    $clone.removeClass('d-none category-list-new');
+    $clone.insertBefore($template);
   });
-  
-  // Remove a category field
+
+  // Use event delegation for remove handlers (works for dynamically added elements)
   $(document).on('click', '.remove-category', function() {
-    const row = $(this).closest('.form-group.row');
-    
-    // Don't remove if it's the template row
-    if (!row.hasClass('category-list-new')) {
-      row.remove();
+    const $row = $(this).closest('.form-group.row');
+
+    if (!$row.hasClass('category-list-new')) {
+      $row.remove();
     }
   });
+
+  $('[data-toggle="tooltip"]').tooltip();
 });
