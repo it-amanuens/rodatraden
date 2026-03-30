@@ -1,6 +1,7 @@
 import AcademicYear from "./academic_year.js";
 import BlockSchedule from "./block_schedule.js";
 import CourseOccasion from "./course_occasion.js";
+import Term from "./term.js";
 /**
  * Initializes the search functionality for the course list modal.
  * Filters course rows based on the search input.
@@ -128,7 +129,7 @@ export function updateAcademicYear(academicYearContainer, academicYearsData, sho
   // Merge the newly created elements with the existing ones to get all.
   let academicYears = newAcademicYear.merge(academicYearUpdateSelection);
   academicYears
-    .attr('class', () => {
+    .attr('class', academicYear => {
       let classList = ['academic-year'];
 
       if (shouldStackTerms) {
@@ -154,10 +155,9 @@ export function updateAcademicYear(academicYearContainer, academicYearsData, sho
  * @returns D3 selection of all terms.
  */
 export function updateTerm(academicYear, shouldStackTerms, margin, scale) {
-  // Create a D3 update selection by binding data for two terms based on the
-  // data previously bound to the academic year. We don't need to use a key
-  // here since the terms will never be out of order. We therefore let the
-  // index be the default key.
+  // Create a D3 update selection by binding data for terms based on the
+  // data previously bound to the academic year. Use the prefix as key so
+  // that the summer term can be added and removed dynamically.
   let termUpdateSelection = academicYear.selectAll(".term")
     .data(academicYear => {
       const fallHeight = getCourseContainerHeight(academicYear.fall.courses, margin, scale);
@@ -176,12 +176,41 @@ export function updateTerm(academicYear, shouldStackTerms, margin, scale) {
         springTerms.containerHeight = Math.max(fallHeight, springHeight);
       }
 
-      return [fallTerms, springTerms];
-    });
+      let terms = [fallTerms, springTerms];
+
+      // Include the summer term if the year has summer enabled.
+      if (academicYear.hasSummer) {
+        let summerTerms = academicYear.summer;
+        const summerHeight = getCourseContainerHeight(summerTerms.courses, margin, scale);
+
+        if (shouldStackTerms) {
+          summerTerms.containerHeight = summerHeight;
+        } else {
+          // Summer stands on its own height-wise since it's narrower.
+          summerTerms.containerHeight = Math.max(summerHeight, fallTerms.containerHeight);
+          // Also update fall/spring to match.
+          fallTerms.containerHeight = summerTerms.containerHeight;
+          springTerms.containerHeight = summerTerms.containerHeight;
+        }
+
+        terms.push(summerTerms);
+      }
+
+      return terms;
+    }, term => term.prefix);
+
+  // Remove old terms (e.g. when summer is toggled off).
+  termUpdateSelection.exit().remove();
 
   // Add missing terms.
   let term = termUpdateSelection.enter().append("div")
-    .attr("class", "term")
+    .attr("class", term => {
+      let classes = "term";
+      if (term.prefix === 'Sommar') {
+        classes += " term--summer";
+      }
+      return classes;
+    })
     .style('z-index', term => term.prefix === 'HT' ? '2' : '1')
   
   // Merge the newly created elements with the existing ones to return all.
@@ -309,8 +338,9 @@ export function updateCourseBlocks(courseContainer,
                                    courseoccasionInfoUrl,
                                    blockRemoveCourseUrl,
                                    blockSchedule) {
-  // Number of weeks in a term.
-  const termWeekCount = 20;
+  // Number of weeks in a regular term (fall/spring). Summer uses 10 weeks.
+  const regularTermWeekCount = 20;
+  const summerTermWeekCount = Term.summerWeekLength;
 
   // Create a D3 update selection by binding all of the courses. We combine the
   // courses' year, starting week and slug to create a unique identifier for
@@ -486,11 +516,15 @@ export function updateCourseBlocks(courseContainer,
       return height + "px";
     })
     .style("width", course => {
-      const width = course.visibleWeeks / termWeekCount * 100 - 0.5;
+      const isSummer = course.start >= Term.summerWeekStart;
+      const weekCount = isSummer ? summerTermWeekCount : regularTermWeekCount;
+      const width = course.visibleWeeks / weekCount * 100 - 0.5;
       return width + "%";
     })
     .style("margin-left", course => {
-      const left = course.termStart / termWeekCount * 100 + 0.25;
+      const isSummer = course.start >= Term.summerWeekStart;
+      const weekCount = isSummer ? summerTermWeekCount : regularTermWeekCount;
+      const left = course.termStart / weekCount * 100 + 0.25;
       return left + "%";
     })
     .style("margin-top", course => {
@@ -588,12 +622,20 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
   // Create a D3 update selection by binding relevant data for the footer. We
   // don't need to use a key here since there's only one footer per term.
   let footerUpdateSelection = term.selectAll(".term-footer")
-    .data(term => [
-      {
-        academicYear: term.academicYear,
-        periodNumbers: term.prefix === 'HT' ? [1, 2] : [3, 4],
+    .data(term => {
+      let periodNumbers;
+      if (term.prefix === 'HT') {
+        periodNumbers = [1, 2];
+      } else if (term.prefix === 'Sommar') {
+        periodNumbers = [5];
+      } else {
+        periodNumbers = [3, 4];
       }
-    ]);
+      return [{
+        academicYear: term.academicYear,
+        periodNumbers: periodNumbers,
+      }];
+    });
 
   // Add missing footers.
   let footer = footerUpdateSelection.enter().append("div")
@@ -601,15 +643,15 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
 
   // Only logged in user can add courses.
   if (isLoggedIn) {
-    // Create a D3 update selection by binding data for two periods based on the
-    // data bound to the footer. We don't need to use a key here since the
-    // buttons will never be out of order. We therefore let the index be the
-    // default key.
+    // Create a D3 update selection by binding data for periods based on the
+    // data bound to the footer. Summer has one period, fall/spring have two.
     let buttonUpdateSelection = footer.selectAll(".term-footer-button")
-      .data(term => [
-        { periodNumber: term.periodNumbers[0], academicYear: term.academicYear },
-        { periodNumber: term.periodNumbers[1], academicYear: term.academicYear }
-      ]);
+      .data(term => {
+        return term.periodNumbers.map(periodNumber => ({
+          periodNumber: periodNumber,
+          academicYear: term.academicYear
+        }));
+      });
     
     // Add missing buttons.
     let newButton = buttonUpdateSelection.enter().append("div")
@@ -737,4 +779,47 @@ export function updatePrerequisiteWarnings() {
       icon.classList.add('d-none');
     }
   }
+}
+
+/**
+ * Adds or updates summer toggle buttons after each academic year.
+ * Shows "Lägg till sommar" when summer is not active, and "Ta bort sommar"
+ * when it is.
+ * 
+ * @param {*} academicYears - D3 selection of all academic years.
+ * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+ * @param {BlockSchedule} blockSchedule - Block schedule object.
+ */
+export function addSummerToggle(academicYears, isLoggedIn, blockSchedule) {
+  if (!isLoggedIn) {
+    return;
+  }
+
+  // Bind summer toggle data to each academic year.
+  let toggleUpdateSelection = academicYears.selectAll(".summer-toggle")
+    .data(academicYear => {
+      // Only show the button when summer is not active.
+      if (academicYear.hasSummer) {
+        return [];
+      }
+      return [{ year: academicYear.year }];
+    });
+
+  // Remove toggle when summer is active.
+  toggleUpdateSelection.exit().remove();
+
+  // Add missing toggles.
+  let newToggle = toggleUpdateSelection.enter().append("div");
+
+  // Merge new and existing toggles.
+  let allToggles = newToggle.merge(toggleUpdateSelection);
+
+  // Update toggle text and class.
+  allToggles
+    .attr("class", "summer-toggle btn text-center")
+    .text("Lägg till sommar")
+    .on("click", null) // Remove old handlers.
+    .on("click", function(d) {
+      blockSchedule.addSummer(d.year);
+    });
 }

@@ -1,5 +1,6 @@
 import CourseOccasion from "./course_occasion.js";
 import AcademicYear from "./academic_year.js";
+import Term from "./term.js";
 
 /**
  * Groups courses by their academic year using a Map.
@@ -63,14 +64,15 @@ function addMissingGapYears(coursesByYear) {
  * @param {boolean} shouldSplitCourses - True if courses that overlap terms should be split into two course-blocks.
  * @returns {AcademicYear[]}
  */
-function groupCoursesByTerm(coursesByYear, shouldSplitCourses) {
+function groupCoursesByTerm(coursesByYear, shouldSplitCourses, summerYears) {
   let academicYears = [];
 
   for (const courseGroup of coursesByYear) {
     const year = courseGroup[0];
     const courses = courseGroup[1];
+    const hasSummer = summerYears.has(year);
 
-    academicYears.push(new AcademicYear(year, courses, shouldSplitCourses));
+    academicYears.push(new AcademicYear(year, courses, shouldSplitCourses, hasSummer));
   }
   
   // Make sure the years are sorted in ascending order.
@@ -93,6 +95,14 @@ export default class BlockScheduleData {
     this.#startYear = startYear;
     this.#courses = courses;
     this.#shouldSplitCourses = shouldSplitCourses;
+    this.#summerYears = new Set();
+
+    // Auto-detect summer years from courses that start in the summer period.
+    for (const course of courses) {
+      if (course.start >= Term.summerWeekStart) {
+        this.#summerYears.add(course.academicYear);
+      }
+    }
 
     this.update();
   }
@@ -104,6 +114,17 @@ export default class BlockScheduleData {
    */
   updateCourses(courses) {
     this.#courses = courses;
+
+    // Auto-remove summer for years that no longer have summer courses.
+    for (const year of this.#summerYears) {
+      const hasSummerCourse = courses.some(
+        c => c.academicYear === year && c.start >= 40
+      );
+      if (!hasSummerCourse) {
+        this.#summerYears.delete(year);
+      }
+    }
+
     this.update();
   }
 
@@ -171,7 +192,27 @@ export default class BlockScheduleData {
     addFirstFiveYearsIfMissing(coursesByYear, this.#startYear);
     addMissingGapYears(coursesByYear);
 
-    this.#academicYears = groupCoursesByTerm(coursesByYear, this.#shouldSplitCourses);
+    this.#academicYears = groupCoursesByTerm(coursesByYear, this.#shouldSplitCourses, this.#summerYears);
+  }
+
+  /**
+   * Enables the summer term for the given academic year.
+   * 
+   * @param {number} year - Academic year to enable summer for.
+   */
+  addSummer(year) {
+    this.#summerYears.add(year);
+    this.update();
+  }
+
+  /**
+   * Disables the summer term for the given academic year.
+   * 
+   * @param {number} year - Academic year to disable summer for.
+   */
+  removeSummer(year) {
+    this.#summerYears.delete(year);
+    this.update();
   }
 
   /**
@@ -222,6 +263,8 @@ export default class BlockScheduleData {
   #courses;
   /** @type {boolean} */
   #shouldSplitCourses;
+  /** @type {Set<number>} */
+  #summerYears;
 
   /** @type {AcademicYear[]} */
   #academicYears = [];

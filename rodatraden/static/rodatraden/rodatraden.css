@@ -421,6 +421,34 @@ body:has(dialog[open]) {
   background-color: var(--schedule-background-color-light);
 }
 
+.academic-year--three-columns {
+  grid-template-columns: repeat(2, 1fr);
+  background-color: var(--schedule-background-color-light);
+}
+
+/* Summer term spans full width and is centered at half width. */
+.term--summer {
+  grid-column: 1 / -1;
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* In stacked mode, summer takes full width like the other terms. */
+.academic-year--one-column .term--summer {
+  width: 100%;
+}
+
+/* Summer period header stretches full width since it has only one period. */
+.term--summer .period-header-container {
+  grid-template-columns: 1fr;
+}
+
+/* Summer footer has only one button (LP5). */
+.term--summer .term-footer {
+  flex-direction: column;
+}
+
 .term-header {
   border: 0;
   border-radius: var(--schedule-border-radius) var(--schedule-border-radius) 0 0;
@@ -596,6 +624,26 @@ body:has(dialog[open]) {
 .block-schedule-footer:hover {
   background-color: var(--main-color);
   cursor: pointer;
+}
+
+.summer-toggle {
+  grid-column: 1 / -1;
+  padding: 0.25rem 0;
+  margin-top: 0.25rem;
+  border-radius: var(--schedule-border-radius);
+  background-color: var(--schedule-background-color-dark);
+  color: var(--schedule-text-color);
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.summer-toggle:hover {
+  background-color: var(--main-color);
+  color: var(--schedule-text-color);
+}
+
+.summer-toggle--active {
+  background-color: var(--schedule-background-color-dark);
 }
 
 /* The remove buttons are hidden on devices with a mouse to remove clutter. */

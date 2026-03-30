@@ -65,6 +65,26 @@ export default class BlockSchedule {
   }
 
   /**
+   * Enables the summer term for the given academic year and redraws.
+   * 
+   * @param {number} year - Academic year.
+   */
+  addSummer(year) {
+    this.#coursesData.addSummer(year);
+    this.#render();
+  }
+
+  /**
+   * Disables the summer term for the given academic year and redraws.
+   * 
+   * @param {number} year - Academic year.
+   */
+  removeSummer(year) {
+    this.#coursesData.removeSummer(year);
+    this.#render();
+  }
+
+  /**
    * Adds the feature to revaluate on window resize whether or not to stack the
    * terms and redraw the block-schedule.
    * 
@@ -212,6 +232,13 @@ export default class BlockSchedule {
       termSelection,
       this.#isLoggedIn,
       this.#blockCourseListUrl,
+      this
+    );
+
+    // Add summer toggle buttons after each academic year.
+    renderer.addSummerToggle(
+      academicYearSelection,
+      this.#isLoggedIn,
       this
     );
     

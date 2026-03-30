@@ -43,10 +43,16 @@ function generateCoursePositions(coursesInSameYear) {
  */
 function splitCoursesOverTermBoundary(courses) {
   const springWeekStart = Term.springWeekStart;
+  const summerWeekStart = Term.summerWeekStart;
 
-  for (let course of courses) {
+  // Only process the original courses, not the clones we append.
+  const originalLength = courses.length;
+
+  for (let i = 0; i < originalLength; i++) {
+    let course = courses[i];
     const courseEnd = course.start + course.weeks - 1;
 
+    // Split across fall → spring boundary.
     const isStartingInFall = course.start < springWeekStart;
     const isEndingInSpring = courseEnd >= springWeekStart;
     if (isStartingInFall && isEndingInSpring) {
@@ -56,9 +62,34 @@ function splitCoursesOverTermBoundary(courses) {
 
       const weekOverlap = courseEnd - springWeekStart + 1;
       course.visibleWeeks = course.weeks - weekOverlap;
-      courseSpringCopy.visibleWeeks = weekOverlap;
+      courseSpringCopy.visibleWeeks = Math.min(weekOverlap, summerWeekStart - springWeekStart);
 
       courses.push(courseSpringCopy);
+
+      // If the course also extends into summer, split again.
+      if (courseEnd >= summerWeekStart) {
+        let courseSummerCopy = course.clone();
+        courseSummerCopy.start = summerWeekStart;
+        courseSummerCopy.visibleWeeks = courseEnd - summerWeekStart + 1;
+        courses.push(courseSummerCopy);
+      }
+
+      continue;
+    }
+
+    // Split across spring → summer boundary (course starts in spring).
+    const isStartingInSpring = course.start >= springWeekStart && course.start < summerWeekStart;
+    const isEndingInSummer = courseEnd >= summerWeekStart;
+    if (isStartingInSpring && isEndingInSummer) {
+      let courseSummerCopy = course.clone();
+
+      courseSummerCopy.start = summerWeekStart;
+
+      const weekOverlap = courseEnd - summerWeekStart + 1;
+      course.visibleWeeks = course.weeks - weekOverlap;
+      courseSummerCopy.visibleWeeks = weekOverlap;
+
+      courses.push(courseSummerCopy);
     }
   }
 }
@@ -87,7 +118,7 @@ export default class AcademicYear {
    * @param {number} year - Academic year.
    * @param {CourseOccasion[]} courses - Courses corresponding to the academic year.
    */
-  constructor(year, courses = [], shouldSplitCourses = false) {
+  constructor(year, courses = [], shouldSplitCourses = false, hasSummer = false) {
     if (courses.length !== 0) {
       if (shouldSplitCourses) {
         splitCoursesOverTermBoundary(courses);
@@ -99,19 +130,33 @@ export default class AcademicYear {
     }
 
     this.#year = year;
+    this.#hasSummer = hasSummer;
     this.fall = Term.createFall(year, courses);
     this.spring = Term.createSpring(year, courses);
+    this.summer = Term.createSummer(year, courses);
   }
   
-  /** @type {CourseOccasion[]} */
+  /** @type {Term} */
   fall;
-  /** @type {CourseOccasion[]} */
+  /** @type {Term} */
   spring;
+  /** @type {Term} */
+  summer;
 
   get year() {
     return this.#year;
   }
 
+  /**
+   * Whether the summer term should be shown for this academic year.
+   * True if explicitly enabled or if there are courses in the summer.
+   */
+  get hasSummer() {
+    return this.#hasSummer || this.summer.courses.length > 0;
+  }
+
   /** @type {number} */
   #year;
+  /** @type {boolean} */
+  #hasSummer;
 }
