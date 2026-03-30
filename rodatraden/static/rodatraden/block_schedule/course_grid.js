@@ -24,7 +24,7 @@ export default class CourseGrid {
     return firstRowIndex;
   }
 
-  #weekCount = 40;
+  #weekCount = 50;
   #grid = [];
 
   /**
