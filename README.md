@@ -170,6 +170,20 @@ This setup has not been fully tested on Windows, so some adjustment is probably 
     request is mapped to: File or folder". Ensure "Static Content" is installed.
 
 8. Restart IIS and verify that the site loads correctly.
+
+### Clean install
+If you don't want to migrate data from an old instance, then you will have to create new the all new data from scratch. 
+New super users can be created in django by running this command `python manage.py createsuperuser`
+After this navigate to the admin interface. Here we will have to add entries like "akademiska år", "institutioner" "Nivåer", "Spår" and "Tidsperioder". 
+- Akademiska år : The study year (You probably want a few courses here)
+- Institutioner : The institution / faculty where the course can be / is taken
+- Nivåer : If it's an advanced course or not (grundläggande / avancerad)
+- Spår : The different tracks that can be choosen. Make a profile before on the main site
+- Tidsperioder : This is when during the year a course starts. For example week 0 for "läsperiod 1", week 10 for "läsperiod 2" Week 0 is the beginning of time academic year. If a course starts 3 weeks into period 2, then specify week 13.
+
+After after creating these, new courses can be added to the default site
+
+
 ## Backups of the data
 
 ### To create a backup (run on production server)
@@ -205,10 +219,11 @@ Potential future improvements,
 - [ ] Make users able to login with username and email
    - [ ] Merge users who has different accounts with same email
 - [ ] Add optional summercourses entry (period 5 and 6?). Could be added as a smaller block?
+   -  There is a branch with experimental summer course!
 - [ ] Rebuild the `kurser` / `kurstillfällen` and merge `kurstillfällen` into the `kurser` to make course changes easier
-   - [ ] Design and implement recurrence rules for `Course` (examples: every year, every N years, per läsperiod, custom weeks)
-   - [ ] Provide a migration script to convert existing `CourseOccasion` entries into the new `Course` recurrence model
-   - [ ] Support manual exceptions and overrides (skip a year, add a single extra offering, edit a single occurrence)
+   - [x] Design and implement recurrence rules for `Course` (examples: every year, every N years, per läsperiod, custom weeks)
+   - [x] Provide a migration script to convert existing `CourseOccasion` entries into the new `Course` recurrence model
+   - [x] Support manual exceptions and overrides (skip a year, add a single extra offering, edit a single occurrence)
    - [ ] Update API, admin and UI to display and manage recurring offerings and exceptions
    - [ ] Ensure prerequisites, slugs and existing `Block` / `PrivateCourse` integrations continue to work after the merge
    - [ ] Add import/export and admin tools to manage recurring offerings and bulk edits
@@ -216,4 +231,8 @@ Potential future improvements,
 - [ ] Implement backup and migration system
    - [x] Added to readme
    - [ ] scheduled backup of database and send externally?
-- [ ] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
+- [x] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
+- [ ] Better code?
+   - [ ] Use same category_form code for private course as for the public courses? Currently we have separate code for both, changes will thus have to be updated in both.  rodatraden\static\rodatraden\course\form_categories.js and rodatraden\static\rodatraden\course\form_categories.js
+      - [ ] We also dont save category on a newly created course. You have to edit it a second time?. 
+   - [ ] There is two category options for real corses. First is broken (and should be removed?) second one works. 

@@ -23,6 +23,7 @@ db.sqlite3
 rodatraden/migrations/0*_*.py
 tf/settings.py
 media
+data*.json
 # Leading slash to only ignore the root static directory populated using the
 # collectstatic command.
 /static/

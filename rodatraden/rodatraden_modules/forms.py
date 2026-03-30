@@ -97,9 +97,7 @@ class CategoryEctsField(forms.MultiValueField):
     def compress(self, data_list):
         """Take input and compress to a string."""
 
-        breakpoint()
-
-        data_list[0] = 'data_list[0].id'
+        data_list[0] = str(data_list[0].id)
         data_list[1] = str(data_list[1])
         return '-'.join(data_list)
 
