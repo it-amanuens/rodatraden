@@ -217,6 +217,9 @@ class CourseOccasionForm(BSModalModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Keep academic year options in chronological order.
+        self.fields['academic_year'].queryset = AcademicYear.objects.all().order_by('year')
+
         # If a courseoccasion is copied
         if 'courseocc' in self.request.GET:
             courseocc_cpy = CourseOccasion.objects.get(slug=self.request.GET['courseocc'])
