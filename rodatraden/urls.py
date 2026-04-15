@@ -127,6 +127,8 @@ urlpatterns = [
     # perhaps?
     path('anvandare/<str:username>/<int:pk>/andra', views.UserUpdate.as_view(),
         name='user-update'),
+    path('anvandare/<str:username>/<int:pk>/losenord',
+        views.user_change_password, name='user-change-password'),
     path('anvandare/<str:username>/<int:pk>/radera', views.user_delete,
         name='user-delete'),
 

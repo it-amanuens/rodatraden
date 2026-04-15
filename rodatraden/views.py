@@ -9,6 +9,8 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin, PermissionRequiredMixin
 )
 from django.contrib.auth import logout
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -155,13 +157,38 @@ def rt500(request: HttpRequest, exception=None):
 #########
 
 class UserUpdate(CorrectUserPermissionMixin, UpdateView):
-    """Creation view for reports."""
+    """Update view for user profile information."""
 
     model = User
     form_class = UpdateUserForm
     # Check against username since users don't have slugs
     template_name = 'rodatraden/user/update_user_form.html'
     success_url = reverse_lazy('index')
+
+
+@login_required
+def user_change_password(request: HttpRequest, username, pk):
+    """View for changing the logged-in user's password."""
+
+    # Only allow the user to change their own password
+    if request.user.username != username or request.user.id != pk:
+        return redirect(reverse('index'))
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Keep the user logged in after password change
+            update_session_auth_hash(request, user)
+            return redirect(reverse('user-update', kwargs={
+                'username': username, 'pk': pk
+            }))
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, 'rodatraden/user/change_password.html', {
+        'form': form
+    })
 
 
 @login_required
