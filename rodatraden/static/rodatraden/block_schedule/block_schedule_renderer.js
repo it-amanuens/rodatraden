@@ -392,7 +392,7 @@ export function updateCourseBlocks(courseContainer,
   courseTitle.select('a').remove();
   
   
-  courseTitle.append("a")
+  let courseInfoLinks = courseTitle.append("a")
     .text(course => {
       return course.title;
     })
@@ -414,13 +414,29 @@ export function updateCourseBlocks(courseContainer,
       return url;
     });
 
-  // Clicking the title opens a modal with info about the course occasion.
-  // Only non-private courses have a valid courseoccasion-info URL.
-  $(".courseoccasion-info").each(function () {
-    $(this).modalForm({
-      formURL: $(this).data('id')
+  // Clicking the title opens the native modal with info about the course
+  // occasion. Uses fetch + native <dialog> for consistency with the course
+  // list modal and to avoid the sync-XHR deprecation warning that BSModalForms
+  // triggers. Private courses are excluded since they have no info view.
+  const nativeModal = document.getElementById('native-modal');
+  courseInfoLinks
+    .filter(course => !course.isPrivate)
+    .on('click', function(course) {
+      d3.event.preventDefault();
+      const url = this.getAttribute('data-id');
+      if (!url) return;
+
+      fetch(url, { method: 'GET' })
+        .then(response => response.text())
+        .then(html => {
+          const modalContent = nativeModal.querySelector('.modal-content');
+          const parser = new DOMParser();
+          const modalDocument = parser.parseFromString(html, 'text/html');
+          modalContent.innerHTML = modalDocument.body.innerHTML;
+          nativeModal.showModal();
+        })
+        .catch(error => console.error(error));
     });
-  });
 
   // Set/update the style of the course blocks.
   // XXX: Many magic numbers are used to style the course blocks.
