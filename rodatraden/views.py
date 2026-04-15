@@ -269,10 +269,12 @@ def _generate_occasions_all_years(request):
         for ay in AcademicYear.objects.only('title', 'year')
     }
 
-    # Convert to list sorted by numeric year (unknown titles fall back to their
-    # string representation so they still appear rather than causing an error).
+    # Convert to list sorted by numeric year.  Titles not found in the lookup
+    # (e.g. manually entered with a non-standard format) are placed at the end
+    # using a sentinel so the sort key is always an integer.
     results = []
-    for yr in sorted(year_results.keys(), key=lambda t: title_to_year.get(t, t)):
+    for yr in sorted(year_results.keys(),
+                     key=lambda t: title_to_year.get(t, float('inf'))):
         data = year_results[yr]
         if data['created'] or data['skipped_exists'] or data['removed']:
             results.append({

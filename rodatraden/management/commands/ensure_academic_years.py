@@ -34,6 +34,11 @@ def _year_title(year: int) -> str:
     """Return the conventional title string for an academic year.
 
     Example: 2011 → "11/12", 2020 → "20/21".
+
+    Note: this format uses only the last two digits of each calendar year and
+    is only meaningful for years in the range 2000–2099.  The base year
+    (DEFAULT_BASE_YEAR = 2011) and the ten-year future buffer keep all
+    generated titles well within that range.
     """
     return f"{str(year)[2:]}/{str(year + 1)[2:]}"
 
