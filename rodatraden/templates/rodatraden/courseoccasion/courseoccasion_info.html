@@ -84,7 +84,7 @@
       <div class="card">
         <h5 class="card-header">Kurstillfälle</h5>
         <div class="card-body">
-          <p class="lead"><a target="_blank" href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}">
+          <p class="lead"><a target="_blank" href="{% url 'course-detail' course.slug %}">
             {{ course.title }}, {{courseoccasion.year }}
           </a></p>
 
