@@ -167,10 +167,11 @@ class UserUpdate(CorrectUserPermissionMixin, UpdateView):
 
 
 @login_required
-def user_change_password(request: HttpRequest, username, pk):
+def user_change_password(request: HttpRequest, username: str, pk: int):
     """View for changing the logged-in user's password."""
 
-    # Only allow the user to change their own password
+    # Only allow the user to change their own password.
+    # Note: pk is already an int from Django's <int:pk> URL converter.
     if request.user.username != username or request.user.id != pk:
         return redirect(reverse('index'))
 
