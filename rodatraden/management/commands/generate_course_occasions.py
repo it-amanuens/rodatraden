@@ -12,7 +12,7 @@ Usage:
 
 from django.core.management.base import BaseCommand
 
-from rodatraden.models import AcademicYear, Course, CourseOccasion
+from rodatraden.models import Course, CourseOccasion, academic_year_title
 
 
 class Command(BaseCommand):
@@ -47,14 +47,7 @@ class Command(BaseCommand):
                 'Use --apply to write.\n'
             ))
 
-        try:
-            academic_year = AcademicYear.objects.get(year=year)
-        except AcademicYear.DoesNotExist:
-            self.stdout.write(self.style.ERROR(
-                f'AcademicYear with year={year} does not exist. '
-                f'Create it first in the admin.'
-            ))
-            return
+        title = academic_year_title(year)
 
         courses = Course.objects.all().order_by('title')
         if course_id:
@@ -73,7 +66,7 @@ class Command(BaseCommand):
             for segment in segments:
                 exists = CourseOccasion.objects.filter(
                     course=course,
-                    academic_year=academic_year,
+                    year=year,
                     time_period=segment.time_period,
                 ).exists()
 
@@ -83,7 +76,7 @@ class Command(BaseCommand):
 
                 self.stdout.write(
                     f'  {"CREATE" if apply else "WOULD CREATE"}  '
-                    f'{course.title} — {academic_year.title} '
+                    f'{course.title} — {title} '
                     f'{segment.time_period.title} '
                     f'({segment.weeks} weeks)'
                 )
@@ -91,7 +84,7 @@ class Command(BaseCommand):
                 if apply:
                     CourseOccasion.objects.create(
                         course=course,
-                        academic_year=academic_year,
+                        year=year,
                         time_period=segment.time_period,
                         weeks=segment.weeks,
                         official=True,

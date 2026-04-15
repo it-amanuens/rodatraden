@@ -5,8 +5,8 @@ from django import forms
 from .models import (
     Course, Block, CourseOccasion, CourseScheduleSegment, Category,
     CategoryCourse, Prerequisite, Profile,
-    AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
-    PrivateCourseCategory, User
+    CategoryExam, Exam, Report, PrivateCourse,
+    PrivateCourseCategory, User, academic_year_title
 )
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, PrerequisiteFormMixin, SaveAndImportBlockMixin
@@ -14,6 +14,19 @@ from .rodatraden_modules.mixins import (
 from rodatraden.rodatraden_modules.forms import StartWeekField
 
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
+
+
+def _dynamic_year_choices(extra_years=10):
+    """Build (value, label) tuples for current year ± extra_years.
+
+    The range is wide enough to cover both historical and future course
+    occasions without needing pre-allocated database rows.
+    """
+    current = datetime.date.today().year
+    return [
+        (y, academic_year_title(y))
+        for y in range(current - extra_years, current + extra_years + 1)
+    ]
 
 
 class UpdateUserForm(forms.ModelForm):
@@ -111,8 +124,8 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         # Build the fields from these categories
         self._build_category_fields(categories)
 
-        # Get choices given from academic years
-        year_choices = [(x.year, x.title) for x in AcademicYear.objects.all().order_by('year')]
+        # Year choices computed dynamically — no database query needed.
+        year_choices = _dynamic_year_choices()
         self.fields['year'] = forms.ChoiceField(choices=year_choices,
                 initial=datetime.datetime.now().year)
         # Always save to current user
@@ -164,10 +177,10 @@ class CourseScheduleSegmentForm(BSModalModelForm):
         if 'course' in self.request.GET:
             self.initial['course'] = self.request.GET['course']
 
-        # Year choices from AcademicYear (str keys for ChoiceField compat)
+        # Year choices computed dynamically (str keys for ChoiceField compat).
         year_choices = [
-            (str(x.year), x.title)
-            for x in AcademicYear.objects.all().order_by('year')
+            (str(y), label)
+            for y, label in _dynamic_year_choices()
         ]
         self.fields['start_year'] = forms.ChoiceField(
             choices=year_choices,
@@ -217,15 +230,21 @@ class CourseOccasionForm(BSModalModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Keep academic year options in chronological order.
-        self.fields['academic_year'].queryset = AcademicYear.objects.all().order_by('year')
+        # Year is now a plain IntegerField — present as a dropdown with
+        # dynamically computed year choices (current year ± 10).
+        year_choices = _dynamic_year_choices()
+        self.fields['year'] = forms.ChoiceField(
+            choices=year_choices,
+            initial=datetime.datetime.now().year,
+            label='År',
+        )
 
         # If a courseoccasion is copied
         if 'courseocc' in self.request.GET:
             courseocc_cpy = CourseOccasion.objects.get(slug=self.request.GET['courseocc'])
             # This hard-coding might be avoidable. Not sure...
             self.fields['course'].initial = courseocc_cpy.course
-            self.fields['academic_year'].initial = courseocc_cpy.academic_year
+            self.fields['year'].initial = courseocc_cpy.year
             self.fields['time_period'].initial = courseocc_cpy.time_period
             self.fields['weeks'].initial = courseocc_cpy.weeks
             self.fields['note'].initial = courseocc_cpy.note
@@ -236,9 +255,13 @@ class CourseOccasionForm(BSModalModelForm):
         self.fields['course'].widget.attrs['class'] = \
             'course-list-filter-courseocc-create'
 
+    def clean_year(self):
+        """Coerce the ChoiceField string back to int for the IntegerField."""
+        return int(self.cleaned_data['year'])
+
     class Meta:
         model = CourseOccasion
-        fields = ['course', 'academic_year', 'time_period', 'weeks',
+        fields = ['course', 'year', 'time_period', 'weeks',
         'note', 'contact_name', 'contact_email', 'official']
 
 
@@ -257,9 +280,8 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Get choices given from academic years and sort
-        years = [(x.year, x.year) for x in AcademicYear.objects.all()]
-        years.sort()
+        # Year choices computed dynamically — no database query needed.
+        years = _dynamic_year_choices()
         
         # Use can import form all public blocks published in a track and all
         # their own blocks.

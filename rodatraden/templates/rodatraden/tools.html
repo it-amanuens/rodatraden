@@ -23,13 +23,13 @@ till ett annat. Denna funktion skriver inte över existerande kurstillfällen.</
     <span class='px-3'>Ta från år</span>
     <select name='from' id='from'>
       {% for acyear in acyears %}
-      <option value='{{ acyear.id }}'>{{ acyear.title }}</option>
+      <option value='{{ acyear.year }}'>{{ acyear.title }}</option>
       {% endfor %}
     </select>
     <span class='px-3'>till år</span>
     <select name='to' id='to'>
       {% for acyear in acyears %}
-      <option value='{{ acyear.id }}'>{{ acyear.title }}</option>
+      <option value='{{ acyear.year }}'>{{ acyear.title }}</option>
       {% endfor %}
     </select>
     <input class='mx-3' type='submit' value='Skicka' name='courseocc_copy'>

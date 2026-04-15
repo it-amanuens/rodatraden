@@ -10,7 +10,6 @@ myModels = [
     Department,
     Level,
     Track,
-    AcademicYear,
     TimePeriod,
     ISPTemplate,
     CourseScheduleSegment,
