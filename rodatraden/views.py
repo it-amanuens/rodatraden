@@ -45,6 +45,8 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Q, Manager
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.contrib.auth.models import Permission
 
 def get_public_elective_course_occasions(block: Block):
     """Get public elective courses, that is courses not in the base block.
@@ -199,6 +201,55 @@ class ReportCreate(BSModalCreateView):
         if self.request.user.is_authenticated:
             initial['from_email'] = self.request.user.email
         return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Send email notification to users who can view reports, but only on
+        # the actual form submission (not the AJAX validation request).
+        if not is_ajax(self.request):
+            self._send_report_notification(self.object)
+
+        return response
+
+    def _send_report_notification(self, report):
+        """Send an email notification about the new report to all users who
+        have the 'view_report' permission."""
+
+        try:
+            perm = Permission.objects.get(
+                codename='view_report',
+                content_type__app_label='rodatraden'
+            )
+        except Permission.DoesNotExist:
+            return
+
+        # Find all users with the view_report permission (directly, via groups,
+        # or superusers).
+        users_with_perm = User.objects.filter(
+            Q(user_permissions=perm) |
+            Q(groups__permissions=perm) |
+            Q(is_superuser=True)
+        ).distinct()
+
+        recipient_emails = [
+            user.email for user in users_with_perm if user.email
+        ]
+
+        if recipient_emails:
+            send_mail(
+                subject=f'Ny rapport: {report.subject}',
+                message=(
+                    f'En ny rapport har skapats på Röda Tråden.\n\n'
+                    f'Ämne: {report.subject}\n'
+                    f'Från: {report.from_email}\n\n'
+                    f'Meddelande:\n{report.message}\n\n'
+                    f'Logga in för att hantera rapporten.'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=recipient_emails,
+                fail_silently=True,
+            )
 
     def get_success_url(self):
         # Return to last page
