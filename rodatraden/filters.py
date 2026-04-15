@@ -38,7 +38,7 @@ class CourseFilter(django_filters.FilterSet):
         empty_label='Profil', field_name='tracks'
     )
     academic_year = django_filters.ModelChoiceFilter(
-        queryset=AcademicYear.objects.all().order_by('year'),
+        queryset=AcademicYear.objects.all().order_by('-year'),
         empty_label='Läsår', method='filter_by_academic_year'
     )
     time_period = django_filters.ModelChoiceFilter(
