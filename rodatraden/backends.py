@@ -27,9 +27,9 @@ class EmailOrUsernameBackend(ModelBackend):
             return None
 
         try:
-            # Try to find user by username or email (case-insensitive)
+            # Try to find user by exact username or case-insensitive email
             user = UserModel.objects.get(
-                Q(username__iexact=username) | Q(email__iexact=username)
+                Q(username=username) | Q(email__iexact=username)
             )
         except UserModel.DoesNotExist:
             # Run the default password hasher once to reduce the timing
@@ -40,7 +40,7 @@ class EmailOrUsernameBackend(ModelBackend):
             # If multiple users match (e.g. during migration), try exact
             # username first, then fall back to the first email match.
             try:
-                user = UserModel.objects.get(username__iexact=username)
+                user = UserModel.objects.get(username=username)
             except UserModel.DoesNotExist:
                 user = UserModel.objects.filter(
                     email__iexact=username

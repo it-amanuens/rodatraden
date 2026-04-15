@@ -29,6 +29,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.text import slugify
 
+import smtplib
+
 User = get_user_model()
 
 
@@ -361,7 +363,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(
                     f'  Email sent to {email}'
                 ))
-            except Exception as e:
+            except (smtplib.SMTPException, ConnectionError, OSError) as e:
                 failed += 1
                 self.stdout.write(self.style.ERROR(
                     f'  Failed to send email to {email}: {e}'
