@@ -242,22 +242,23 @@ class ReportCreate(BSModalCreateView):
 
     def _send_report_notification(self, report):
         """Send an email notification about the new report to all users who
-        have the 'view_report' permission."""
+        have the 'receive_report_email' permission (directly or via a group).
+        Superusers are NOT automatically included; assign the permission
+        explicitly to each user or group that should receive the emails."""
 
         try:
             perm = Permission.objects.get(
-                codename='view_report',
+                codename='receive_report_email',
                 content_type__app_label='rodatraden'
             )
         except Permission.DoesNotExist:
             return
 
-        # Find all users with the view_report permission (directly, via groups,
-        # or superusers).
+        # Find all active users with the permission directly or via a group.
         users_with_perm = User.objects.filter(
             Q(user_permissions=perm) |
-            Q(groups__permissions=perm) |
-            Q(is_superuser=True)
+            Q(groups__permissions=perm),
+            is_active=True,
         ).distinct()
 
         recipient_emails = [

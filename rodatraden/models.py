@@ -97,6 +97,12 @@ class Report(models.Model):
 
     __original_subject = None
 
+    class Meta:
+        permissions = [
+            ('receive_report_email',
+             'Får e-postnotifiering när en ny rapport skapas'),
+        ]
+
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""
 
