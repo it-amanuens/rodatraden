@@ -260,9 +260,19 @@ def _generate_occasions_all_years(request):
         if not dry_run:
             co.delete()
 
-    # Convert to list sorted by year title
+    # Build a lookup so results are ordered by the numeric year, not the title
+    # string.  This is important because title strings like "11/12" sort
+    # correctly for 2000-2099, but the mapping makes it robust to any title
+    # format that was manually entered in the database.
+    title_to_year = {
+        ay.title: ay.year
+        for ay in AcademicYear.objects.only('title', 'year')
+    }
+
+    # Convert to list sorted by numeric year (unknown titles fall back to their
+    # string representation so they still appear rather than causing an error).
     results = []
-    for yr in sorted(year_results.keys()):
+    for yr in sorted(year_results.keys(), key=lambda t: title_to_year.get(t, t)):
         data = year_results[yr]
         if data['created'] or data['skipped_exists'] or data['removed']:
             results.append({
