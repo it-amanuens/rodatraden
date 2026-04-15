@@ -117,7 +117,28 @@ Kontrollera att segmenten matchar befintliga kurstillfällen:
 python manage.py validate_course_schedule_parity
 ```
 
-### 11. Starta om servern
+### 11. Säkerställ akademiska år
+
+Kör kommandot som automatiskt skapar `AcademicYear`-poster för alla år från
+startåret (standard 2011) till och med innevarande år + 10.  Kommandot är
+idempotent och kan köras hur många gånger som helst utan att befintliga poster
+påverkas.
+
+```bash
+# Förhandsvisning (ingen data ändras)
+python manage.py ensure_academic_years
+
+# Skapa saknade poster
+python manage.py ensure_academic_years --apply
+
+# Justera antalet framtida år (standard: 10)
+python manage.py ensure_academic_years --apply --future-years 5
+```
+
+Lägg med fördel in kommandot i ett återkommande jobb (t.ex. cron eller ett
+driftsättningsskript) så att nya år läggs till automatiskt varje år.
+
+### 12. Starta om servern
 
 Starta om webbservern (t.ex. IIS, gunicorn, eller liknande).
 
