@@ -9,13 +9,6 @@
 {% endblock %}
 
 {% block menu %}
-{% if user.is_staff %}
-<a class="btn btn-gone add-item"
-  data-id="{% url 'courseoccasion-create' %}"
-  data-toggle="tooltip" title="Skapa nytt">
-  <span class="fa fa-plus"></span>
-</a> 
-{% endif %}
 {% endblock %}
 
 {% block page_title %}Kurstillfällen{% endblock %}

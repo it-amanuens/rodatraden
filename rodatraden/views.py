@@ -637,6 +637,14 @@ class CourseDetail(DetailView):
 
         context['courses_requiring_this_course'] = courses_requiring_this_course
 
+        course_occasions = (
+            self.object.courseoccasion_set
+            .filter(official=True)
+            .select_related('academic_year', 'time_period')
+            .order_by('-academic_year__year', 'time_period__week')
+        )
+        context['course_occasions'] = course_occasions
+
         return context
 
 
