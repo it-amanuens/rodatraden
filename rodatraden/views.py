@@ -1,5 +1,4 @@
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, SingleTableView
+from django_tables2.views import SingleTableView
 from bootstrap_modal_forms.generic import (
     BSModalDeleteView, BSModalCreateView, BSModalUpdateView
 )
@@ -25,9 +24,9 @@ from .models import (
     PrivateCourse, ISPTemplate
 )
 from .tables import (
-    CourseOccasionTable, ExamTable, ReportTable
+    ExamTable, ReportTable
 )
-from .filters import CourseFilter, CourseOccasionFilter
+from .filters import CourseFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm,
         CourseScheduleSegmentForm, ExamForm,
@@ -773,15 +772,6 @@ def segment_execute(request, pk):
 ###################
 # COURSEOCCASIONS #
 ###################
-
-class CourseOccasionList(SingleTableMixin, FilterView):
-    """List view for courseoccasions."""
-
-    model = CourseOccasion
-    table_class = CourseOccasionTable
-    filterset_class = CourseOccasionFilter
-    paginate_by = 15
-    template_name = 'rodatraden/courseoccasion/courseoccasion_list.html'
 
 
 class CourseOccasionDetail(DetailView):
