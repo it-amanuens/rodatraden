@@ -558,7 +558,7 @@ class CourseScheduleSegment(models.Model):
     class Meta:
         verbose_name = 'Schemaläggningssegment'
         verbose_name_plural = 'Schemaläggningssegment'
-        ordering = ['start_year', 'time_period__week']
+        ordering = ['time_period__week', 'start_year']
         permissions = [
             ('can_manage_scheduling', 'Kan hantera schemaläggning'),
         ]
