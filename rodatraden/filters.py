@@ -2,7 +2,7 @@ import datetime
 import django_filters
 from .models import (
     Course, Category, Level, Department, Profile, Track,
-    CourseOccasion, TimePeriod, academic_year_title
+    CourseOccasion, TimePeriod, academic_year_title, YEAR_RANGE_OFFSET
 )
 
 class CourseFilter(django_filters.FilterSet):
@@ -66,8 +66,8 @@ class CourseOccasionFilter(django_filters.FilterSet):
             choices=lambda: [('', 'Läsår')] + [
                 (y, academic_year_title(y))
                 for y in range(
-                    datetime.date.today().year - 10,
-                    datetime.date.today().year + 11,
+                    datetime.date.today().year - YEAR_RANGE_OFFSET,
+                    datetime.date.today().year + YEAR_RANGE_OFFSET + 1,
                 )
             ],
             empty_label=None,  # we include the empty option in choices above

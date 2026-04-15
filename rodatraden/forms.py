@@ -6,7 +6,7 @@ from .models import (
     Course, Block, CourseOccasion, CourseScheduleSegment, Category,
     CategoryCourse, Prerequisite, Profile,
     CategoryExam, Exam, Report, PrivateCourse,
-    PrivateCourseCategory, User, academic_year_title
+    PrivateCourseCategory, User, academic_year_title, YEAR_RANGE_OFFSET
 )
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, PrerequisiteFormMixin, SaveAndImportBlockMixin
@@ -16,7 +16,7 @@ from rodatraden.rodatraden_modules.forms import StartWeekField
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
 
 
-def _dynamic_year_choices(extra_years=10):
+def _dynamic_year_choices(extra_years=YEAR_RANGE_OFFSET):
     """Build (value, label) tuples for current year ± extra_years.
 
     The range is wide enough to cover both historical and future course
@@ -257,7 +257,10 @@ class CourseOccasionForm(BSModalModelForm):
 
     def clean_year(self):
         """Coerce the ChoiceField string back to int for the IntegerField."""
-        return int(self.cleaned_data['year'])
+        try:
+            return int(self.cleaned_data['year'])
+        except (ValueError, TypeError):
+            raise forms.ValidationError('Ogiltigt år.')
 
     class Meta:
         model = CourseOccasion
