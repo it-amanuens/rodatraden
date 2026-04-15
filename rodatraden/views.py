@@ -1168,6 +1168,17 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         block.courseoccasions.values_list('course__id', flat=True)
     )
 
+    # Get IDs of specific course occasions already in this block. Used to mark
+    # them as "already added" so the user sees all options but knows which are
+    # already in their schedule. This removes the previous restriction that
+    # limited retakes by hiding already-added occasions.
+    in_block_occasion_ids = set(
+        block.courseoccasions.values_list('id', flat=True)
+    )
+    in_block_private_ids = set(
+        block.privatecourses.values_list('id', flat=True)
+    )
+
     # Get course IDs that START BEFORE this period (for prerequisite checking).
     # A course meets a prerequisite if it has started before the new course.
     courses_started_before = set()
@@ -1178,22 +1189,21 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         elif co.academic_year.year == year and co.time_period.week < start:
             courses_started_before.add(co.course.id)
 
-    # Get course-occasions starting in the given period and not already in the
-    # block, ordered by title.
+    # Get ALL course occasions starting in the given period, including those
+    # already in the block. Previously, already-in-block occasions were excluded
+    # which effectively limited retakes. Now they are shown but marked as
+    # "in_block" so the user can see all available options.
     courseoccasions = CourseOccasion.objects.filter(
         academic_year__year=year,
         time_period__week__gte=start,
         time_period__week__lt=start+10
-    ).exclude(
-        # Exclude course occasions already in THIS slot
-        block__id=block.id
     ).order_by('course__title')
 
-    # Annotate each course occasion with whether the user is already taking
-    # this course (in another slot) - potential retake
+    # Annotate each course occasion with retake and in-block status
     courseoccasions = list(courseoccasions)
     for co in courseoccasions:
         co.already_taking = co.course.id in already_taking_course_ids
+        co.in_block = co.id in in_block_occasion_ids
         
         # Check if prerequisites are met
         co.has_unmet_prerequisites = False
@@ -1204,18 +1214,16 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
                 co.has_unmet_prerequisites = True
                 break
 
-    # Sort so courses not already being taken come first
-    courseoccasions.sort(key=lambda co: (co.already_taking, co.course.title))
+    # Sort: in-block last, then not-already-taking first, then by title
+    courseoccasions.sort(key=lambda co: (co.in_block, co.already_taking, co.course.title))
 
-    # Get private course-occasions starting in the given period and not already
-    # in the block, ordered by title.
+    # Get ALL private courses starting in the given period, including those
+    # already in the block.
     privatecourses = PrivateCourse.objects.filter(
         user=request.user,
         year=year,
         start__gte=start,
         start__lt=start+10
-    ).exclude(
-        block__id=block.id
     ).order_by('title')
 
     # Private courses don't have a shared course ID, so they can't be "retakes"
@@ -1224,6 +1232,7 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     for pc in privatecourses:
         pc.already_taking = False
         pc.has_unmet_prerequisites = False
+        pc.in_block = pc.id in in_block_private_ids
 
     context = {
         'b_slug': slug,
