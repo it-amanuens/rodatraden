@@ -396,8 +396,14 @@ export function updateCourseBlocks(courseContainer,
     .text(course => {
       return course.title;
     })
-    .attr('class', 'courseoccasion-info')
+    // Private courses don't have a courseoccasion-info view, so we don't
+    // set up the modal for them. This prevents showing stale/broken modal
+    // content when clicking on a private course in the block schedule.
+    .attr('class', course => course.isPrivate ? 'privatecourse-title' : 'courseoccasion-info')
     .attr('data-id', course => {
+      if (course.isPrivate) {
+        return null;
+      }
       // Arrays are send by repeating the parameter name in the URL.
       const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
       
@@ -409,6 +415,7 @@ export function updateCourseBlocks(courseContainer,
     });
 
   // Clicking the title opens a modal with info about the course occasion.
+  // Only non-private courses have a valid courseoccasion-info URL.
   $(".courseoccasion-info").each(function () {
     $(this).modalForm({
       formURL: $(this).data('id')
