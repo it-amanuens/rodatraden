@@ -18,6 +18,10 @@ def academic_year_title(year: int) -> str:
     return f"{str(year)[2:]}/{str(year + 1)[2:]}"
 
 
+# How many years before/after today to show in dropdowns.
+YEAR_RANGE_OFFSET = 10
+
+
 def get_unique_slug(to_slug, model):
     """Generate unique slug for insert in model.
 

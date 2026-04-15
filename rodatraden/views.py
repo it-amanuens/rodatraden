@@ -22,7 +22,7 @@ from .models import (
     Category, Course, CourseOccasion, CourseScheduleSegment, Block,
     Prerequisite, User, Profile,
     CategoryExam, CategoryCourse, Exam, Report,
-    PrivateCourse, ISPTemplate, academic_year_title
+    PrivateCourse, ISPTemplate, academic_year_title, YEAR_RANGE_OFFSET
 )
 from .tables import (
     CourseOccasionTable, ExamTable, ReportTable
@@ -131,7 +131,7 @@ def tools(request: HttpRequest):
     current = datetime.date.today().year
     acyears = [
         {'year': y, 'title': academic_year_title(y)}
-        for y in range(current - 10, current + 11)
+        for y in range(current - YEAR_RANGE_OFFSET, current + YEAR_RANGE_OFFSET + 1)
     ]
 
     context = {
@@ -278,8 +278,9 @@ def _generate_occasions_all_years(request):
             co.delete()
 
     # Sort by the numeric year embedded in the title string.
-    # academic_year_title() produces "XX/YY", so we can parse the first two
-    # digits and add 2000 to get the year for a robust sort.
+    # academic_year_title() produces "XX/YY" for years 2000-2099.  Parse the
+    # first two digits and add 2000 to recover the full year for sorting.
+    # This assumption is valid for all data in this system (earliest year: 2011).
     def _title_sort_key(t):
         try:
             return 2000 + int(t.split('/')[0])
