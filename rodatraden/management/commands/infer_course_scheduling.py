@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
             occasions = CourseOccasion.objects.filter(
                 course=course
-            ).select_related('academic_year', 'time_period')
+            ).select_related('time_period')
 
             if not occasions.exists():
                 stats['skipped_no_occasions'] += 1
@@ -120,7 +120,7 @@ class Command(BaseCommand):
                     'years': [],
                     'weeks': [],
                 }
-            by_period[pid]['years'].append(occ.academic_year.year)
+            by_period[pid]['years'].append(occ.year)
             by_period[pid]['weeks'].append(occ.weeks)
 
         segments = []

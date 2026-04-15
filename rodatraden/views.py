@@ -21,8 +21,8 @@ from django.views.generic.edit import UpdateView
 from .models import (
     Category, Course, CourseOccasion, CourseScheduleSegment, Block,
     Prerequisite, User, Profile,
-    CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
-    PrivateCourse, ISPTemplate
+    CategoryExam, CategoryCourse, Exam, Report,
+    PrivateCourse, ISPTemplate, academic_year_title
 )
 from .tables import (
     CourseOccasionTable, ExamTable, ReportTable
@@ -37,6 +37,7 @@ from .forms import (
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 from .rodatraden_modules.functions import import_course_occasions, is_ajax
 
+import datetime
 import openpyxl
 import os
 import math
@@ -62,12 +63,12 @@ def get_public_elective_course_occasions(block: Block):
     fourth_period_start_week = 30
 
     third_year_elective_course_occasions = block.courseoccasions.filter(
-        academic_year__year=third_year,
+        year=third_year,
         time_period__week__gte=fourth_period_start_week
     )
 
     course_occasions_last_two_years = block.courseoccasions.filter(
-        academic_year__year__gt=third_year
+        year__gt=third_year
     )
 
     elective_course_occasions = (third_year_elective_course_occasions
@@ -108,30 +109,30 @@ def tools(request: HttpRequest):
     if request.method == 'POST':
         # Copying courseoccasions tool (legacy)
         if 'courseocc_copy' in request.POST:
-            from_acyear = AcademicYear.objects.get(id=request.POST['from'])
-            to_acyear = AcademicYear.objects.get(id=request.POST['to'])
-            # Make sure that the years exist
-            if from_acyear and to_acyear:
-                # From all the current courseoccasions
-                for courseocc in CourseOccasion.objects.filter(
-                        academic_year=from_acyear
-                        ):
-                    # Only create a new for the new year if it does not already
-                    # exist
-                    if not CourseOccasion.objects.filter(
-                            academic_year=to_acyear,
-                            course=courseocc.course):
-                        courseocc.pk = None
-                        courseocc.academic_year = to_acyear
-                        courseocc.slug = ''
-                        courseocc.save()
+            from_year = int(request.POST['from'])
+            to_year = int(request.POST['to'])
+            # From all the current courseoccasions
+            for courseocc in CourseOccasion.objects.filter(year=from_year):
+                # Only create a new for the new year if it does not already
+                # exist
+                if not CourseOccasion.objects.filter(
+                        year=to_year,
+                        course=courseocc.course):
+                    courseocc.pk = None
+                    courseocc.year = to_year
+                    courseocc.slug = ''
+                    courseocc.save()
 
         # Generate course occasions from scheduling rules
         if 'generate_occasions' in request.POST:
             generate_results = _generate_occasions_all_years(request)
 
-    # Get all academic years
-    acyears = AcademicYear.objects.all().order_by('year')
+    # Build year choices dynamically for the copy tool dropdown.
+    current = datetime.date.today().year
+    acyears = [
+        {'year': y, 'title': academic_year_title(y)}
+        for y in range(current - 10, current + 11)
+    ]
 
     context = {
             'acyears': acyears,
@@ -152,25 +153,41 @@ def sync_course_occasions(course, dry_run=True):
         - skipped_exists: list of dicts {year_title, period_title}
         - removed: list of dicts {year_title, period_title}
     """
-    academic_years = AcademicYear.objects.all().order_by('year')
+    # Determine the year range to check: cover all segment ranges plus any
+    # existing occasions, and extend up to current year + 10 for future gen.
+    segments_all = course.schedule_segments.all()
+    segment_years = set()
+    for seg in segments_all:
+        end = seg.end_year or seg.start_year
+        segment_years.update(range(seg.start_year, end + 1))
+
+    existing_years = set(
+        CourseOccasion.objects.filter(course=course)
+        .values_list('year', flat=True)
+    )
+    current = datetime.date.today().year
+    all_years = segment_years | existing_years | set(range(current, current + 11))
+    # Fall back gracefully if no years found at all.
+    if not all_years:
+        return {'created': [], 'skipped_exists': [], 'removed': []}
+
     created = []
     skipped_exists = []
     removed = []
 
-    for academic_year in academic_years:
-        year = academic_year.year
+    for year in sorted(all_years):
         segments = course.get_segments_for_year(year)
 
         # --- Create missing CourseOccasions ---
         for segment in segments:
             exists = CourseOccasion.objects.filter(
                 course=course,
-                academic_year=academic_year,
+                year=year,
                 time_period=segment.time_period,
             ).exists()
 
             entry = {
-                'year_title': academic_year.title,
+                'year_title': academic_year_title(year),
                 'period_title': segment.time_period.title,
             }
 
@@ -181,7 +198,7 @@ def sync_course_occasions(course, dry_run=True):
             if not dry_run:
                 CourseOccasion.objects.create(
                     course=course,
-                    academic_year=academic_year,
+                    year=year,
                     time_period=segment.time_period,
                     weeks=segment.weeks,
                     official=True,
@@ -192,7 +209,7 @@ def sync_course_occasions(course, dry_run=True):
         # --- Remove orphaned auto-generated CourseOccasions ---
         for co in CourseOccasion.objects.filter(
             course=course,
-            academic_year=academic_year,
+            year=year,
             auto_generated=True,
         ).select_related('time_period'):
             covered = any(
@@ -201,7 +218,7 @@ def sync_course_occasions(course, dry_run=True):
             )
             if not covered:
                 removed.append({
-                    'year_title': academic_year.title,
+                    'year_title': academic_year_title(year),
                     'period_title': co.time_period.title,
                 })
                 if not dry_run:
@@ -252,26 +269,22 @@ def _generate_occasions_all_years(request):
         auto_generated=True,
     ).exclude(
         course__schedule_segments__isnull=False,
-    ).select_related('course', 'time_period', 'academic_year'):
-        yr = co.academic_year.title
+    ).select_related('course', 'time_period'):
+        yr = academic_year_title(co.year)
         year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
         year_results[yr]['removed'].append(
             f'{co.course.title} — {co.time_period.title}')
         if not dry_run:
             co.delete()
 
-    # Build a lookup so results are ordered by the numeric year, not the title
-    # string.  This is important because title strings like "11/12" sort
-    # correctly for 2000-2099, but the mapping makes it robust to any title
-    # format that was manually entered in the database.
-    title_to_year = {
-        ay.title: ay.year
-        for ay in AcademicYear.objects.only('title', 'year')
-    }
+    # Sort by the numeric year embedded in the title string.
+    # academic_year_title() always produces "XX/YY", so we can reverse-map
+    # back to the integer for a robust sort.
+    title_to_year = {}
+    for y in range(1900, 2200):
+        title_to_year[academic_year_title(y)] = y
 
-    # Convert to list sorted by numeric year.  Titles not found in the lookup
-    # (e.g. manually entered with a non-standard format) are placed at the end
-    # using a sentinel so the sort key is always an integer.
+    # Convert to list sorted by numeric year.
     results = []
     for yr in sorted(year_results.keys(),
                      key=lambda t: title_to_year.get(t, float('inf'))):
@@ -799,8 +812,7 @@ class CourseOccasionDetail(DetailView):
 
         self.qs = super().get_queryset()
 
-        return self.qs.filter(
-                academic_year__year=self.kwargs['year'])
+        return self.qs.filter(year=self.kwargs['year'])
 
     def get_context_data(self, **kwargs):
         """Extend get_context_data to return courses that is required for the
@@ -836,7 +848,7 @@ def courseoccasion_info(request: HttpRequest):
 
     unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
 
-    courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
+    courseoccasion = get_object_or_404(CourseOccasion, year=year,
         slug=slug)
 
     context = {

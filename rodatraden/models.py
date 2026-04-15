@@ -10,6 +10,14 @@ import os
 User = get_user_model()
 
 
+def academic_year_title(year: int) -> str:
+    """Return the conventional title string for an academic year.
+
+    Example: 2011 → "11/12", 2020 → "20/21".
+    """
+    return f"{str(year)[2:]}/{str(year + 1)[2:]}"
+
+
 def get_unique_slug(to_slug, model):
     """Generate unique slug for insert in model.
 
@@ -172,26 +180,8 @@ class Level(models.Model):
         verbose_name_plural = 'Nivåer'
 
 
-class AcademicYear(models.Model):
-    """'Akademiska perioder' to which all courses is associated with. 
-
-    For example, year 2018 is associated to period 18/19.
-    """
-
-    title = models.CharField(max_length=250)
-    year = models.IntegerField()
-
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = 'Akademiskt år'
-        verbose_name_plural = 'Akademiska år'
+# AcademicYear model removed — CourseOccasion.year is now a plain IntegerField
+# and the display title (e.g. "20/21") is computed by academic_year_title().
 
 
 class TimePeriod(models.Model):
@@ -654,8 +644,8 @@ class CourseOccasion(models.Model):
             verbose_name='Kontaktadress')
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
             verbose_name='Kurs')
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
-            verbose_name='År')
+    # Plain integer — no FK lookup needed. Title derived via academic_year_title().
+    year = models.IntegerField(verbose_name='År')
     time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
             verbose_name='Läsperiod')
     slug = models.SlugField(max_length=100, unique=True, editable=False)
@@ -672,7 +662,7 @@ class CourseOccasion(models.Model):
 
 
     def __str__(self):
-        return self.course.title + ' - ' + str(self.academic_year.year)
+        return self.course.title + ' - ' + str(self.year)
 
 
     def save(self, *args, **kwargs):
@@ -699,7 +689,7 @@ class CourseOccasion(models.Model):
 
     def get_absolute_url(self):
         return reverse('courseoccasion-detail', kwargs={'year':
-            self.academic_year.year, 'slug': self.slug})
+            self.year, 'slug': self.slug})
 
 
     def as_json(self):
@@ -710,7 +700,7 @@ class CourseOccasion(models.Model):
         prerequisites_json = [prerequisite.as_json() for prerequisite in prerequisites]
 
         return dict(
-            year=self.academic_year.year,
+            year=self.year,
             start=self.time_period.week,
             title=self.course.title,
             ects=self.course.ects,
@@ -738,6 +728,11 @@ class CourseOccasion(models.Model):
         starts."""
         
         return get_start_weeks_into_period(self.time_period.week)
+
+    @property
+    def year_title(self):
+        """Computed display title, e.g. 2020 → '20/21'."""
+        return academic_year_title(self.year)
 
 
     def category_ects(self, category_sum):

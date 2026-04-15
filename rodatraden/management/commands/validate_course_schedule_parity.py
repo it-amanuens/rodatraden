@@ -103,9 +103,9 @@ class Command(BaseCommand):
         """Return set of (year, period_title) from actual CourseOccasion rows."""
         occasions = CourseOccasion.objects.filter(
             course=course
-        ).select_related('academic_year', 'time_period')
+        ).select_related('time_period')
         return {
-            (occ.academic_year.year, occ.time_period.title)
+            (occ.year, occ.time_period.title)
             for occ in occasions
         }
 

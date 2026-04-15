@@ -41,8 +41,8 @@ class CourseOccasionTable(tables.Table):
 
     # Need to fetch url from courseoccasion model
     course = tables.Column(linkify=lambda record: record.get_absolute_url())
-    academic_year = tables.Column(accessor="academic_year__year",
-            verbose_name="År")
+    # Year is now a direct IntegerField on CourseOccasion.
+    year = tables.Column(accessor="year", verbose_name="År")
     time_period = tables.Column(accessor="time_period__title",
             verbose_name="Läsperiod")
 
@@ -72,9 +72,9 @@ class CourseOccasionTable(tables.Table):
         model = CourseOccasion
         # Style template
         template_name = 'django_tables2/bootstrap4.html'
-        fields = ('official', 'course', 'academic_year', 'time_period', 'weeks',
+        fields = ('official', 'course', 'year', 'time_period', 'weeks',
                 'course__ects', 'categories')
-        order_by = ('course', '-academic_year', )
+        order_by = ('course', '-year', )
 
 
 class ExamTable(tables.Table):
