@@ -33,7 +33,7 @@
       {% if category.image %}
          src="{{ category.image.url }}" 
       {% else %} 
-         src="https://via.placeholder.com/150.png/D6001E/FFFFFF/?text={{ category.abbreviation }}" 
+         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Crect width='150' height='150' fill='%23D6001E'/%3E%3Ctext x='75' y='75' font-family='sans-serif' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'%3E{{ category.abbreviation }}%3C/text%3E%3C/svg%3E" 
       {% endif %}
          alt="{{ category.title }}" class="rounded mx-auto d-block img-fluid">
       </img>

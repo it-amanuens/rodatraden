@@ -392,12 +392,18 @@ export function updateCourseBlocks(courseContainer,
   courseTitle.select('a').remove();
   
   
-  courseTitle.append("a")
+  let courseInfoLinks = courseTitle.append("a")
     .text(course => {
       return course.title;
     })
-    .attr('class', 'courseoccasion-info')
+    // Private courses don't have a courseoccasion-info view, so we don't
+    // set up the modal for them. This prevents showing stale/broken modal
+    // content when clicking on a private course in the block schedule.
+    .attr('class', course => course.isPrivate ? 'privatecourse-title' : 'courseoccasion-info')
     .attr('data-id', course => {
+      if (course.isPrivate) {
+        return null;
+      }
       // Arrays are send by repeating the parameter name in the URL.
       const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
       
@@ -408,12 +414,29 @@ export function updateCourseBlocks(courseContainer,
       return url;
     });
 
-  // Clicking the title opens a modal with info about the course occasion.
-  $(".courseoccasion-info").each(function () {
-    $(this).modalForm({
-      formURL: $(this).data('id')
+  // Clicking the title opens the native modal with info about the course
+  // occasion. Uses fetch + native <dialog> for consistency with the course
+  // list modal and to avoid the sync-XHR deprecation warning that BSModalForms
+  // triggers. Private courses are excluded since they have no info view.
+  const nativeModal = document.getElementById('native-modal');
+  courseInfoLinks
+    .filter(course => !course.isPrivate)
+    .on('click', function(course) {
+      d3.event.preventDefault();
+      const url = this.getAttribute('data-id');
+      if (!url) return;
+
+      fetch(url, { method: 'GET' })
+        .then(response => response.text())
+        .then(html => {
+          const modalContent = nativeModal.querySelector('.modal-content');
+          const parser = new DOMParser();
+          const modalDocument = parser.parseFromString(html, 'text/html');
+          modalContent.innerHTML = modalDocument.body.innerHTML;
+          nativeModal.showModal();
+        })
+        .catch(error => console.error(error));
     });
-  });
 
   // Set/update the style of the course blocks.
   // XXX: Many magic numbers are used to style the course blocks.

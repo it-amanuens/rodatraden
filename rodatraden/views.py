@@ -9,6 +9,8 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin, PermissionRequiredMixin
 )
 from django.contrib.auth import logout
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.views.generic import DetailView, ListView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -45,6 +47,8 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Q, Manager
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.contrib.auth.models import Permission
 
 def get_public_elective_course_occasions(block: Block):
     """Get public elective courses, that is courses not in the base block.
@@ -153,13 +157,39 @@ def rt500(request: HttpRequest, exception=None):
 #########
 
 class UserUpdate(CorrectUserPermissionMixin, UpdateView):
-    """Creation view for reports."""
+    """Update view for user profile information."""
 
     model = User
     form_class = UpdateUserForm
     # Check against username since users don't have slugs
     template_name = 'rodatraden/user/update_user_form.html'
     success_url = reverse_lazy('index')
+
+
+@login_required
+def user_change_password(request: HttpRequest, username: str, pk: int):
+    """View for changing the logged-in user's password."""
+
+    # Only allow the user to change their own password.
+    # Note: pk is already an int from Django's <int:pk> URL converter.
+    if request.user.username != username or request.user.id != pk:
+        return redirect(reverse('index'))
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Keep the user logged in after password change
+            update_session_auth_hash(request, user)
+            return redirect(reverse('user-update', kwargs={
+                'username': username, 'pk': pk
+            }))
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, 'rodatraden/user/change_password.html', {
+        'form': form
+    })
 
 
 @login_required
@@ -199,6 +229,56 @@ class ReportCreate(BSModalCreateView):
         if self.request.user.is_authenticated:
             initial['from_email'] = self.request.user.email
         return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Send email notification to users who can view reports, but only on
+        # the actual form submission (not the AJAX validation request).
+        if not is_ajax(self.request):
+            self._send_report_notification(self.object)
+
+        return response
+
+    def _send_report_notification(self, report):
+        """Send an email notification about the new report to all users who
+        have the 'receive_report_email' permission (directly or via a group).
+        Superusers are NOT automatically included; assign the permission
+        explicitly to each user or group that should receive the emails."""
+
+        try:
+            perm = Permission.objects.get(
+                codename='receive_report_email',
+                content_type__app_label='rodatraden'
+            )
+        except Permission.DoesNotExist:
+            return
+
+        # Find all active users with the permission directly or via a group.
+        users_with_perm = User.objects.filter(
+            Q(user_permissions=perm) |
+            Q(groups__permissions=perm),
+            is_active=True,
+        ).distinct()
+
+        recipient_emails = [
+            user.email for user in users_with_perm if user.email
+        ]
+
+        if recipient_emails:
+            send_mail(
+                subject=f'Ny rapport: {report.subject}',
+                message=(
+                    f'En ny rapport har skapats på Röda Tråden.\n\n'
+                    f'Ämne: {report.subject}\n'
+                    f'Från: {report.from_email}\n\n'
+                    f'Meddelande:\n{report.message}\n\n'
+                    f'Logga in för att hantera rapporten.'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=recipient_emails,
+                fail_silently=True,
+            )
 
     def get_success_url(self):
         # Return to last page
@@ -1168,6 +1248,17 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         block.courseoccasions.values_list('course__id', flat=True)
     )
 
+    # Get IDs of specific course occasions already in this block. Used to mark
+    # them as "already added" so the user sees all options but knows which are
+    # already in their schedule. This removes the previous restriction that
+    # limited retakes by hiding already-added occasions.
+    in_block_occasion_ids = set(
+        block.courseoccasions.values_list('id', flat=True)
+    )
+    in_block_private_ids = set(
+        block.privatecourses.values_list('id', flat=True)
+    )
+
     # Get course IDs that START BEFORE this period (for prerequisite checking).
     # A course meets a prerequisite if it has started before the new course.
     courses_started_before = set()
@@ -1178,22 +1269,21 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         elif co.academic_year.year == year and co.time_period.week < start:
             courses_started_before.add(co.course.id)
 
-    # Get course-occasions starting in the given period and not already in the
-    # block, ordered by title.
+    # Get ALL course occasions starting in the given period, including those
+    # already in the block. Previously, already-in-block occasions were excluded
+    # which effectively limited retakes. Now they are shown but marked as
+    # "in_block" so the user can see all available options.
     courseoccasions = CourseOccasion.objects.filter(
         academic_year__year=year,
         time_period__week__gte=start,
         time_period__week__lt=start+10
-    ).exclude(
-        # Exclude course occasions already in THIS slot
-        block__id=block.id
     ).order_by('course__title')
 
-    # Annotate each course occasion with whether the user is already taking
-    # this course (in another slot) - potential retake
+    # Annotate each course occasion with retake and in-block status
     courseoccasions = list(courseoccasions)
     for co in courseoccasions:
         co.already_taking = co.course.id in already_taking_course_ids
+        co.in_block = co.id in in_block_occasion_ids
         
         # Check if prerequisites are met
         co.has_unmet_prerequisites = False
@@ -1204,18 +1294,16 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
                 co.has_unmet_prerequisites = True
                 break
 
-    # Sort so courses not already being taken come first
-    courseoccasions.sort(key=lambda co: (co.already_taking, co.course.title))
+    # Sort: in-block last, then not-already-taking first, then by title
+    courseoccasions.sort(key=lambda co: (co.in_block, co.already_taking, co.course.title))
 
-    # Get private course-occasions starting in the given period and not already
-    # in the block, ordered by title.
+    # Get ALL private courses starting in the given period, including those
+    # already in the block.
     privatecourses = PrivateCourse.objects.filter(
         user=request.user,
         year=year,
         start__gte=start,
         start__lt=start+10
-    ).exclude(
-        block__id=block.id
     ).order_by('title')
 
     # Private courses don't have a shared course ID, so they can't be "retakes"
@@ -1224,6 +1312,7 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     for pc in privatecourses:
         pc.already_taking = False
         pc.has_unmet_prerequisites = False
+        pc.in_block = pc.id in in_block_private_ids
 
     context = {
         'b_slug': slug,

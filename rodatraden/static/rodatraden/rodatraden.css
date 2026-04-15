@@ -317,6 +317,12 @@ body:has(dialog[open]) {
   background-color: var(--gray-lighter);
 }
 
+/* Styling for courses already added to the block (shown but not clickable) */
+.rt-modal-table__row--in-block {
+  opacity: 0.45;
+  background-color: var(--gray-lighter);
+}
+
 .course-row__retake-badge {
   display: inline-block;
   margin-left: 0.5em;
@@ -326,6 +332,23 @@ body:has(dialog[open]) {
   color: white;
   background-color: var(--gray);
   border-radius: 3px;
+}
+
+.course-row__in-block-badge {
+  display: inline-block;
+  margin-left: 0.5em;
+  padding: 0.1em 0.4em;
+  
+  font-size: 0.75em;
+  color: white;
+  background-color: var(--gray);
+  border-radius: 3px;
+}
+
+.add-course-link--disabled {
+  color: var(--gray);
+  cursor: default;
+  text-decoration: none;
 }
 
 /* Warning icon for unmet prerequisites in course list */
