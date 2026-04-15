@@ -133,34 +133,6 @@
     </div>
 
     <div class="card mt-3">
-      <h5 class="card-header">Kurstillfällen</h5>
-      <div class="card-body p-0">
-        {% if course_occasions %}
-        <table class="table table-sm mb-0">
-          <thead>
-            <tr>
-              <th>År</th>
-              <th>Läsperiod</th>
-              <th>Veckor</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for co in course_occasions %}
-            <tr>
-              <td><a href="{{ co.get_absolute_url }}">{{ co.academic_year.year }}</a></td>
-              <td>{{ co.time_period.title }}</td>
-              <td>{{ co.weeks|default:"-" }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted mb-0 p-3">Inga kurstillfällen registrerade.</p>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="card mt-3">
       <h5 class="card-header">
         Kurstillfällen
         {% if perms.rodatraden.can_manage_scheduling %}
