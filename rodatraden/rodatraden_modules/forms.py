@@ -144,12 +144,15 @@ class StartWeekField(forms.MultiValueField):
     1. The starting period from a selection.
     2. The number of weeks after the start of the period that the course starts.
 
-    This information is converted into a starting week number between 0 and 40.
+    This information is converted into a starting week number between 0 and 49.
+    LP1 = week 0, LP2 = week 10, LP3 = week 20, LP4 = week 30, LP5 = week 40
+    (LP5 represents the summer period).
     """
 
     # A choice for a ChoiceField or Select widget is a 2-tuple on the form
     # (value, human readable name).
-    _period_choices = [(i, f'LP{i}') for i in range(1, 5)]
+    # LP1–LP4 are the regular academic periods; LP5 is the summer period.
+    _period_choices = [(i, f'LP{i}') for i in range(1, 6)]
     _week_offset_choices = [(i, f'+ {i} veckor') for i in range(10)]
 
     # The widgets need the choices to be able to list them as option elements

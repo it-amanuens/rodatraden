@@ -43,7 +43,7 @@ class CourseOccasionTable(tables.Table):
     course = tables.Column(linkify=lambda record: record.get_absolute_url())
     # Year is now a direct IntegerField on CourseOccasion.
     year = tables.Column(accessor="year", verbose_name="År")
-    time_period = tables.Column(accessor="time_period__title",
+    time_period = tables.Column(accessor="start_string",
             verbose_name="Läsperiod")
 
     # Editing buttons

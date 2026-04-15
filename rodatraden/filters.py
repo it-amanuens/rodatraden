@@ -2,7 +2,7 @@ import datetime
 import django_filters
 from .models import (
     Course, Category, Level, Department, Profile, Track,
-    CourseOccasion, TimePeriod, academic_year_title, YEAR_RANGE_OFFSET
+    CourseOccasion, academic_year_title, YEAR_RANGE_OFFSET
 )
 
 class CourseFilter(django_filters.FilterSet):
@@ -73,9 +73,13 @@ class CourseOccasionFilter(django_filters.FilterSet):
             empty_label=None,  # we include the empty option in choices above
             field_name='year'
     )
-    time_period = django_filters.ModelChoiceFilter(
-            queryset=TimePeriod.objects.all().order_by('week'),
-            empty_label='Läsperiod', field_name='time_period'
+    time_period = django_filters.ChoiceFilter(
+            choices=lambda: [('', 'Läsperiod')] + [
+                (i * 10, f'LP{i}') for i in range(1, 6)
+            ],
+            empty_label=None,
+            field_name='start',
+            label='Läsperiod',
     )
     categories = django_filters.ModelChoiceFilter(
             queryset=Category.objects.all().order_by('title'), 
@@ -94,6 +98,6 @@ class CourseOccasionFilter(django_filters.FilterSet):
 
     class Meta:
         model = CourseOccasion
-        fields = ['title', 'year', 'time_period', 'categories', 'department',
+        fields = ['title', 'year', 'categories', 'department',
             'official'
         ]

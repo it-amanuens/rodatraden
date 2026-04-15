@@ -64,7 +64,7 @@ def get_public_elective_course_occasions(block: Block):
 
     third_year_elective_course_occasions = block.courseoccasions.filter(
         year=third_year,
-        time_period__week__gte=fourth_period_start_week
+        start__gte=fourth_period_start_week
     )
 
     course_occasions_last_two_years = block.courseoccasions.filter(
@@ -183,12 +183,12 @@ def sync_course_occasions(course, dry_run=True):
             exists = CourseOccasion.objects.filter(
                 course=course,
                 year=year,
-                time_period=segment.time_period,
+                start=segment.start,
             ).exists()
 
             entry = {
                 'year_title': academic_year_title(year),
-                'period_title': segment.time_period.title,
+                'period_title': segment.start_string,
             }
 
             if exists:
@@ -199,7 +199,7 @@ def sync_course_occasions(course, dry_run=True):
                 CourseOccasion.objects.create(
                     course=course,
                     year=year,
-                    time_period=segment.time_period,
+                    start=segment.start,
                     weeks=segment.weeks,
                     official=True,
                     auto_generated=True,
@@ -211,15 +211,15 @@ def sync_course_occasions(course, dry_run=True):
             course=course,
             year=year,
             auto_generated=True,
-        ).select_related('time_period'):
+        ):
             covered = any(
-                seg.time_period_id == co.time_period_id
+                seg.start == co.start
                 for seg in segments
             )
             if not covered:
                 removed.append({
                     'year_title': academic_year_title(year),
-                    'period_title': co.time_period.title,
+                    'period_title': co.start_string,
                 })
                 if not dry_run:
                     co.delete()
@@ -269,11 +269,11 @@ def _generate_occasions_all_years(request):
         auto_generated=True,
     ).exclude(
         course__schedule_segments__isnull=False,
-    ).select_related('course', 'time_period'):
+    ).select_related('course'):
         yr = academic_year_title(co.year)
         year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
         year_results[yr]['removed'].append(
-            f'{co.course.title} — {co.time_period.title}')
+            f'{co.course.title} — {co.start_string}')
         if not dry_run:
             co.delete()
 
@@ -1521,7 +1521,7 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
         # Check if this course occasion starts before the period we're adding to
         if co.year < year:
             courses_started_before.add(co.course.id)
-        elif co.year == year and co.time_period.week < start:
+        elif co.year == year and co.start < start:
             courses_started_before.add(co.course.id)
 
     # Get ALL course occasions starting in the given period, including those
@@ -1530,8 +1530,11 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     # "in_block" so the user can see all available options.
     courseoccasions = CourseOccasion.objects.filter(
         year=year,
-        time_period__week__gte=start,
-        time_period__week__lt=start+10
+        start__gte=start,
+        start__lt=start+10
+    ).exclude(
+        # Exclude course occasions already in THIS slot
+        block__id=block.id
     ).order_by('course__title')
 
     # Annotate each course occasion with retake and in-block status
