@@ -26,7 +26,7 @@ def import_course_occasions(start_year: int, imported_block: Block):
 
     # Get all courseoccasions from selected block
     course_occasions = imported_block.courseoccasions.all().order_by(
-        'year', 'time_period__week'
+        'year', 'start'
     )
 
     # Difference in years from new block to the import block
@@ -42,7 +42,7 @@ def import_course_occasions(start_year: int, imported_block: Block):
             new_course_occasion = CourseOccasion.objects.get(
                 course = course_occasion.course,
                 year = new_year,
-                time_period__week = course_occasion.time_period.week
+                start = course_occasion.start
             )
             new_course_occasions.append(new_course_occasion)
         except:

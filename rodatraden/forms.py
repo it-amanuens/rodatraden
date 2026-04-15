@@ -195,6 +195,8 @@ class CourseScheduleSegmentForm(BSModalModelForm):
         # Blacklisted years: same year choices as multi-select
         self.fields['blacklisted_years'].choices = year_choices
 
+        self.fields['start'] = StartWeekField(label='Läsperiod')
+
         # Pre-fill for existing instances
         if self.instance.pk:
             self.initial['start_year'] = str(self.instance.start_year)
@@ -217,7 +219,7 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
     class Meta:
         model = CourseScheduleSegment
-        fields = ['course', 'time_period', 'frequency', 'start_year',
+        fields = ['course', 'start', 'frequency', 'start_year',
                   'end_year', 'weeks', 'blacklisted_years']
         widgets = {
             'course': forms.HiddenInput(),
@@ -245,7 +247,7 @@ class CourseOccasionForm(BSModalModelForm):
             # This hard-coding might be avoidable. Not sure...
             self.fields['course'].initial = courseocc_cpy.course
             self.fields['year'].initial = courseocc_cpy.year
-            self.fields['time_period'].initial = courseocc_cpy.time_period
+            self.fields['start'].initial = courseocc_cpy.start
             self.fields['weeks'].initial = courseocc_cpy.weeks
             self.fields['note'].initial = courseocc_cpy.note
             self.fields['contact_name'].initial = courseocc_cpy.contact_name
@@ -254,6 +256,8 @@ class CourseOccasionForm(BSModalModelForm):
         
         self.fields['course'].widget.attrs['class'] = \
             'course-list-filter-courseocc-create'
+
+        self.fields['start'] = StartWeekField(label='Läsperiod')
 
     def clean_year(self):
         """Coerce the ChoiceField string back to int for the IntegerField."""
@@ -264,7 +268,7 @@ class CourseOccasionForm(BSModalModelForm):
 
     class Meta:
         model = CourseOccasion
-        fields = ['course', 'year', 'time_period', 'weeks',
+        fields = ['course', 'year', 'start', 'weeks',
         'note', 'contact_name', 'contact_email', 'official']
 
 

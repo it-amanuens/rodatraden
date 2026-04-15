@@ -67,17 +67,19 @@ class Command(BaseCommand):
                 exists = CourseOccasion.objects.filter(
                     course=course,
                     year=year,
-                    time_period=segment.time_period,
+                    start=segment.start,
                 ).exists()
 
                 if exists:
                     skipped_exists += 1
                     continue
 
+                weeks_in_period = 10
+                period_number = segment.start // weeks_in_period + 1
                 self.stdout.write(
                     f'  {"CREATE" if apply else "WOULD CREATE"}  '
                     f'{course.title} — {title} '
-                    f'{segment.time_period.title} '
+                    f'LP{period_number} '
                     f'({segment.weeks} weeks)'
                 )
 
@@ -85,7 +87,7 @@ class Command(BaseCommand):
                     CourseOccasion.objects.create(
                         course=course,
                         year=year,
-                        time_period=segment.time_period,
+                        start=segment.start,
                         weeks=segment.weeks,
                         official=True,
                         auto_generated=True,

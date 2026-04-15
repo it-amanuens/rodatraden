@@ -2,9 +2,9 @@
 Validate that CourseScheduleSegment rules would generate the same
 CourseOccasion set that already exists in the database.
 
-Compares (course, year, period) tuples between:
+Compares (course, year, start) tuples between:
   - EXISTING: actual CourseOccasion rows
-  - EXPECTED: what active segments for each year/period would produce
+  - EXPECTED: what active segments for each year/start would produce
 
 Reports mismatches grouped as:
   - MISSING:  existing occasion not covered by any segment
@@ -62,15 +62,15 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING(f'\n  MISMATCH  {course.title}')
                 )
-                for year, period_title in sorted(missing):
+                for year, start in sorted(missing):
                     self.stdout.write(
                         f'    MISSING (exists but rules skip): '
-                        f'year={year}  period={period_title}'
+                        f'year={year}  start={start}'
                     )
-                for year, period_title in sorted(extra):
+                for year, start in sorted(extra):
                     self.stdout.write(
                         f'    EXTRA   (rules would create):    '
-                        f'year={year}  period={period_title}'
+                        f'year={year}  start={start}'
                     )
                 total_missing += len(missing)
                 total_extra += len(extra)
@@ -100,18 +100,16 @@ class Command(BaseCommand):
             )
 
     def _get_existing_tuples(self, course):
-        """Return set of (year, period_title) from actual CourseOccasion rows."""
-        occasions = CourseOccasion.objects.filter(
-            course=course
-        ).select_related('time_period')
+        """Return set of (year, start) from actual CourseOccasion rows."""
+        occasions = CourseOccasion.objects.filter(course=course)
         return {
-            (occ.year, occ.time_period.title)
+            (occ.year, occ.start)
             for occ in occasions
         }
 
     def _get_expected_tuples(self, course):
-        """Return set of (year, period_title) the segments would produce."""
-        segments = course.schedule_segments.select_related('time_period').all()
+        """Return set of (year, start) the segments would produce."""
+        segments = course.schedule_segments.all()
         if not segments:
             return set()
 
@@ -121,6 +119,6 @@ class Command(BaseCommand):
             end = segment.end_year or segment.start_year
             for year in range(start, end + 1):
                 if segment.is_active_in_year(year):
-                    expected.add((year, segment.time_period.title))
+                    expected.add((year, segment.start))
 
         return expected
