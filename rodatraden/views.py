@@ -278,16 +278,17 @@ def _generate_occasions_all_years(request):
             co.delete()
 
     # Sort by the numeric year embedded in the title string.
-    # academic_year_title() always produces "XX/YY", so we can reverse-map
-    # back to the integer for a robust sort.
-    title_to_year = {}
-    for y in range(1900, 2200):
-        title_to_year[academic_year_title(y)] = y
+    # academic_year_title() produces "XX/YY", so we can parse the first two
+    # digits and add 2000 to get the year for a robust sort.
+    def _title_sort_key(t):
+        try:
+            return 2000 + int(t.split('/')[0])
+        except (ValueError, IndexError):
+            return float('inf')
 
     # Convert to list sorted by numeric year.
     results = []
-    for yr in sorted(year_results.keys(),
-                     key=lambda t: title_to_year.get(t, float('inf'))):
+    for yr in sorted(year_results.keys(), key=_title_sort_key):
         data = year_results[yr]
         if data['created'] or data['skipped_exists'] or data['removed']:
             results.append({
@@ -1517,9 +1518,9 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     courses_started_before = set()
     for co in block.courseoccasions.all():
         # Check if this course occasion starts before the period we're adding to
-        if co.academic_year.year < year:
+        if co.year < year:
             courses_started_before.add(co.course.id)
-        elif co.academic_year.year == year and co.time_period.week < start:
+        elif co.year == year and co.time_period.week < start:
             courses_started_before.add(co.course.id)
 
     # Get ALL course occasions starting in the given period, including those
@@ -1527,7 +1528,7 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     # which effectively limited retakes. Now they are shown but marked as
     # "in_block" so the user can see all available options.
     courseoccasions = CourseOccasion.objects.filter(
-        academic_year__year=year,
+        year=year,
         time_period__week__gte=start,
         time_period__week__lt=start+10
     ).order_by('course__title')

@@ -174,12 +174,14 @@ This setup has not been fully tested on Windows, so some adjustment is probably 
 ### Clean install
 If you don't want to migrate data from an old instance, then you will have to create new the all new data from scratch. 
 New super users can be created in django by running this command `python manage.py createsuperuser`
-After this navigate to the admin interface. Here we will have to add entries like "akademiska år", "institutioner" "Nivåer", "Spår" and "Tidsperioder". 
-- Akademiska år : The study year (run `python manage.py ensure_academic_years --apply` to auto-populate years from 2011 to current year + 10, instead of adding them manually)
+After this navigate to the admin interface. Here we will have to add entries like "institutioner" "Nivåer", "Spår" and "Tidsperioder". 
 - Institutioner : The institution / faculty where the course can be / is taken
 - Nivåer : If it's an advanced course or not (grundläggande / avancerad)
 - Spår : The different tracks that can be choosen. Make a profile before on the main site
 - Tidsperioder : This is when during the year a course starts. For example week 0 for "läsperiod 1", week 10 for "läsperiod 2" Week 0 is the beginning of time academic year. If a course starts 3 weeks into period 2, then specify week 13.
+
+Academic years (e.g. "20/21") are computed automatically — no database setup
+needed. Year dropdowns in forms show the current year ± 10.
 
 After after creating these, new courses can be added to the default site
 
