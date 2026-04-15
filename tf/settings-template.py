@@ -87,6 +87,7 @@ TEMPLATES = [
 
 # For CAS authentication
 AUTHENTICATION_BACKENDS = (
+    'rodatraden.backends.EmailOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
