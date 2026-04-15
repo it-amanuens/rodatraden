@@ -17,6 +17,14 @@ schemaläggningsfunktionerna.
 - **Behörighet `can_manage_scheduling`** — Begränsar schemaläggning till
   utvalda användare.
 
+### Borttagna modeller
+- **`AcademicYear`** — Hela modellen är borttagen. `CourseOccasion.year` är nu
+  ett vanligt `IntegerField` (precis som `PrivateCourse.year`).
+  Visningstitlar som "20/21" beräknas automatiskt av `academic_year_title()`.
+  Årval i formulär genereras dynamiskt (nuvarande år ± 10) — inga
+  databasposter behöver skapas i förväg.
+- **`ensure_academic_years`-kommandot** — Borttaget (inte längre behövt).
+
 ### Borttagna fält
 - **`Course.closed`** — Oanvänt fält borttaget.
 
@@ -46,40 +54,69 @@ git pull origin main
 pip install -r requirements.txt
 ```
 
-### 4. Skapa migreringsfiler
+### 4. Kopiera år-data från AcademicYear till CourseOccasion (INNAN makemigrations)
 
-Eftersom migreringsfiler inte versionshanteras i detta projekt behöver de
-skapas lokalt:
+Innan du kör `makemigrations` måste befintliga FK-värden kopieras. Kör
+följande i Django-shell:
+
+```bash
+python manage.py shell -c "
+from rodatraden.models import CourseOccasion
+# This only works BEFORE the model changes are applied.
+# If academic_year_id still exists, copy the year values.
+from django.db import connection
+cursor = connection.cursor()
+cursor.execute('''
+    UPDATE rodatraden_courseoccasion co
+    SET year = (
+        SELECT ay.year
+        FROM rodatraden_academicyear ay
+        WHERE ay.id = co.academic_year_id
+    )
+''')
+print(f'Updated {cursor.rowcount} rows')
+"
+```
+
+Alternativt kan du skapa en data-migrering (se steg 5).
+
+### 5. Skapa migreringsfiler
 
 ```bash
 python manage.py makemigrations rodatraden
 ```
 
-Detta bör skapa migrering(ar) som:
+Django kommer att skapa migrering(ar) som:
 - Tar bort `Course.closed`
 - Lägger till `CourseOccasion.auto_generated`
-- Skapar `CourseScheduleSegment`-modellen med behörigheten
-  `can_manage_scheduling`
+- Skapar `CourseScheduleSegment`-modellen
+- **Lägger till `CourseOccasion.year` (IntegerField)**
+- **Tar bort `CourseOccasion.academic_year` (ForeignKey)**
+- **Tar bort `AcademicYear`-modellen**
 
-### 5. Granska migreringen (valfritt)
+**VIKTIGT**: Om Django frågar om fältet `year` bytt namn från
+`academic_year`, svara **Nej** — det är ett nytt fält. Du kan behöva
+justera migreringsordningen så att data kopieras innan FK:n tas bort.
+
+### 6. Granska migreringen (valfritt)
 
 ```bash
 python manage.py sqlmigrate rodatraden <nummer>
 ```
 
-### 6. Tillämpa migreringarna
+### 7. Tillämpa migreringarna
 
 ```bash
 python manage.py migrate
 ```
 
-### 7. Samla statiska filer
+### 8. Samla statiska filer
 
 ```bash
 python manage.py collectstatic --noinput
 ```
 
-### 8. Tilldela behörighet
+### 9. Tilldela behörighet
 
 Ge rätt användare behörigheten `can_manage_scheduling` via Djangos
 admin-panel (`/admin/auth/user/`) eller med ett skript:
@@ -96,7 +133,7 @@ for user in User.objects.filter(is_staff=True):
 "
 ```
 
-### 9. Importera schemaläggningssegment
+### 10. Importera schemaläggningssegment
 
 Segmenten för befintliga kurser kan genereras automatiskt från befintliga
 kurstillfällen:
@@ -109,34 +146,13 @@ python manage.py infer_course_scheduling
 python manage.py infer_course_scheduling --apply
 ```
 
-### 10. Validera
+### 11. Validera
 
 Kontrollera att segmenten matchar befintliga kurstillfällen:
 
 ```bash
 python manage.py validate_course_schedule_parity
 ```
-
-### 11. Säkerställ akademiska år
-
-Kör kommandot som automatiskt skapar `AcademicYear`-poster för alla år från
-startåret (standard 2011) till och med innevarande år + 10.  Kommandot är
-idempotent och kan köras hur många gånger som helst utan att befintliga poster
-påverkas.
-
-```bash
-# Förhandsvisning (ingen data ändras)
-python manage.py ensure_academic_years
-
-# Skapa saknade poster
-python manage.py ensure_academic_years --apply
-
-# Justera antalet framtida år (standard: 10)
-python manage.py ensure_academic_years --apply --future-years 5
-```
-
-Lägg med fördel in kommandot i ett återkommande jobb (t.ex. cron eller ett
-driftsättningsskript) så att nya år läggs till automatiskt varje år.
 
 ### 12. Starta om servern
 
@@ -147,5 +163,6 @@ Starta om webbservern (t.ex. IIS, gunicorn, eller liknande).
 | Problem | Lösning |
 |---------|---------|
 | `makemigrations` skapar oväntade migreringar | Kontrollera att inga gamla migreringsfiler finns kvar |
-| Behörighetsfelet vid schemaläggning | Tilldela `can_manage_scheduling` (steg 8) |
-| Segment saknas | Kör `infer_course_scheduling --apply` (steg 9) |
+| Behörighetsfelet vid schemaläggning | Tilldela `can_manage_scheduling` (steg 9) |
+| Segment saknas | Kör `infer_course_scheduling --apply` (steg 10) |
+| `CourseOccasion.year` är NULL efter migrering | Steg 4 missades — kör SQL-kopieringen manuellt |
