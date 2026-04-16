@@ -525,6 +525,40 @@ export function updateCourseBlocks(courseContainer,
           const parser = new DOMParser();
           const modalDocument = parser.parseFromString(html, 'text/html');
           modalContent.innerHTML = modalDocument.body.innerHTML;
+
+          // Add an "Avklarad" toggle button in the modal footer when the user
+          // is logged in and the toggle URL is available.
+          if (isLoggedIn && blockToggleCourseCompleteUrl) {
+            const footer = modalContent.querySelector('.modal-footer');
+            if (footer) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'btn btn-rt modal-complete-button';
+              btn.innerHTML = course.isCompleted
+                ? '<i class="fa fa-check"></i> Avklarad'
+                : '<i class="fa fa-check"></i> Markera som avklarad';
+              if (course.isCompleted) {
+                btn.classList.add('modal-complete-button--active');
+              }
+              btn.addEventListener('click', () => {
+                const toggleUrl = blockToggleCourseCompleteUrl
+                  + '?slug=' + course.slug
+                  + '&private=0';
+                fetch(toggleUrl, { method: 'GET' })
+                  .then(r => r.json())
+                  .then(courseOccasionsJSON => {
+                    const courseOccasions = courseOccasionsJSON.map(
+                      o => CourseOccasion.fromJSON(o)
+                    );
+                    blockSchedule.updateCourses(courseOccasions);
+                    nativeModal.close();
+                  })
+                  .catch(error => console.error(error));
+              });
+              footer.prepend(btn);
+            }
+          }
+
           nativeModal.showModal();
         })
         .catch(error => console.error(error));
