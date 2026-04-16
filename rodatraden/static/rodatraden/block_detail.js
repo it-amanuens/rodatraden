@@ -91,11 +91,19 @@ function setupSections() {
 // Store the chart instance globally so we can update it later.
 let categorySumChart = null;
 
+// Store per-category course lists globally so the tooltip callback can access them.
+let categoriesCourses = [];
+
 /**
  * Creates a horizontal bar-chart that shows point sums for each category.
- * There are two bars for each category: one bar with the sum of all courses
- * in the schedule within that category, and one bar with the required points
- * within that category.
+ *
+ * The chart has three datasets:
+ *  - "Krav"       (gray)  – required ECTS for the category.
+ *  - "Avklarad"   (green) – ECTS from courses marked as completed.
+ *  - "Resterande" (red)   – remaining ECTS in the schedule (Summa – Avklarad).
+ *
+ * Hovering a bar shows a tooltip listing each contributing course and its ECTS,
+ * with a ✓ mark for completed courses.
  */
 function createCategorySumChart() {
   // Get data from data attributes.
@@ -108,11 +116,23 @@ function createCategorySumChart() {
   const categoriesSum = JSON.parse(
     document.getElementById('categories-sum-data').textContent
   );
+  categoriesCourses = JSON.parse(
+    document.getElementById('categories-courses-data').textContent
+  );
+  const categoriesCompletedEcts = JSON.parse(
+    document.getElementById('categories-completed-ects-data').textContent
+  );
+
+  // Compute remaining (non-completed) ECTS per category.
+  const categoriesRemainingEcts = categoriesSum.map(
+    (sum, i) => Math.max(0, sum - categoriesCompletedEcts[i])
+  );
 
   // Get the CSS variable values for consistent styling.
   const style = getComputedStyle(document.documentElement);
   const grayColor = style.getPropertyValue('--gray').trim() || '#808080';
   const mainColor = style.getPropertyValue('--main-color').trim() || '#c0392b';
+  const greenColor = 'hsl(130, 60%, 35%)';
 
   // Create the Chart.js horizontal bar chart and store the reference.
   const ctx = document.getElementById('category-chart').getContext('2d');
@@ -124,13 +144,21 @@ function createCategorySumChart() {
         {
           label: 'Krav',
           data: categoriesEcts,
-          backgroundColor: grayColor
+          backgroundColor: grayColor,
+          stack: 'krav',
         },
         {
-          label: 'Summa',
-          data: categoriesSum,
-          backgroundColor: mainColor
-        }
+          label: 'Avklarad',
+          data: categoriesCompletedEcts,
+          backgroundColor: greenColor,
+          stack: 'summa',
+        },
+        {
+          label: 'Resterande',
+          data: categoriesRemainingEcts,
+          backgroundColor: mainColor,
+          stack: 'summa',
+        },
       ]
     },
     options: {
@@ -140,6 +168,7 @@ function createCategorySumChart() {
       scales: {
         x: {
           beginAtZero: true,
+          stacked: true,
           ticks: {
             stepSize: 7.5
           },
@@ -147,13 +176,38 @@ function createCategorySumChart() {
             display: true,
             text: 'Poäng per kategori'
           }
+        },
+        y: {
+          stacked: true,
         }
       },
       plugins: {
         tooltip: {
           callbacks: {
             label: function(context) {
+              // Show ECTS value for each dataset.
               return context.dataset.label + ': ' + context.parsed.x.toFixed(1) + ' hp';
+            },
+            afterBody: function(tooltipItems) {
+              // Only show course list for the stacked "summa" datasets.
+              const item = tooltipItems.find(
+                t => t.dataset.label === 'Avklarad' || t.dataset.label === 'Resterande'
+              );
+              if (!item) {
+                return [];
+              }
+
+              const courses = categoriesCourses[item.dataIndex];
+              if (!courses || courses.length === 0) {
+                return [];
+              }
+
+              const lines = ['', 'Kurser:'];
+              for (const course of courses) {
+                const prefix = course.isCompleted ? '✓ ' : '  ';
+                lines.push(prefix + course.title + ': ' + course.ects.toFixed(1) + ' hp');
+              }
+              return lines;
             }
           }
         }
@@ -176,11 +230,21 @@ function updateCategorySumChart(categorySumsUrl) {
   fetch(categorySumsUrl)
     .then(response => response.json())
     .then(data => {
-      // Update the "Summa" dataset (index 1) with new data.
       if (categorySumChart) {
-        categorySumChart.data.datasets[1].data = data.categorySums;
+        // Update the completed (green) dataset (index 1).
+        categorySumChart.data.datasets[1].data = data.categoriesCompletedEcts;
+
+        // Recompute and update the remaining (red) dataset (index 2).
+        const remaining = data.categorySums.map(
+          (sum, i) => Math.max(0, sum - data.categoriesCompletedEcts[i])
+        );
+        categorySumChart.data.datasets[2].data = remaining;
+
         categorySumChart.update();
       }
+
+      // Update the global course list used by the tooltip callback.
+      categoriesCourses = data.categoriesCourses;
       
       // Update the total HP display.
       const totalEctsElement = document.querySelector('.text-center > .lead');
