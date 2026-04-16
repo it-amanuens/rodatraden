@@ -105,35 +105,11 @@ def tools(request: HttpRequest):
     # Incoming info
     generate_results = None
     if request.method == 'POST':
-        # Copying courseoccasions tool (legacy)
-        if 'courseocc_copy' in request.POST:
-            from_acyear = AcademicYear.objects.get(id=request.POST['from'])
-            to_acyear = AcademicYear.objects.get(id=request.POST['to'])
-            # Make sure that the years exist
-            if from_acyear and to_acyear:
-                # From all the current courseoccasions
-                for courseocc in CourseOccasion.objects.filter(
-                        academic_year=from_acyear
-                        ):
-                    # Only create a new for the new year if it does not already
-                    # exist
-                    if not CourseOccasion.objects.filter(
-                            academic_year=to_acyear,
-                            course=courseocc.course):
-                        courseocc.pk = None
-                        courseocc.academic_year = to_acyear
-                        courseocc.slug = ''
-                        courseocc.save()
-
         # Generate course occasions from scheduling rules
         if 'generate_occasions' in request.POST:
             generate_results = _generate_occasions_all_years(request)
 
-    # Get all academic years
-    acyears = AcademicYear.objects.all().order_by('year')
-
     context = {
-            'acyears': acyears,
             'generate_results': generate_results,
     }
 
@@ -836,7 +812,6 @@ class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion/courseoccasion_create.html'
     success_message = 'Kurstillfället skapades utan problem'
-    #success_url = reverse_lazy('courseoccasion-list')
 
     def get_success_url(self):
         # Return to last page
@@ -868,7 +843,7 @@ class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kurstillfället togs bort utan problem'
 
     def get_success_url(self):
-        return reverse_lazy('courseoccasion-list')
+        return self.request.META.get('HTTP_REFERER', reverse_lazy('course-list'))
 
 ############
 # PROFILES #
