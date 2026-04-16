@@ -1375,13 +1375,10 @@ def block_detail(request: HttpRequest, username, slug):
         # XXX: The variables name will be confusingly similar until I figure out how category_sum works.
         categories_sum = [float(sum) for sum in category_sum.values()]
 
-        course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
-        prinvate_courses_json = [course.as_json() for course in block.privatecourses.all()]
-
         context = {
             'this_block': block,
             'start_year': block.start_year,
-            'course_occasions': course_occasions_json + prinvate_courses_json,
+            'course_occasions': build_courses_json(block),
             'categories_title': categories_title,
             'categories_ects': categories_ects,
             'categories_sum': categories_sum,
@@ -1577,15 +1574,10 @@ def add_course_to_block(request: HttpRequest, block_username, block_slug):
 
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
     # NOTE: "safe=False" is completely safe to use. See this answer for an
     # explaination:
     # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
+    return JsonResponse(build_courses_json(block), safe=False)
 
 
 @login_required
@@ -1612,15 +1604,10 @@ def remove_course_from_block(request: HttpRequest, block_username: str, block_sl
 
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
     # NOTE: "safe=False" is completely safe to use. See this answer for an
     # explaination:
     # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
+    return JsonResponse(build_courses_json(block), safe=False)
 
 
 @login_required
@@ -1645,15 +1632,10 @@ def replace_course_in_block(request: HttpRequest, block_username: str, block_slu
 
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
     # NOTE: "safe=False" is completely safe to use. See this answer for an
     # explaination:
     # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
+    return JsonResponse(build_courses_json(block), safe=False)
 
 
 @login_required
@@ -1715,6 +1697,28 @@ def get_block_category_sums(request: HttpRequest, block_username: str, block_slu
 
 
 @login_required
+def build_courses_json(block):
+    """Build JSON list of all course occasions in the block with per-course state.
+
+    Returns a combined list of public and private course occasions, each
+    annotated with block-specific state such as whether prerequisite checking
+    is skipped for that course.
+    """
+    skipped_slugs = set(
+        block.skipped_prerequisite_occasions.values_list('slug', flat=True)
+    )
+
+    course_occasions_json = []
+    for course in block.courseoccasions.all():
+        data = course.as_json()
+        data['skipPrerequisiteCheck'] = course.slug in skipped_slugs
+        course_occasions_json.append(data)
+
+    private_courses_json = [course.as_json() for course in block.privatecourses.all()]
+
+    return course_occasions_json + private_courses_json
+
+
 def update_prerequisite_check(request: HttpRequest, username, slug):
     """Update if the prerequisites should be verified for the block or not."""
 
@@ -1733,3 +1737,28 @@ def update_prerequisite_check(request: HttpRequest, username, slug):
 
     # Just return an empty response if everything went well.
     return HttpResponse('')
+
+
+@login_required
+def toggle_course_prerequisite_check(request: HttpRequest, username: str, slug: str):
+    """Toggle per-course prerequisite checking for a course occasion in a block.
+
+    When skipped, unmet prerequisites for that course will not be shown as
+    warnings in the schedule.
+    """
+    block = get_object_or_404(Block, user__username=username, slug=slug)
+
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
+
+    course_slug = request.GET.get('slug', '')
+    course = get_object_or_404(CourseOccasion, slug=course_slug)
+
+    if block.skipped_prerequisite_occasions.filter(slug=course_slug).exists():
+        block.skipped_prerequisite_occasions.remove(course)
+    else:
+        block.skipped_prerequisite_occasions.add(course)
+
+    return JsonResponse(build_courses_json(block), safe=False)

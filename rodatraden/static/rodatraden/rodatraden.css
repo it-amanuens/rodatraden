@@ -560,6 +560,28 @@ body:has(dialog[open]) {
   margin: 0;
 }
 
+.course-prereq-toggle-button {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: var(--schedule-remove-button-size);
+  aspect-ratio: 1;
+  padding: 0;
+  margin: 0;
+  font-size: 0.7em;
+  opacity: 0.6;
+}
+
+.course--skip-prereq .course-prereq-toggle-button {
+  opacity: 1;
+  color: hsl(200, 80%, 70%);
+}
+
 .course a,
 .course .fa {
   color: var(--schedule-text-color);
@@ -646,9 +668,10 @@ body:has(dialog[open]) {
   background-color: var(--schedule-background-color-dark);
 }
 
-/* The remove buttons are hidden on devices with a mouse to remove clutter. */
+/* The remove and prerequisite toggle buttons are hidden on devices with a mouse to remove clutter. */
 @media (hover: hover) {
-  .course:not(:hover) .course-remove-button {
+  .course:not(:hover) .course-remove-button,
+  .course:not(:hover) .course-prereq-toggle-button {
     display: none;
   }
 }

@@ -25,7 +25,8 @@ export default class CourseOccasion {
       json.weeks,
       json.isPrivate,
       json?.courseID,
-      prerequisites
+      prerequisites,
+      json?.skipPrerequisiteCheck ?? false
     );
   }
 
@@ -59,9 +60,10 @@ export default class CourseOccasion {
    * @param {boolean} isPrivate 
    * @param {number|null} courseID
    * @param {Prerequisite[]} prerequisites
+   * @param {boolean} skipPrerequisiteCheck
    */
   constructor(title, slug, ects, academicYear, start, weeks, isPrivate,
-              courseID = null, prerequisites = []) {
+              courseID = null, prerequisites = [], skipPrerequisiteCheck = false) {
     this.title = title;
     this.slug = slug;
     this.ects = ects;
@@ -71,6 +73,7 @@ export default class CourseOccasion {
     this.isPrivate = isPrivate;
     this.courseID = courseID;
     this.prerequisites = prerequisites;
+    this.skipPrerequisiteCheck = skipPrerequisiteCheck;
 
     this.termStart = this.start;
     this.visibleWeeks = this.weeks;
@@ -116,6 +119,12 @@ export default class CourseOccasion {
   courseID;
   /** @type {Prerequisite[]} */
   prerequisites;
+  /**
+   * When true, prerequisite warnings are suppressed for this course.
+   *
+   * @type {boolean}
+   */
+  skipPrerequisiteCheck;
   /** 
    * True if this is a temporary target spawned during a drag-and-drop action.
    * 
@@ -187,6 +196,12 @@ export default class CourseOccasion {
    * @param {CourseOccasion[]} courseOccasions - Course occasions in schedule.
    */
   updateUnmetPrerequisites(courseOccasions) {
+    // None can be unmet if prerequisite checking is skipped for this course.
+    if (this.skipPrerequisiteCheck) {
+      this.unmetPrerequisiteIDs = [];
+      return;
+    }
+
     // None can be unmet if there are no prerequisites to be begin with.
     if (this.prerequisites.length === 0) {
       this.unmetPrerequisiteIDs = [];

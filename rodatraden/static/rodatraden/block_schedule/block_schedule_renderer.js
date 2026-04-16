@@ -329,6 +329,7 @@ export function updateCourseContainer(term, scale, margin) {
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
+ * @param {string} blockToggleCoursePrereqUrl - URL to toggle per-course prerequisite checking.
  * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
 export function updateCourseBlocks(courseContainer,
@@ -337,6 +338,7 @@ export function updateCourseBlocks(courseContainer,
                                    isLoggedIn,
                                    courseoccasionInfoUrl,
                                    blockRemoveCourseUrl,
+                                   blockToggleCoursePrereqUrl,
                                    blockSchedule) {
   // Number of weeks in a regular term (fall/spring). Summer uses 10 weeks.
   const regularTermWeekCount = 20;
@@ -400,6 +402,35 @@ export function updateCourseBlocks(courseContainer,
     // Add the icon to the button.
     removeButton.append("i")
       .attr("class", "fa fa-times");
+
+    // Add a button to toggle per-course prerequisite checking. Only shown for
+    // public courses since private ones have no prerequisites.
+    let prereqToggleButton = newCourse.filter(course => !course.isPrivate)
+      .append("button")
+      .attr("class", "btn course-prereq-toggle-button")
+      .attr("data-toggle", "tooltip")
+      .attr("data-placement", "left")
+      .attr("title", "Ska förkunskapskrav verifieras?");
+
+    prereqToggleButton
+      .on("click", course => {
+        d3.event.stopPropagation();
+
+        const url = blockToggleCoursePrereqUrl + "?slug=" + course.slug;
+
+        fetch(url, { method: 'GET' })
+          .then(response => response.json())
+          .then(courseOccasionsJSON => {
+            const courseOccasions = courseOccasionsJSON.map(occasion => {
+              return CourseOccasion.fromJSON(occasion);
+            });
+            blockSchedule.updateCourses(courseOccasions);
+          })
+          .catch(error => console.error(error));
+      });
+
+    prereqToggleButton.append("i")
+      .attr("class", "fa fa-graduation-cap");
   }
 
   // Make a unique identifier of the course occasion available in the DOM.
@@ -502,6 +533,11 @@ export function updateCourseBlocks(courseContainer,
       // toggled by the prerequisite checkbox.
       if (course.unmetPrerequisiteIDs.length > 0) {
         classList.push('course--unmet-prerequisites');
+      }
+
+      // Mark a block if prerequisite checking is skipped for this course.
+      if (course.skipPrerequisiteCheck) {
+        classList.push('course--skip-prereq');
       }
 
       // Mark a block if it's a retake of a course that appears earlier.
