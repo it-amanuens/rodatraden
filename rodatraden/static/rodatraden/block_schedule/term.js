@@ -23,6 +23,28 @@ function getFallCourses(coursesInSameYear) {
 
 /**
  * Takes courses within the same year and returns those that start in the
+ * summer.
+ * 
+ * @param {CourseOccasion[]} coursesInSameYear
+ * @returns The courses that start in the summer.
+ */
+function getSummerCourses(coursesInSameYear) {
+  let courses = [];
+
+  for (const course of coursesInSameYear) {
+    if (course.start >= Term.summerWeekStart) {
+      // The terms are positioned based on their starting offset relative to
+      // the start of the term. For summer courses we subtract 40 weeks.
+      course.termStart = course.start - Term.summerWeekStart;
+      courses.push(course);
+    }
+  }
+
+  return courses;
+}
+
+/**
+ * Takes courses within the same year and returns those that start in the
  * spring.
  * 
  * @param {CourseOccasion[]} coursesInSameYear
@@ -32,7 +54,7 @@ function getSpringCourses(coursesInSameYear) {
   let courses = [];
 
   for (const course of coursesInSameYear) {
-    if (course.start >= Term.springWeekStart) {
+    if (course.start >= Term.springWeekStart && course.start < Term.summerWeekStart) {
       // The terms are positioned based on their starting offset relative to
       // the start of the term. For spring courses we therefore need to
       // subtract 20 weeks from the academic year start.
@@ -89,6 +111,8 @@ function getEctsSumInPeriod(coursesInSameYear, periodNumber) {
  */
 export default class Term {
   static springWeekStart = 20;
+  static summerWeekStart = 40;
+  static summerWeekLength = 10;
 
   /**
    * Creates a fall term.
@@ -127,12 +151,29 @@ export default class Term {
   }
 
   /**
+   * Creates a summer term.
+   * @param {number} academicYear
+   * @param {CourseOccasion[]} coursesInAcademicYear
+   * @returns Summer term.
+   */
+  static createSummer(academicYear, coursesInAcademicYear) {
+    return new Term(
+      'Sommar',
+      academicYear,
+      getSummerCourses(coursesInAcademicYear),
+      [
+        getEctsSumInPeriod(coursesInAcademicYear, 5)
+      ]
+    );
+  }
+
+  /**
    * @param {string} termPrefix 
    * @param {number} academicYear 
    * @param {CourseOccasion[]} termCourses 
    * @param {[number, number]} ectsSumPerPeriod 
    */
-  constructor(termPrefix, academicYear, termCourses = [], ectsSumPerPeriod = [0, 0]) {
+  constructor(termPrefix, academicYear, termCourses = [], ectsSumPerPeriod = [0]) {
     this.#prefix = termPrefix;
     this.#academicYear = academicYear;
     this.#courses = termCourses;
@@ -158,6 +199,10 @@ export default class Term {
    * spring.
    */
   get title() {
+    if (this.#prefix === 'Sommar') {
+      const termYear = this.#academicYear + 1;
+      return 'Sommar ' + termYear.toString().slice(-2);
+    }
     // The term year is one more than the academic year in the spring.
     const termYear = this.#academicYear + (this.#prefix === 'VT');
     return this.#prefix + termYear.toString().slice(-2);
