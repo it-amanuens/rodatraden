@@ -1367,14 +1367,6 @@ def block_detail(request: HttpRequest, username, slug):
 
         categories_ects = [float(category.ects) for category in categories]
 
-        category_sum = dict.fromkeys([category.category.title for category in
-            categories], 0)
-        # Get sum from block
-        block.total_category_ects(category_sum)
-
-        # XXX: The variables name will be confusingly similar until I figure out how category_sum works.
-        categories_sum = [float(sum) for sum in category_sum.values()]
-
         categories_courses, categories_completed_ects = build_categories_courses_json(block)
 
         context = {
@@ -1383,7 +1375,6 @@ def block_detail(request: HttpRequest, username, slug):
             'course_occasions': build_courses_json(block),
             'categories_title': categories_title,
             'categories_ects': categories_ects,
-            'categories_sum': categories_sum,
             'categories_courses': categories_courses,
             'categories_completed_ects': categories_completed_ects,
             'total_ects': block.total_course_ects(),
@@ -1679,24 +1670,10 @@ def get_block_category_sums(request: HttpRequest, block_username: str, block_slu
         elif request.user.username != block.user.username:
             return JsonResponse({'error': 'Access denied'}, status=403)
 
-    # Get all categories for the block exam
-    categories = CategoryExam.objects.filter(exam=block.exam)
-
-    # Build dict with category titles as keys
-    category_sum = dict.fromkeys([category.category.title for category in
-        categories], 0)
-    
-    # Get sum from block
-    block.total_category_ects(category_sum)
-
-    # Return the sums as a list and the total ECTS
-    categories_sum = [float(sum) for sum in category_sum.values()]
     total_ects = block.total_course_ects()
-
     categories_courses, categories_completed_ects = build_categories_courses_json(block)
 
     return JsonResponse({
-        'categorySums': categories_sum,
         'totalEcts': float(total_ects),
         'categoriesCourses': categories_courses,
         'categoriesCompletedEcts': categories_completed_ects,
