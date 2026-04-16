@@ -30,6 +30,9 @@ function sendPrerequisiteCheckState(url, shouldEnable) {
  */
 function setupPrerequisiteCheckbox(prerequisiteCheckUrl) {
   const checkbox = document.getElementById('prerequisite-checkbox');
+  if (!checkbox) {
+    return;
+  }
   checkbox.addEventListener('change', () => {
     updatePrerequisiteWarnings(prerequisiteCheckUrl);
     sendPrerequisiteCheckState(prerequisiteCheckUrl, checkbox.checked);
