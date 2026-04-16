@@ -1375,6 +1375,8 @@ def block_detail(request: HttpRequest, username, slug):
         # XXX: The variables name will be confusingly similar until I figure out how category_sum works.
         categories_sum = [float(sum) for sum in category_sum.values()]
 
+        categories_courses, categories_completed_ects = build_categories_courses_json(block)
+
         context = {
             'this_block': block,
             'start_year': block.start_year,
@@ -1382,6 +1384,8 @@ def block_detail(request: HttpRequest, username, slug):
             'categories_title': categories_title,
             'categories_ects': categories_ects,
             'categories_sum': categories_sum,
+            'categories_courses': categories_courses,
+            'categories_completed_ects': categories_completed_ects,
             'total_ects': block.total_course_ects(),
             'logged_in': (request.user.is_authenticated and
             request.user.username == block.user.username) or
@@ -1389,7 +1393,6 @@ def block_detail(request: HttpRequest, username, slug):
         }
 
         return render(request, 'rodatraden/block/block_detail.html', context)
-
 
 class BlockImportList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
     """List view for blocks that courses can be imported from."""
@@ -1661,7 +1664,7 @@ def get_related_course_occasions(request: HttpRequest, block_username: str, bloc
 
 
 def get_block_category_sums(request: HttpRequest, block_username: str, block_slug: str):
-    """Get the current category sums and total ECTS for a block schedule.
+    """Get the current category sums, course lists, and total ECTS for a block schedule.
     
     This is used to update the category chart and total HP after adding/removing
     courses without requiring a full page reload.
@@ -1690,9 +1693,13 @@ def get_block_category_sums(request: HttpRequest, block_username: str, block_slu
     categories_sum = [float(sum) for sum in category_sum.values()]
     total_ects = block.total_course_ects()
 
+    categories_courses, categories_completed_ects = build_categories_courses_json(block)
+
     return JsonResponse({
         'categorySums': categories_sum,
-        'totalEcts': float(total_ects)
+        'totalEcts': float(total_ects),
+        'categoriesCourses': categories_courses,
+        'categoriesCompletedEcts': categories_completed_ects,
     })
 
 
@@ -1727,6 +1734,94 @@ def build_courses_json(block):
         private_courses_json.append(data)
 
     return course_occasions_json + private_courses_json
+
+
+def build_categories_courses_json(block):
+    """Build per-category course lists and completed ECTS for a block.
+
+    Returns a tuple of:
+      - categories_courses: list of lists. Each inner list contains course dicts
+          (title, ects, isCompleted) sorted chronologically for that category,
+          in the same order as CategoryExam.objects.filter(exam=block.exam).
+      - categories_completed_ects: list of floats, completed ECTS per category.
+    """
+    categories = CategoryExam.objects.filter(exam=block.exam).select_related('category')
+
+    completed_course_slugs = set(
+        block.completed_courseoccasions.values_list('slug', flat=True)
+    )
+    completed_private_slugs = set(
+        block.completed_privatecourses.values_list('slug', flat=True)
+    )
+
+    # Fetch all public course occasions sorted chronologically, with related data
+    # pre-fetched to avoid N+1 queries.
+    occasions = (
+        block.courseoccasions
+        .select_related('course', 'academic_year', 'time_period')
+        .prefetch_related('course__categorycourse_set__category')
+        .order_by('academic_year__year', 'time_period__week')
+    )
+    # Private courses sorted by (year, start).
+    private_courses = list(
+        block.privatecourses
+        .prefetch_related('privatecoursecategory_set__category')
+        .order_by('year', 'start')
+    )
+
+    categories_courses = []
+    categories_completed_ects = []
+
+    for cat_exam in categories:
+        category = cat_exam.category
+        courses_in_cat = []
+        completed_ects = 0.0
+        seen_course_ids = set()
+
+        for occasion in occasions:
+            # Skip if we already counted this course (same course, multiple occasions).
+            if occasion.course_id in seen_course_ids:
+                continue
+            cat_course = next(
+                (cc for cc in occasion.course.categorycourse_set.all()
+                 if cc.category_id == category.id),
+                None
+            )
+            if cat_course is None:
+                continue
+            is_completed = occasion.slug in completed_course_slugs
+            ects = float(cat_course.ects)
+            courses_in_cat.append({
+                'title': occasion.course.title,
+                'ects': ects,
+                'isCompleted': is_completed,
+            })
+            if is_completed:
+                completed_ects += ects
+            seen_course_ids.add(occasion.course_id)
+
+        for private_course in private_courses:
+            cat_private = next(
+                (pc for pc in private_course.privatecoursecategory_set.all()
+                 if pc.category_id == category.id),
+                None
+            )
+            if cat_private is None:
+                continue
+            is_completed = private_course.slug in completed_private_slugs
+            ects = float(cat_private.ects)
+            courses_in_cat.append({
+                'title': private_course.title,
+                'ects': ects,
+                'isCompleted': is_completed,
+            })
+            if is_completed:
+                completed_ects += ects
+
+        categories_courses.append(courses_in_cat)
+        categories_completed_ects.append(completed_ects)
+
+    return categories_courses, categories_completed_ects
 
 
 def update_prerequisite_check(request: HttpRequest, username, slug):
