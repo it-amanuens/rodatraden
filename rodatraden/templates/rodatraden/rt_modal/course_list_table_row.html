@@ -1,19 +1,28 @@
-<li class='rt-modal-table__row{% if courseoccasion.already_taking %} rt-modal-table__row--already-taking{% endif %}{% if courseoccasion.has_unmet_prerequisites %} rt-modal-table__row--unmet-prereq{% endif %}'>
+<li class='rt-modal-table__row{% if courseoccasion.in_block %} rt-modal-table__row--in-block{% elif courseoccasion.already_taking %} rt-modal-table__row--already-taking{% endif %}{% if courseoccasion.has_unmet_prerequisites %} rt-modal-table__row--unmet-prereq{% endif %}'>
   <div class='course-row__main'>
     <span>
+      {% if courseoccasion.in_block %}
+      <span class="add-course-link add-course-link--disabled"
+          title="Redan tillagd i blockschemat">
+        {{ course.title }}
+      </span>
+      {% else %}
       <a href="{% url 'block-add-course' username b_slug %}?slug={{ courseoccasion.slug}}{% if is_private %}&private=1{% endif %}"
           class="add-course-link"
           aria-label="Lägg till {{ course.title }} {{ course.ects }} högskolepoäng"
           title="{% if courseoccasion.has_unmet_prerequisites %}Förkunskapskrav ej uppfyllda - {% endif %}{% if courseoccasion.already_taking %}Lägg till (omregistrering){% else %}Lägg till{% endif %}">
         {{ course.title }}
       </a>
+      {% endif %}
       {% if courseoccasion.has_unmet_prerequisites %}
       <i class="fa fa-exclamation-triangle course-row__warning-icon" 
          aria-hidden="true" 
          title="Förkunskapskrav ej uppfyllda"></i>
       {% endif %}
       <span class='course-row__ects' aria-hidden="true">{{ course.ects }} hp</span>
-      {% if courseoccasion.already_taking %}
+      {% if courseoccasion.in_block %}
+      <span class='course-row__in-block-badge'>Redan tillagd</span>
+      {% elif courseoccasion.already_taking %}
       <span class='course-row__retake-badge'>Omregistrering</span>
       {% endif %}
     </span>

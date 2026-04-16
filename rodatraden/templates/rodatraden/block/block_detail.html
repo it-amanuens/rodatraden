@@ -131,6 +131,8 @@
 
   <!-- Chart.js -->
   <script src="{% static 'assets/js/chart.min.js' %}"></script>
+  <!-- D3 (used by the block schedule renderer) -->
+  <script src="{% static 'assets/js/d3.v5.min.js' %}"></script>
 
   <!-- Data that can be used in scripts -->
   {{ categories_title|json_script:"categories-title-data" }}
