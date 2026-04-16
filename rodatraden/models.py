@@ -985,6 +985,13 @@ class Block(models.Model):
         default=True, 
         verbose_name='Ska förkunskapskrav verifieras?')
 
+    # Course occasions for which prerequisite checking is skipped individually.
+    skipped_prerequisite_occasions = models.ManyToManyField(
+        CourseOccasion,
+        related_name='prerequisite_skipped_in_blocks',
+        blank=True,
+        verbose_name='Undantagna förkunskapskrav')
+
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""
 
