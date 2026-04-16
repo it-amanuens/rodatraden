@@ -330,6 +330,7 @@ export function updateCourseContainer(term, scale, margin) {
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
  * @param {string} blockToggleCoursePrereqUrl - URL to toggle per-course prerequisite checking.
+ * @param {string} blockToggleCourseCompleteUrl - URL to toggle per-course completed (avklarad) state.
  * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
 export function updateCourseBlocks(courseContainer,
@@ -339,6 +340,7 @@ export function updateCourseBlocks(courseContainer,
                                    courseoccasionInfoUrl,
                                    blockRemoveCourseUrl,
                                    blockToggleCoursePrereqUrl,
+                                   blockToggleCourseCompleteUrl,
                                    blockSchedule) {
   // Number of weeks in a regular term (fall/spring). Summer uses 10 weeks.
   const regularTermWeekCount = 20;
@@ -431,6 +433,35 @@ export function updateCourseBlocks(courseContainer,
 
     prereqToggleButton.append("i")
       .attr("class", "fa fa-graduation-cap");
+
+    // Add a button to toggle the completed (avklarad) state for the course.
+    let completeButton = newCourse.append("button")
+      .attr("class", "btn course-complete-button")
+      .attr("data-toggle", "tooltip")
+      .attr("data-placement", "left")
+      .attr("title", "Avklarad");
+
+    completeButton
+      .on("click", course => {
+        d3.event.stopPropagation();
+
+        const url = blockToggleCourseCompleteUrl
+          + "?slug=" + course.slug
+          + "&private=" + (course.isPrivate ? 1 : 0);
+
+        fetch(url, { method: 'GET' })
+          .then(response => response.json())
+          .then(courseOccasionsJSON => {
+            const courseOccasions = courseOccasionsJSON.map(occasion => {
+              return CourseOccasion.fromJSON(occasion);
+            });
+            blockSchedule.updateCourses(courseOccasions);
+          })
+          .catch(error => console.error(error));
+      });
+
+    completeButton.append("i")
+      .attr("class", "fa fa-check");
   }
 
   // Make a unique identifier of the course occasion available in the DOM.
@@ -543,6 +574,11 @@ export function updateCourseBlocks(courseContainer,
       // Mark a block if it's a retake of a course that appears earlier.
       if (course.isRetake) {
         classList.push('course--retake');
+      }
+
+      // Mark a block if it has been completed (avklarad).
+      if (course.isCompleted) {
+        classList.push('course--completed');
       }
 
       return classList.join(' ');

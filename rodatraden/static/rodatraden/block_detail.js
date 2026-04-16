@@ -271,6 +271,7 @@ function main() {
   const blockCategorySumsUrl = stringDataset.blockCategorySumsUrl;
   const prerequisiteCheckUrl = stringDataset.prerequisiteCheckUrl;
   const blockToggleCoursePrereqUrl = stringDataset.blockToggleCoursePrereqUrl;
+  const blockToggleCourseCompleteUrl = stringDataset.blockToggleCourseCompleteUrl;
 
   // Margin and scale affects the rendered blocks appearance.
   const margin = 1;
@@ -290,6 +291,7 @@ function main() {
     blockCourseListUrl,
     blockGetRelatedOccasionsUrl,
     blockToggleCoursePrereqUrl,
+    blockToggleCourseCompleteUrl,
     margin,
     scale
   );

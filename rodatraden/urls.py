@@ -113,6 +113,9 @@ urlpatterns = [
     path('blockscheman/<str:username>/<slug:slug>/kursforkunskapskrav/',
         views.toggle_course_prerequisite_check, name='toggle-course-prerequisite-check'),
 
+    path('blockscheman/<str:username>/<slug:slug>/avklarad/',
+        views.toggle_course_completed, name='toggle-course-completed'),
+
     # Profiles
     path('profiler/', views.ProfileList.as_view(), name='profile-list'),
     path('profiler/skapa', views.ProfileCreate.as_view(),

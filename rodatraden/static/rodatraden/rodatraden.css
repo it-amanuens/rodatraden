@@ -582,6 +582,33 @@ body:has(dialog[open]) {
   color: hsl(200, 80%, 70%);
 }
 
+.course-complete-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: var(--schedule-remove-button-size);
+  aspect-ratio: 1;
+  padding: 0;
+  margin: 0;
+  font-size: 0.7em;
+  opacity: 0.6;
+}
+
+.course--completed .course-complete-button {
+  opacity: 1;
+  color: hsl(130, 70%, 60%);
+}
+
+.course--completed {
+  border-color: hsl(130, 60%, 35%);
+  background-color: hsl(130, 60%, 25%);
+}
+
 .course a,
 .course .fa {
   color: var(--schedule-text-color);
@@ -671,7 +698,8 @@ body:has(dialog[open]) {
 /* The remove and prerequisite toggle buttons are hidden on devices with a mouse to remove clutter. */
 @media (hover: hover) {
   .course:not(:hover) .course-remove-button,
-  .course:not(:hover) .course-prereq-toggle-button {
+  .course:not(:hover) .course-prereq-toggle-button,
+  .course:not(:hover) .course-complete-button {
     display: none;
   }
 }
