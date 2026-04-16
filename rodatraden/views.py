@@ -1575,7 +1575,7 @@ def add_course_to_block(request: HttpRequest, block_username, block_slug):
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
     return JsonResponse(build_courses_json(block), safe=False)
 
@@ -1605,7 +1605,7 @@ def remove_course_from_block(request: HttpRequest, block_username: str, block_sl
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
     return JsonResponse(build_courses_json(block), safe=False)
 
@@ -1633,7 +1633,7 @@ def replace_course_in_block(request: HttpRequest, block_username: str, block_slu
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
     return JsonResponse(build_courses_json(block), safe=False)
 
@@ -1655,7 +1655,7 @@ def get_related_course_occasions(request: HttpRequest, block_username: str, bloc
     course_occasions_json = [occasion.as_json() for occasion in course_occasions]
 
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
     return JsonResponse(course_occasions_json, safe=False)
 
@@ -1696,25 +1696,35 @@ def get_block_category_sums(request: HttpRequest, block_username: str, block_slu
     })
 
 
-@login_required
 def build_courses_json(block):
     """Build JSON list of all course occasions in the block with per-course state.
 
     Returns a combined list of public and private course occasions, each
     annotated with block-specific state such as whether prerequisite checking
-    is skipped for that course.
+    is skipped or the course has been marked as completed.
     """
     skipped_slugs = set(
         block.skipped_prerequisite_occasions.values_list('slug', flat=True)
+    )
+    completed_course_slugs = set(
+        block.completed_courseoccasions.values_list('slug', flat=True)
+    )
+    completed_private_slugs = set(
+        block.completed_privatecourses.values_list('slug', flat=True)
     )
 
     course_occasions_json = []
     for course in block.courseoccasions.all():
         data = course.as_json()
         data['skipPrerequisiteCheck'] = course.slug in skipped_slugs
+        data['isCompleted'] = course.slug in completed_course_slugs
         course_occasions_json.append(data)
 
-    private_courses_json = [course.as_json() for course in block.privatecourses.all()]
+    private_courses_json = []
+    for course in block.privatecourses.all():
+        data = course.as_json()
+        data['isCompleted'] = course.slug in completed_private_slugs
+        private_courses_json.append(data)
 
     return course_occasions_json + private_courses_json
 
@@ -1760,5 +1770,37 @@ def toggle_course_prerequisite_check(request: HttpRequest, username: str, slug: 
         block.skipped_prerequisite_occasions.remove(course)
     else:
         block.skipped_prerequisite_occasions.add(course)
+
+    return JsonResponse(build_courses_json(block), safe=False)
+
+
+@login_required
+def toggle_course_completed(request: HttpRequest, username: str, slug: str):
+    """Toggle the completed (avklarad) state for a course in a block.
+
+    Completed courses are shown in green in the schedule.
+    """
+    block = get_object_or_404(Block, user__username=username, slug=slug)
+
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
+
+    course_slug = request.GET.get('slug', '')
+    is_private = request.GET.get('private', '')
+
+    if is_private == '1':
+        course = get_object_or_404(PrivateCourse, slug=course_slug)
+        if block.completed_privatecourses.filter(slug=course_slug).exists():
+            block.completed_privatecourses.remove(course)
+        else:
+            block.completed_privatecourses.add(course)
+    else:
+        course = get_object_or_404(CourseOccasion, slug=course_slug)
+        if block.completed_courseoccasions.filter(slug=course_slug).exists():
+            block.completed_courseoccasions.remove(course)
+        else:
+            block.completed_courseoccasions.add(course)
 
     return JsonResponse(build_courses_json(block), safe=False)

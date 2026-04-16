@@ -15,6 +15,7 @@ export default class BlockSchedule {
    * @param {string} blockCourseListUrl - URL to get a list of courses to add.
    * @param {string} blockGetRelatedOccasionsUrl - URL to get a list of other course occasions related to the same course.
    * @param {string} blockToggleCoursePrereqUrl - URL to toggle per-course prerequisite checking.
+   * @param {string} blockToggleCourseCompleteUrl - URL to toggle per-course completed (avklarad) state.
    * @param {number} scale - Scale used to calculating size and position.
    * @param {number} margin - Margin used to calculating size and position.
    */
@@ -29,6 +30,7 @@ export default class BlockSchedule {
               blockCourseListUrl,
               blockGetRelatedOccasionsUrl,
               blockToggleCoursePrereqUrl,
+              blockToggleCourseCompleteUrl,
               margin,
               scale) {
     this.#coursesData = new BlockScheduleData(startYear, courses, shouldStackTerms);
@@ -42,6 +44,7 @@ export default class BlockSchedule {
     this.#blockCourseListUrl = blockCourseListUrl;
     this.#blockGetRelatedOccasionsUrl = blockGetRelatedOccasionsUrl;
     this.#blockToggleCoursePrereqUrl = blockToggleCoursePrereqUrl;
+    this.#blockToggleCourseCompleteUrl = blockToggleCourseCompleteUrl;
 
     this.#margin = margin;
     this.#scale = scale;
@@ -174,6 +177,8 @@ export default class BlockSchedule {
   #blockGetRelatedOccasionsUrl;
   /** @type {string} */
   #blockToggleCoursePrereqUrl;
+  /** @type {string} */
+  #blockToggleCourseCompleteUrl;
   /** @type {Function|null} */
   #onCoursesChangedCallback = null;
 
@@ -230,6 +235,7 @@ export default class BlockSchedule {
       this.#courseoccasionInfoUrl,
       this.#blockRemoveCourseUrl,
       this.#blockToggleCoursePrereqUrl,
+      this.#blockToggleCourseCompleteUrl,
       this
     );
 
