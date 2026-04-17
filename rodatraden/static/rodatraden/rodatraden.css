@@ -96,6 +96,12 @@
   text-align: left;
 }
 
+/* Keep page action buttons clickable even when nearby content overlaps. */
+.main-template > .text-right {
+  position: relative;
+  z-index: 3;
+}
+
 /* Report problem button */
 .send-report {
   position: fixed;
@@ -719,11 +725,9 @@ body:has(dialog[open]) {
   background-color: var(--schedule-background-color-dark);
 }
 
-/* The remove and prerequisite toggle buttons are hidden on devices with a mouse to remove clutter. */
+/* Keep only the remove button hover behavior on pointer devices. */
 @media (hover: hover) {
-  .course:not(:hover) .course-remove-button,
-  .course:not(:hover) .course-prereq-toggle-button,
-  .course:not(:hover) .course-complete-button {
+  .course:not(:hover) .course-remove-button {
     display: none;
   }
 }
