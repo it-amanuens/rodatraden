@@ -1801,19 +1801,21 @@ def build_categories_courses_json(block):
     return categories_courses, categories_completed_ects
 
 
+@login_required
 def update_prerequisite_check(request: HttpRequest, username, slug):
     """Update if the prerequisites should be verified for the block or not."""
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
-    shouldEnable = request.GET.get('enable', '')
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
 
-    # Treat anything non-empty as True
-    # XXX: Will also be true for "enable=0" or "enable=false" etc.
-    if (shouldEnable):
-        block.should_verify_prerequisites = True
-    else:
-        block.should_verify_prerequisites = False
+    should_enable = request.GET.get('enable', '').strip().lower()
+
+    # Enable only for explicit truthy values.
+    block.should_verify_prerequisites = should_enable in {'1', 'true', 'yes', 'on'}
 
     block.save()
 
@@ -1836,7 +1838,7 @@ def toggle_course_prerequisite_check(request: HttpRequest, username: str, slug: 
         raise PermissionDenied
 
     course_slug = request.GET.get('slug', '')
-    course = get_object_or_404(CourseOccasion, slug=course_slug)
+    course = get_object_or_404(block.courseoccasions.all(), slug=course_slug)
 
     if block.skipped_prerequisite_occasions.filter(slug=course_slug).exists():
         block.skipped_prerequisite_occasions.remove(course)
@@ -1863,13 +1865,13 @@ def toggle_course_completed(request: HttpRequest, username: str, slug: str):
     is_private = request.GET.get('private', '')
 
     if is_private == '1':
-        course = get_object_or_404(PrivateCourse, slug=course_slug)
+        course = get_object_or_404(block.privatecourses.all(), slug=course_slug)
         if block.completed_privatecourses.filter(slug=course_slug).exists():
             block.completed_privatecourses.remove(course)
         else:
             block.completed_privatecourses.add(course)
     else:
-        course = get_object_or_404(CourseOccasion, slug=course_slug)
+        course = get_object_or_404(block.courseoccasions.all(), slug=course_slug)
         if block.completed_courseoccasions.filter(slug=course_slug).exists():
             block.completed_courseoccasions.remove(course)
         else:

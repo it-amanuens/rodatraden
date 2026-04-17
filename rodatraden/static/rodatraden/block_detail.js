@@ -44,6 +44,12 @@ function setupPrerequisiteCheckbox(prerequisiteCheckUrl) {
  * schedule, as well as import from other schedules.
  */
 function setupMenuButtons() {
+  // If the modalForm plugin is unavailable, keep native link navigation as fallback.
+  if (typeof $.fn.modalForm !== 'function') {
+    console.warn('modalForm plugin is not available; using link fallback for menu buttons.');
+    return;
+  }
+
   $(".update-block").each(function () {
     $(this).modalForm({formURL: $(this).data('id')});
   });

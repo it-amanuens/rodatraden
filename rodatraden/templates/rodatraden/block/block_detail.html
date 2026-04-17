@@ -14,16 +14,19 @@
   <span class="fa fa-list"></span>
 </a>
 <a class="btn btn-gone import-block"
+  href="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-id="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Importera blockschema">
   <span class="fa fa-share-square"></span>
 </a>
 <a class="btn btn-gone update-block"
+  href="{% url 'block-update' this_block.user this_block.slug %}"
   data-id="{% url 'block-update' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-block"
+  href="{% url 'block-delete' this_block.user this_block.slug %}"
   data-id="{% url 'block-delete' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>

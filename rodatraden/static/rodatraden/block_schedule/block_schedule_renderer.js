@@ -405,63 +405,6 @@ export function updateCourseBlocks(courseContainer,
     removeButton.append("i")
       .attr("class", "fa fa-times");
 
-    // Add a button to toggle per-course prerequisite checking. Only shown for
-    // public courses since private ones have no prerequisites.
-    let prereqToggleButton = newCourse.filter(course => !course.isPrivate)
-      .append("button")
-      .attr("class", "btn course-prereq-toggle-button")
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "left")
-      .attr("title", "Ska förkunskapskrav verifieras?");
-
-    prereqToggleButton
-      .on("click", course => {
-        d3.event.stopPropagation();
-
-        const url = blockToggleCoursePrereqUrl + "?slug=" + course.slug;
-
-        fetch(url, { method: 'GET' })
-          .then(response => response.json())
-          .then(courseOccasionsJSON => {
-            const courseOccasions = courseOccasionsJSON.map(occasion => {
-              return CourseOccasion.fromJSON(occasion);
-            });
-            blockSchedule.updateCourses(courseOccasions);
-          })
-          .catch(error => console.error(error));
-      });
-
-    prereqToggleButton.append("i")
-      .attr("class", "fa fa-graduation-cap");
-
-    // Add a button to toggle the completed (avklarad) state for the course.
-    let completeButton = newCourse.append("button")
-      .attr("class", "btn course-complete-button")
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "left")
-      .attr("title", "Avklarad");
-
-    completeButton
-      .on("click", course => {
-        d3.event.stopPropagation();
-
-        const url = blockToggleCourseCompleteUrl
-          + "?slug=" + course.slug
-          + "&private=" + (course.isPrivate ? 1 : 0);
-
-        fetch(url, { method: 'GET' })
-          .then(response => response.json())
-          .then(courseOccasionsJSON => {
-            const courseOccasions = courseOccasionsJSON.map(occasion => {
-              return CourseOccasion.fromJSON(occasion);
-            });
-            blockSchedule.updateCourses(courseOccasions);
-          })
-          .catch(error => console.error(error));
-      });
-
-    completeButton.append("i")
-      .attr("class", "fa fa-check");
   }
 
   // Make a unique identifier of the course occasion available in the DOM.
@@ -526,36 +469,58 @@ export function updateCourseBlocks(courseContainer,
           const modalDocument = parser.parseFromString(html, 'text/html');
           modalContent.innerHTML = modalDocument.body.innerHTML;
 
-          // Add an "Avklarad" toggle button in the modal footer when the user
-          // is logged in and the toggle URL is available.
+          const updateCoursesFromUrl = toggleUrl => {
+            fetch(toggleUrl, { method: 'GET' })
+              .then(r => r.json())
+              .then(courseOccasionsJSON => {
+                const courseOccasions = courseOccasionsJSON.map(o => CourseOccasion.fromJSON(o));
+                blockSchedule.updateCourses(courseOccasions);
+                nativeModal.close();
+              })
+              .catch(error => console.error(error));
+          };
+
+          const prependFooterButton = (footer, className, html, onClick, isActive = false) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = className;
+            button.innerHTML = html;
+            if (isActive) {
+              button.classList.add('modal-complete-button--active');
+            }
+            button.addEventListener('click', onClick);
+            footer.prepend(button);
+          };
+
+          // Add per-course toggle buttons in the modal footer when the user is
+          // logged in and the toggle URLs are available.
           if (isLoggedIn && blockToggleCourseCompleteUrl) {
             const footer = modalContent.querySelector('.modal-footer');
             if (footer) {
-              const btn = document.createElement('button');
-              btn.type = 'button';
-              btn.className = 'btn btn-rt modal-complete-button';
-              btn.innerHTML = course.isCompleted
+              if (blockToggleCoursePrereqUrl) {
+                const prereqLabel = course.skipPrerequisiteCheck
+                  ? '<i class="fa fa-graduation-cap"></i> Verifiera förkunskapskrav: Av'
+                  : '<i class="fa fa-graduation-cap"></i> Verifiera förkunskapskrav: På';
+                prependFooterButton(
+                  footer,
+                  'btn btn-rt modal-prereq-button',
+                  prereqLabel,
+                  () => updateCoursesFromUrl(blockToggleCoursePrereqUrl + '?slug=' + course.slug)
+                );
+              }
+
+              const completeLabel = course.isCompleted
                 ? '<i class="fa fa-check"></i> Avklarad'
                 : '<i class="fa fa-check"></i> Markera som avklarad';
-              if (course.isCompleted) {
-                btn.classList.add('modal-complete-button--active');
-              }
-              btn.addEventListener('click', () => {
-                const toggleUrl = blockToggleCourseCompleteUrl
-                  + '?slug=' + course.slug
-                  + '&private=0';
-                fetch(toggleUrl, { method: 'GET' })
-                  .then(r => r.json())
-                  .then(courseOccasionsJSON => {
-                    const courseOccasions = courseOccasionsJSON.map(
-                      o => CourseOccasion.fromJSON(o)
-                    );
-                    blockSchedule.updateCourses(courseOccasions);
-                    nativeModal.close();
-                  })
-                  .catch(error => console.error(error));
-              });
-              footer.prepend(btn);
+              prependFooterButton(
+                footer,
+                'btn btn-rt modal-complete-button',
+                completeLabel,
+                () => updateCoursesFromUrl(
+                  blockToggleCourseCompleteUrl + '?slug=' + course.slug + '&private=0'
+                ),
+                course.isCompleted
+              );
             }
           }
 
