@@ -183,6 +183,28 @@ After this navigate to the admin interface. Here we will have to add entries lik
 
 After after creating these, new courses can be added to the default site
 
+## GitHub Release + Docker image
+
+This repository now includes a GitHub Actions workflow that runs when you push a version tag (`v*`).
+
+It will:
+- Create a GitHub Release from the tag
+- Build a Docker image from `Dockerfile`
+- Publish the image to GitHub Container Registry as `ghcr.io/<owner>/rodatraden`
+
+### Create a release
+
+1. Ensure you are on the branch you want to release (usually `master`) and push your latest changes.
+2. Create and push a semantic version tag:
+   `git tag v1.0.0`
+   `git push origin v1.0.0`
+3. Wait for the workflow to finish in the GitHub Actions tab.
+
+### Pull the released image
+
+Example:
+`docker pull ghcr.io/<owner>/rodatraden:v1.0.0`
+
 
 ## Backups of the data
 
