@@ -1,130 +1,93 @@
-# Migreringsguide — Automatisk schemaläggning
+# Migration Guide - Automatic Scheduling
 
-Den här guiden beskriver hur du uppgraderar produktionsservern med de nya
-schemaläggningsfunktionerna.
+This guide describes how to upgrade a production server with the new
+automatic scheduling functionality.
 
-## Sammanfattning av ändringar
+## Summary of changes
 
-### Nya funktioner
-- **CourseScheduleSegment-modell** — Regler som styr när en kurs ges (period,
-  frekvens, start/slutår, undantagsår).
-- **Schemaläggningskort** på kurssidan — CRUD för segment + "Verkställ"-knapp
-  som förhandsgranskar och skapar/tar bort kurstillfällen per kurs.
-- **Globalt genereringsverktyg** på `/verktyg/` — Generera kurstillfällen för
-  alla år baserat på alla kursers segment.
-- **`auto_generated`-fält** på CourseOccasion — Markerar kurstillfällen som
-  skapats automatiskt så att de kan hanteras separat.
-- **Behörighet `can_manage_scheduling`** — Begränsar schemaläggning till
-  utvalda användare.
+### New features
+- **`CourseScheduleSegment` model** - Rules for when a course is offered
+  (period, frequency, start/end year, excluded years).
+- **Scheduling card** on course detail pages - CRUD for segments + an
+  "Apply" action to preview and create/remove course occasions per course.
+- **Global generation tool** at `/verktyg/` - Generate course occasions for
+  all years based on all course segments.
+- **`auto_generated` field** on `CourseOccasion` - Marks occasions created
+  automatically so they can be managed separately.
+- **`can_manage_scheduling` permission** - Restricts scheduling actions to
+  selected users.
 
-### Borttagna modeller
-- **`AcademicYear`** — Hela modellen är borttagen. `CourseOccasion.year` är nu
-  ett vanligt `IntegerField` (precis som `PrivateCourse.year`).
-  Visningstitlar som "20/21" beräknas automatiskt av `academic_year_title()`.
-  Årval i formulär genereras dynamiskt (nuvarande år ± 10) — inga
-  databasposter behöver skapas i förväg.
-- **`ensure_academic_years`-kommandot** — Borttaget (inte längre behövt).
+### Removed models
+- **`AcademicYear`** - Removed. `CourseOccasion.year` is now a plain
+  `IntegerField` (same approach as `PrivateCourse.year`).
+  Display titles like "20/21" are computed by `academic_year_title()`.
+  Year options in forms are generated dynamically (current year +/- 10), so
+  no pre-created database rows are needed.
+- **`ensure_academic_years` management command** - Removed.
 
-### Borttagna fält
-- **`Course.closed`** — Oanvänt fält borttaget.
+### Removed fields
+- **`Course.closed`** - Removed unused field.
 
-### Oförändrade fält
-- **`CourseOccasion.contact_name`** och **`CourseOccasion.contact_email`** —
-  Kvar som förut på kurstillfällen. Dessa kopieras **inte** automatiskt vid
-  schemaläggning, men kan fortfarande redigeras manuellt per kurstillfälle.
+### Unchanged fields
+- **`CourseOccasion.contact_name`** and **`CourseOccasion.contact_email`** -
+  Still available on course occasions. These are **not** copied automatically
+  during scheduling and can still be edited manually per occasion.
 
-## Steg-för-steg
+## Step-by-step
 
-### 1. Säkerhetskopia
+### 1. Backup
 
 ```bash
-# Kopiera databasen innan migrering
+# Copy database before migration
 cp mydatabase mydatabase.backup_$(date +%Y%m%d)
 ```
 
-### 2. Hämta senaste koden
+### 2. Pull latest code
 
 ```bash
 git pull origin main
 ```
 
-### 3. Installera beroenden (om uppdaterade)
+### 3. Install dependencies (if updated)
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Skapa migreringsfiler
+### 4. Run the upgrade script
+
+If you do not want to sync one specific migration file across environments,
+use the upgrade script.
+
+The script will:
+- run an empty `makemigrations` locally with the next available number,
+- include a branch-based suffix in the migration name (for example
+  `0007_remove_incremental_years_copilot_remove_increment.py`),
+- write the required data-migration operations into that file,
+- run `migrate`.
 
 ```bash
-python manage.py makemigrations rodatraden
+python upgrade_remove_incremental_years.py
 ```
 
-### 5. Redigera migreringen (viktigt för befintlig data)
+Yes: this means each environment gets its own local migration file in
+`rodatraden/migrations/`, and that generated file is then applied by Django
+through `migrate`.
 
-För databaser som redan innehåller kurstillfällen behöver du justera den
-lokalt skapade migreringen så att data kopieras innan gamla FK-fält tas bort.
+This matches a workflow where `makemigrations` is usually local. For this
+specific upgrade, use the script instead of plain `makemigrations`, since
+Django cannot safely infer values for the new required `year` field.
 
-Säker ordning i migreringen:
-- Lägg till `CourseOccasion.year` som **nullable** (`null=True`) först.
-- Lägg till `CourseOccasion.start` (om den inte redan finns) först.
-- Kör en data-kopiering (SQL eller `RunPython`):
-  - `CourseOccasion.year` från `AcademicYear.year`
-  - `CourseOccasion.start` från `TimePeriod.week`
-- Ta bort gamla FK-fält (`academic_year`, `time_period`).
-- Ta bort modellerna `AcademicYear` och `TimePeriod`.
-- Avsluta med att göra `CourseOccasion.year` icke-nullable.
-
-Exempel-SQL (i migrationsfilen, efter att `year`/`start` har lagts till):
-
-```sql
-UPDATE rodatraden_courseoccasion co
-SET year = ay.year
-FROM rodatraden_academicyear ay
-WHERE ay.id = co.academic_year_id;
-
-UPDATE rodatraden_courseoccasion co
-SET start = tp.week
-FROM rodatraden_timeperiod tp
-WHERE tp.id = co.time_period_id;
-```
-
-Utan detta steg riskerar befintliga rader att få felaktiga värden eller tappa
-år/period-information.
-
-Typiska operationer i den lokala migreringen:
-- Tar bort `Course.closed`
-- Lägger till `CourseOccasion.auto_generated`
-- Skapar `CourseScheduleSegment`-modellen
-- **Lägger till `CourseOccasion.year` (IntegerField)**
-- **Tar bort `CourseOccasion.academic_year` (ForeignKey)**
-- **Tar bort `AcademicYear`-modellen**
-
-**VIKTIGT**: Om Django frågar om fältet `year` bytt namn från
-`academic_year`, svara **Nej** — det är ett nytt fält.
-
-### 6. Granska migreringen (valfritt)
-
-```bash
-python manage.py sqlmigrate rodatraden <nummer>
-```
-
-### 7. Tillämpa migreringarna
-
-```bash
-python manage.py migrate
-```
-
-### 8. Samla statiska filer
+### 5. Collect static files
 
 ```bash
 python manage.py collectstatic --noinput
 ```
 
-### 9. Tilldela behörighet
+### 6. Grant permission
 
-Ge rätt användare behörigheten `can_manage_scheduling` via Djangos
-admin-panel (`/admin/auth/user/`) eller med ett skript:
+Grant `can_manage_scheduling` to relevant users via admin
+(`/admin/auth/user/`) or via script:
 
 ```bash
 python manage.py shell -c "
@@ -134,40 +97,57 @@ User = get_user_model()
 perm = Permission.objects.get(codename='can_manage_scheduling')
 for user in User.objects.filter(is_staff=True):
     user.user_permissions.add(perm)
-    print(f'Gav behörighet till {user.username}')
+    print(f'Granted permission to {user.username}')
 "
 ```
 
-### 10. Importera schemaläggningssegment
+### 7. Import scheduling segments
 
-Segmenten för befintliga kurser kan genereras automatiskt från befintliga
-kurstillfällen:
+Generate segments for existing courses from existing course occasions:
 
 ```bash
-# Förhandsvisning (ingen data ändras)
+# Preview only (no data changes)
 python manage.py infer_course_scheduling
 
-# Tillämpa
+# Apply changes
 python manage.py infer_course_scheduling --apply
 ```
 
-### 11. Validera
+### 8. Validate
 
-Kontrollera att segmenten matchar befintliga kurstillfällen:
+Verify that segments match existing course occasions:
 
 ```bash
 python manage.py validate_course_schedule_parity
 ```
 
-### 12. Starta om servern
+### 9. Restart server
 
-Starta om webbservern (t.ex. IIS, gunicorn, eller liknande).
+Restart your web server (for example IIS, gunicorn, or equivalent).
 
-## Felsökning
+## Troubleshooting
 
-| Problem | Lösning |
-|---------|---------|
-| `makemigrations` skapar oväntade migreringar | Kontrollera att inga gamla migreringsfiler finns kvar |
-| Behörighetsfelet vid schemaläggning | Tilldela `can_manage_scheduling` (steg 9) |
-| Segment saknas | Kör `infer_course_scheduling --apply` (steg 10) |
-| `CourseOccasion.year` är NULL efter migrering | Steg 4 missades — kör SQL-kopieringen manuellt |
+| Problem | Solution |
+|---------|----------|
+| `makemigrations` wants to create new migrations | For this upgrade, run `python upgrade_remove_incremental_years.py` instead of plain `makemigrations`. |
+| Scheduling permission error | Grant `can_manage_scheduling` (step 6). |
+| Missing segments | Run `python manage.py infer_course_scheduling --apply` (step 7). |
+| `CourseOccasion.year` is NULL after migration | Step 4 was not executed correctly. Re-run `python upgrade_remove_incremental_years.py` and verify migration output. |
+
+## PR description text
+
+You can copy this into the PR:
+
+```text
+Upgrading from master to this branch requires a branch-aware upgrade migration step.
+
+Run on each environment:
+1) Activate your virtual environment
+2) python upgrade_remove_incremental_years.py
+
+The script creates a local empty migration with the next available number and a
+branch-based name, injects the required data migration (AcademicYear/TimePeriod ->
+year/start), and runs migrate.
+
+Do not use plain makemigrations for this specific upgrade step.
+```
