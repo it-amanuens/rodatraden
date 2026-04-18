@@ -15,7 +15,7 @@ def academic_year_title(year: int) -> str:
 
     Example: 2011 → "11/12", 2020 → "20/21".
     """
-    return f"{str(year)[2:]}/{str(year + 1)[2:]}"
+    return f"{year % 100:02d}/{(year + 1) % 100:02d}"
 
 
 # How many years before/after today to show in dropdowns.

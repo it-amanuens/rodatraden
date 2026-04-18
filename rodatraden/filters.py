@@ -5,6 +5,17 @@ from .models import (
     CourseOccasion, academic_year_title, YEAR_RANGE_OFFSET
 )
 
+
+def _courseoccasion_year_choices(extra_years=YEAR_RANGE_OFFSET):
+    """Build year choices from dynamic range + existing database values."""
+    current = datetime.date.today().year
+    years = set(range(current - extra_years, current + extra_years + 1))
+    years.update(
+        CourseOccasion.objects.exclude(year__isnull=True).values_list('year', flat=True)
+    )
+
+    return [('', 'Läsår')] + [(y, academic_year_title(y)) for y in sorted(years)]
+
 class CourseFilter(django_filters.FilterSet):
     """Filter settings for the list of courses.
     
@@ -63,13 +74,7 @@ class CourseOccasionFilter(django_filters.FilterSet):
     )
     # Year is now a plain IntegerField — use ChoiceFilter with dynamic choices.
     year = django_filters.ChoiceFilter(
-            choices=lambda: [('', 'Läsår')] + [
-                (y, academic_year_title(y))
-                for y in range(
-                    datetime.date.today().year - YEAR_RANGE_OFFSET,
-                    datetime.date.today().year + YEAR_RANGE_OFFSET + 1,
-                )
-            ],
+            choices=_courseoccasion_year_choices,
             empty_label=None,  # we include the empty option in choices above
             field_name='year'
     )

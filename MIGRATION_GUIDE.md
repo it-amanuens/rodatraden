@@ -54,39 +54,45 @@ git pull origin main
 pip install -r requirements.txt
 ```
 
-### 4. Kopiera år-data från AcademicYear till CourseOccasion (INNAN makemigrations)
-
-Innan du kör `makemigrations` måste befintliga FK-värden kopieras. Kör
-följande i Django-shell:
-
-```bash
-python manage.py shell -c "
-from rodatraden.models import CourseOccasion
-# This only works BEFORE the model changes are applied.
-# If academic_year_id still exists, copy the year values.
-from django.db import connection
-cursor = connection.cursor()
-cursor.execute('''
-    UPDATE rodatraden_courseoccasion co
-    SET year = (
-        SELECT ay.year
-        FROM rodatraden_academicyear ay
-        WHERE ay.id = co.academic_year_id
-    )
-''')
-print(f'Updated {cursor.rowcount} rows')
-"
-```
-
-Alternativt kan du skapa en data-migrering (se steg 5).
-
-### 5. Skapa migreringsfiler
+### 4. Skapa migreringsfiler
 
 ```bash
 python manage.py makemigrations rodatraden
 ```
 
-Django kommer att skapa migrering(ar) som:
+### 5. Redigera migreringen (viktigt för befintlig data)
+
+För databaser som redan innehåller kurstillfällen behöver du justera den
+lokalt skapade migreringen så att data kopieras innan gamla FK-fält tas bort.
+
+Säker ordning i migreringen:
+- Lägg till `CourseOccasion.year` som **nullable** (`null=True`) först.
+- Lägg till `CourseOccasion.start` (om den inte redan finns) först.
+- Kör en data-kopiering (SQL eller `RunPython`):
+  - `CourseOccasion.year` från `AcademicYear.year`
+  - `CourseOccasion.start` från `TimePeriod.week`
+- Ta bort gamla FK-fält (`academic_year`, `time_period`).
+- Ta bort modellerna `AcademicYear` och `TimePeriod`.
+- Avsluta med att göra `CourseOccasion.year` icke-nullable.
+
+Exempel-SQL (i migrationsfilen, efter att `year`/`start` har lagts till):
+
+```sql
+UPDATE rodatraden_courseoccasion co
+SET year = ay.year
+FROM rodatraden_academicyear ay
+WHERE ay.id = co.academic_year_id;
+
+UPDATE rodatraden_courseoccasion co
+SET start = tp.week
+FROM rodatraden_timeperiod tp
+WHERE tp.id = co.time_period_id;
+```
+
+Utan detta steg riskerar befintliga rader att få felaktiga värden eller tappa
+år/period-information.
+
+Typiska operationer i den lokala migreringen:
 - Tar bort `Course.closed`
 - Lägger till `CourseOccasion.auto_generated`
 - Skapar `CourseScheduleSegment`-modellen
@@ -95,8 +101,7 @@ Django kommer att skapa migrering(ar) som:
 - **Tar bort `AcademicYear`-modellen**
 
 **VIKTIGT**: Om Django frågar om fältet `year` bytt namn från
-`academic_year`, svara **Nej** — det är ett nytt fält. Du kan behöva
-justera migreringsordningen så att data kopieras innan FK:n tas bort.
+`academic_year`, svara **Nej** — det är ett nytt fält.
 
 ### 6. Granska migreringen (valfritt)
 

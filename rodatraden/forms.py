@@ -16,16 +16,21 @@ from rodatraden.rodatraden_modules.forms import StartWeekField
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
 
 
-def _dynamic_year_choices(extra_years=YEAR_RANGE_OFFSET):
+def _dynamic_year_choices(extra_years=YEAR_RANGE_OFFSET, include_years=None):
     """Build (value, label) tuples for current year ± extra_years.
 
     The range is wide enough to cover both historical and future course
     occasions without needing pre-allocated database rows.
     """
     current = datetime.date.today().year
+    years = set(range(current - extra_years, current + extra_years + 1))
+    for y in include_years or []:
+        if y is not None:
+            years.add(int(y))
+
     return [
         (y, academic_year_title(y))
-        for y in range(current - extra_years, current + extra_years + 1)
+        for y in sorted(years)
     ]
 
 
@@ -125,7 +130,9 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         self._build_category_fields(categories)
 
         # Year choices computed dynamically — no database query needed.
-        year_choices = _dynamic_year_choices()
+        year_choices = _dynamic_year_choices(
+            include_years=[self.instance.year] if self.instance.pk else None
+        )
         self.fields['year'] = forms.ChoiceField(choices=year_choices,
                 initial=datetime.datetime.now().year)
         # Always save to current user
@@ -178,9 +185,10 @@ class CourseScheduleSegmentForm(BSModalModelForm):
             self.initial['course'] = self.request.GET['course']
 
         # Year choices computed dynamically (str keys for ChoiceField compat).
+        include_years = [self.instance.start_year, self.instance.end_year] if self.instance.pk else None
         year_choices = [
             (str(y), label)
-            for y, label in _dynamic_year_choices()
+            for y, label in _dynamic_year_choices(include_years=include_years)
         ]
         self.fields['start_year'] = forms.ChoiceField(
             choices=year_choices,
@@ -234,7 +242,9 @@ class CourseOccasionForm(BSModalModelForm):
 
         # Year is now a plain IntegerField — present as a dropdown with
         # dynamically computed year choices (current year ± 10).
-        year_choices = _dynamic_year_choices()
+        year_choices = _dynamic_year_choices(
+            include_years=[self.instance.year] if self.instance.pk else None
+        )
         self.fields['year'] = forms.ChoiceField(
             choices=year_choices,
             initial=datetime.datetime.now().year,
@@ -288,7 +298,9 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Year choices computed dynamically — no database query needed.
-        years = _dynamic_year_choices()
+        years = _dynamic_year_choices(
+            include_years=[self.instance.start_year] if self.instance.pk else None
+        )
         
         # Use can import form all public blocks published in a track and all
         # their own blocks.
