@@ -149,7 +149,7 @@ class StartWeekField(forms.MultiValueField):
 
     # A choice for a ChoiceField or Select widget is a 2-tuple on the form
     # (value, human readable name).
-    _period_choices = [(i, f'LP{i}') for i in range(1, 5)]
+    _period_choices = [(i, f'LP{i}') for i in range(1, 6)]
     _week_offset_choices = [(i, f'+ {i} veckor') for i in range(10)]
 
     # The widgets need the choices to be able to list them as option elements
