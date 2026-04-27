@@ -405,6 +405,7 @@ export function updateCourseBlocks(courseContainer,
     removeButton.append("i")
       .attr("class", "fa fa-times");
 
+
   }
 
   // Make a unique identifier of the course occasion available in the DOM.
@@ -480,46 +481,63 @@ export function updateCourseBlocks(courseContainer,
               .catch(error => console.error(error));
           };
 
-          const prependFooterButton = (footer, className, html, onClick, isActive = false) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = className;
-            button.innerHTML = html;
-            if (isActive) {
-              button.classList.add('modal-complete-button--active');
+          const getFooterCheckboxGroup = footer => {
+            let group = footer.querySelector('.modal-footer-checkbox-group');
+
+            if (!group) {
+              group = document.createElement('div');
+              group.className = 'modal-footer-checkbox-group';
+              footer.prepend(group);
             }
-            button.addEventListener('click', onClick);
-            footer.prepend(button);
+
+            return group;
           };
 
-          // Add per-course toggle buttons in the modal footer when the user is
+          const appendFooterCheckbox = (footer, inputId, labelText, isChecked, onChange) => {
+            const group = getFooterCheckboxGroup(footer);
+            const container = document.createElement('div');
+            container.className = 'prerequisite-checkbox';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = inputId;
+            input.className = 'prerequisite-checkbox__input';
+            input.checked = isChecked;
+            input.addEventListener('change', onChange);
+
+            const label = document.createElement('label');
+            label.className = 'prerequisite-checkbox__text';
+            label.setAttribute('for', inputId);
+            label.textContent = labelText;
+
+            container.appendChild(input);
+            container.appendChild(label);
+            group.appendChild(container);
+          };
+
+          // Add per-course toggle checkboxes in the modal footer when the user is
           // logged in and the toggle URLs are available.
           if (isLoggedIn && blockToggleCourseCompleteUrl) {
             const footer = modalContent.querySelector('.modal-footer');
             if (footer) {
               if (blockToggleCoursePrereqUrl) {
-                const prereqLabel = course.skipPrerequisiteCheck
-                  ? '<i class="fa fa-graduation-cap"></i> Verifiera förkunskapskrav: Av'
-                  : '<i class="fa fa-graduation-cap"></i> Verifiera förkunskapskrav: På';
-                prependFooterButton(
+                appendFooterCheckbox(
                   footer,
-                  'btn btn-rt modal-prereq-button',
-                  prereqLabel,
+                  `modal-prereq-checkbox-${course.slug}`,
+                  'Verifiera förkunskapskrav',
+                  !course.skipPrerequisiteCheck,
                   () => updateCoursesFromUrl(blockToggleCoursePrereqUrl + '?slug=' + course.slug)
                 );
               }
 
-              const completeLabel = course.isCompleted
-                ? '<i class="fa fa-check"></i> Avklarad'
-                : '<i class="fa fa-check"></i> Markera som avklarad';
-              prependFooterButton(
+              appendFooterCheckbox(
                 footer,
-                'btn btn-rt modal-complete-button',
-                completeLabel,
+                `modal-complete-checkbox-${course.slug}`,
+                'Avklarad',
+                course.isCompleted,
                 () => updateCoursesFromUrl(
                   blockToggleCourseCompleteUrl + '?slug=' + course.slug + '&private=0'
-                ),
-                course.isCompleted
+                )
               );
             }
           }
@@ -602,6 +620,7 @@ export function updateCourseBlocks(courseContainer,
       const top = course.firstRowIndex * scale + margin * 3;
       return top + "px";
     });
+
 
   // Add a warning icon to the course blocks that have unmet prerequisites.
   const warningIconSelection = course.selectAll(".course-warning-icon")

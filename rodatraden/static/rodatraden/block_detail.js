@@ -106,35 +106,6 @@ function sumEctsPerCategory(categoriesCoursesList) {
   );
 }
 
-/**
- * Creates a diagonal stripe canvas pattern for use as a Chart.js bar fill.
- *
- * @param {CanvasRenderingContext2D} ctx - The chart's 2D rendering context.
- * @param {string} stripeColor - Color of the diagonal stripes.
- * @param {string} bgColor - Background color between stripes.
- * @returns {CanvasPattern}
- */
-function createStripePattern(ctx, stripeColor, bgColor) {
-  const size = 10;
-  const tile = document.createElement('canvas');
-  tile.width = size;
-  tile.height = size;
-  const tCtx = tile.getContext('2d');
-
-  tCtx.fillStyle = bgColor;
-  tCtx.fillRect(0, 0, size, size);
-
-  tCtx.strokeStyle = stripeColor;
-  tCtx.lineWidth = 4;
-  // Draw a single -45° diagonal line through the tile; 'repeat' handles the rest.
-  tCtx.beginPath();
-  tCtx.moveTo(-2, size + 2);
-  tCtx.lineTo(size + 2, -2);
-  tCtx.stroke();
-
-  return ctx.createPattern(tile, 'repeat');
-}
-
 // Store the chart instance globally so we can update it later.
 let categorySumChart = null;
 
@@ -146,7 +117,7 @@ let categoriesCourses = [];
  *
  * The chart has three datasets:
  *  - "Krav"       (gray)            – required ECTS for the category.
- *  - "Avklarad"   (green, striped)  – ECTS from courses marked as completed.
+ *  - "Avklarad"   (green)           – ECTS from courses marked as completed.
  *  - "Resterande" (red)             – remaining ECTS in the schedule (Summa – Avklarad).
  *
  * Hovering a bar shows a tooltip listing each contributing course and its ECTS,
@@ -179,12 +150,10 @@ function createCategorySumChart() {
   const style = getComputedStyle(document.documentElement);
   const grayColor = style.getPropertyValue('--gray').trim() || '#808080';
   const mainColor = style.getPropertyValue('--main-color').trim() || '#c0392b';
-  const greenStripe = 'hsl(130, 60%, 40%)';
-  const greenBg = 'hsl(130, 60%, 20%)';
+  const completeColor = 'hsl(130, 60%, 35%)';
 
   // Create the Chart.js horizontal bar chart and store the reference.
   const ctx = document.getElementById('category-chart').getContext('2d');
-  const stripePattern = createStripePattern(ctx, greenStripe, greenBg);
 
   categorySumChart = new Chart(ctx, {
     type: 'bar',
@@ -200,7 +169,7 @@ function createCategorySumChart() {
         {
           label: 'Avklarad',
           data: categoriesCompletedEcts,
-          backgroundColor: stripePattern,
+          backgroundColor: completeColor,
           stack: 'summa',
         },
         {
@@ -254,7 +223,7 @@ function createCategorySumChart() {
 
               const lines = ['', 'Kurser:'];
               for (const course of courses) {
-                const prefix = course.isCompleted ? '✗ ' : '  ';
+                const prefix = course.isCompleted ? '✓ ' : '  ';
                 lines.push(prefix + course.title + ': ' + course.ects.toFixed(1) + ' hp');
               }
               return lines;
@@ -287,7 +256,7 @@ function updateCategorySumChart(categorySumsUrl) {
         // Derive total-in-schedule ECTS per category from the updated course list.
         const categoriesSum = sumEctsPerCategory(data.categoriesCourses);
 
-        // Update the completed (striped) dataset (index 1).
+        // Update the completed (green) dataset (index 1).
         categorySumChart.data.datasets[1].data = data.categoriesCompletedEcts;
 
         // Recompute and update the remaining (red) dataset (index 2).

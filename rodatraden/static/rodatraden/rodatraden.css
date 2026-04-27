@@ -411,6 +411,17 @@ body:has(dialog[open]) {
   padding-left: 0.5rem;
 }
 
+.modal-footer-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-right: auto;
+}
+
+.modal-footer-checkbox-group .prerequisite-checkbox {
+  margin-bottom: 0;
+}
+
 .academic-year {
   display: grid;
   gap: var(--schedule-gap);
@@ -617,26 +628,11 @@ body:has(dialog[open]) {
   color: hsl(130, 70%, 60%);
 }
 
-/* Completed courses show a green X (two crossing diagonals) instead of a
-   solid green fill, while keeping a green border for easy identification. */
+
+/* Completed courses use a solid green background for quick identification. */
 .course--completed {
   border-color: hsl(130, 60%, 35%);
-  background:
-    linear-gradient(
-      to top right,
-      transparent calc(50% - 1.5px),
-      hsl(130, 70%, 55%) calc(50% - 1.5px),
-      hsl(130, 70%, 55%) calc(50% + 1.5px),
-      transparent calc(50% + 1.5px)
-    ),
-    linear-gradient(
-      to top left,
-      transparent calc(50% - 1.5px),
-      hsl(130, 70%, 55%) calc(50% - 1.5px),
-      hsl(130, 70%, 55%) calc(50% + 1.5px),
-      transparent calc(50% + 1.5px)
-    ),
-    var(--main-color-dark);
+  background-color: hsl(130, 45%, 32%);
 }
 
 .course a,
