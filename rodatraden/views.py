@@ -20,7 +20,7 @@ from django.views.generic.edit import UpdateView
 
 from .models import (
     Category, Course, CourseOccasion, CourseScheduleSegment, Block,
-    Prerequisite, User, Profile,
+    Prerequisite, User, Profile, TimePeriod,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
     PrivateCourse, ISPTemplate
 )
@@ -32,7 +32,7 @@ from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm,
         CourseScheduleSegmentForm, ExamForm,
         CategoryForm, ReportForm, PrivateCourseForm, UpdateUserForm,
-        DeleteUserForm
+        DeleteUserForm, LP_ALL_SENTINEL
 )
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 from .rodatraden_modules.functions import import_course_occasions, is_ajax
@@ -690,6 +690,25 @@ class SegmentCreate(LoginRequiredMixin, PermissionRequiredMixin,
     form_class = CourseScheduleSegmentForm
     template_name = 'rodatraden/segment/segment_create.html'
     success_message = 'Schemaläggningssegment skapat'
+
+    def form_valid(self, form):
+        if form.data.get('time_period') == LP_ALL_SENTINEL:
+            base = form.save(commit=False)
+            for tp in TimePeriod.objects.filter(week__lt=40).order_by('week'):
+                CourseScheduleSegment.objects.create(
+                    course=base.course,
+                    start_year=base.start_year,
+                    end_year=base.end_year,
+                    frequency=base.frequency,
+                    blacklisted_years=base.blacklisted_years,
+                    time_period=tp,
+                    weeks=10,
+                )
+            self.object = base  # needed for get_success_url
+            if is_ajax(self.request):
+                return HttpResponse()
+            return redirect(self.get_success_url())
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('course-detail', kwargs={
