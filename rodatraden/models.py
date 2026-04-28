@@ -549,6 +549,11 @@ class CourseScheduleSegment(models.Model):
         verbose_name='Undantagna år',
         help_text='År då kursen inte ges i detta segment, t.ex. [2020, 2023]'
     )
+    start_offset = models.IntegerField(
+        default=0,
+        verbose_name='Veckor in i läsperioden',
+        help_text='0 = läsperiodens start, 5 = 5 veckor in, osv.',
+    )
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)

@@ -138,15 +138,22 @@ def sync_course_occasions(course, dry_run=True):
 
         # --- Create missing CourseOccasions ---
         for segment in segments:
+            # Resolve effective TimePeriod: base LP week + start_offset
+            effective_week = segment.time_period.week + (segment.start_offset or 0)
+            effective_tp = TimePeriod.objects.filter(week=effective_week).first()
+            if effective_tp is None:
+                # No exact match — fall back to base period
+                effective_tp = segment.time_period
+
             exists = CourseOccasion.objects.filter(
                 course=course,
                 academic_year=academic_year,
-                time_period=segment.time_period,
+                time_period=effective_tp,
             ).exists()
 
             entry = {
                 'year_title': academic_year.title,
-                'period_title': segment.time_period.title,
+                'period_title': effective_tp.title,
             }
 
             if exists:
@@ -157,7 +164,7 @@ def sync_course_occasions(course, dry_run=True):
                 CourseOccasion.objects.create(
                     course=course,
                     academic_year=academic_year,
-                    time_period=segment.time_period,
+                    time_period=effective_tp,
                     weeks=segment.weeks,
                     official=True,
                     auto_generated=True,
@@ -171,7 +178,7 @@ def sync_course_occasions(course, dry_run=True):
             auto_generated=True,
         ).select_related('time_period'):
             covered = any(
-                seg.time_period_id == co.time_period_id
+                (seg.time_period.week + (seg.start_offset or 0)) == co.time_period.week
                 for seg in segments
             )
             if not covered:
@@ -669,7 +676,18 @@ class SegmentCreate(LoginRequiredMixin, PermissionRequiredMixin,
     def form_valid(self, form):
         if form.data.get('time_period') == LP_ALL_SENTINEL:
             base = form.save(commit=False)
-            for tp in TimePeriod.objects.filter(week__lt=40).order_by('week'):
+            start_offset = form.cleaned_data.get('start_offset', 0)
+            # Only create segments for pure LP1-LP4 (weeks 0, 10, 20, 30)
+            for tp in TimePeriod.objects.filter(week__in=[0, 10, 20, 30]).order_by('week'):
+                # Skip if an open-ended (no end_year) segment already exists
+                # for this course + period to avoid duplicates
+                if CourseScheduleSegment.objects.filter(
+                    course=base.course,
+                    time_period=tp,
+                    start_year=base.start_year,
+                    end_year=base.end_year,
+                ).exists():
+                    continue
                 CourseScheduleSegment.objects.create(
                     course=base.course,
                     start_year=base.start_year,
@@ -677,7 +695,8 @@ class SegmentCreate(LoginRequiredMixin, PermissionRequiredMixin,
                     frequency=base.frequency,
                     blacklisted_years=base.blacklisted_years,
                     time_period=tp,
-                    weeks=10,
+                    start_offset=start_offset,
+                    weeks=base.weeks,
                 )
             self.object = base  # needed for get_success_url
             if is_ajax(self.request):
