@@ -183,15 +183,8 @@ export function updateTerm(academicYear, shouldStackTerms, margin, scale) {
         let summerTerms = academicYear.summer;
         const summerHeight = getCourseContainerHeight(summerTerms.courses, margin, scale);
 
-        if (shouldStackTerms) {
-          summerTerms.containerHeight = summerHeight;
-        } else {
-          // Summer stands on its own height-wise since it's narrower.
-          summerTerms.containerHeight = Math.max(summerHeight, fallTerms.containerHeight);
-          // Also update fall/spring to match.
-          fallTerms.containerHeight = summerTerms.containerHeight;
-          springTerms.containerHeight = summerTerms.containerHeight;
-        }
+        // Summer should keep its own container height even in parallel mode.
+        summerTerms.containerHeight = summerHeight;
 
         terms.push(summerTerms);
       }
