@@ -82,40 +82,50 @@
 
     <div class="col-lg-6">
       <div class="card">
-        <h5 class="card-header">Kurstillfälle</h5>
+        <h5 class="card-header">Kurstillfällen</h5>
         <div class="card-body">
-          <p class="lead"><a target="_blank" href="{% url 'course-detail' course.slug %}">
-            {{ course.title }}, {{courseoccasion.year }}
-          </a></p>
+          {% for segment in course.schedule_segments.all %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <strong>{{ segment.time_period.title }}</strong><br>
+                <small>
+                  {{ segment.start_year }}-{{ segment.end_year|default:"->" }}
+                  · {{ segment.get_frequency_display }}
+                  · {{ segment.weeks }} veckor
+                  {% if segment.blacklisted_years %}
+                    <br>Undantag: {{ segment.blacklisted_years|join:", " }}
+                  {% endif %}
+                </small>
+              </div>
+            </div>
+            {% if not forloop.last %}<hr class="my-1">{% endif %}
+          {% empty %}
+            <p class="text-muted mb-0">Inga kurstillfällen konfigurerade.</p>
+          {% endfor %}
+        </div>
+      </div>
 
-          <table style="border-collapse: separate;border-spacing:1rem 0;">
-            <tr>
-              <td>Läsperiod</td>
-              <td>{{ courseoccasion.time_period.title }}</td>
-            </tr>
-            <tr>
-              <td>Veckor</td>
-              <td>{{ courseoccasion.weeks }}</td>
-            </tr>
-            <tr>
-              <td>Studietakt</td>
-              <td>{{ courseoccasion.pace }} %</td>
-            </tr>
-            {% if courseoccasion.contact_name %}
-            <tr>
-              <td>Kontaktperson</td>
-              <td><a target="_blank" href="mailto:{{ courseoccasion.contact_email }}">{{ courseoccasion.contact_name }}</a></td>
-            </tr>
-            {% endif %}
-          </table>
+      <div class="card mt-3">
+        <h5 class="card-header">Ger behörighet</h5>
+        <div class="card-body">
+          <details>
+            <summary aria-label="Visa eller dölj behörighetskurser">
+              Klicka för att expandera lista ▾
+            </summary>
 
-          <hr>
-
-          {% if courseoccasion.official %}
-          <span class="badge badge-success">Godkänd</span>
-          {% else %}
-
-          {% endif %}
+            <ul class="list-group list-group-flush mt-2">
+              {% for required_course in courses_requiring_this_course %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a target="_blank" href="{% url 'course-detail' required_course.slug %}">{{ required_course.title }}</a>
+                {% if required_course.in_current_block %}
+                <span class="badge badge-success">Finns i blockschemat</span>
+                {% endif %}
+              </li>
+              {% empty %}
+              <li class="list-group-item text-muted">Inga kurser hittades.</li>
+              {% endfor %}
+            </ul>
+          </details>
         </div>
       </div>
     </div>

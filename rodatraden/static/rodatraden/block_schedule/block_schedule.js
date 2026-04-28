@@ -9,6 +9,8 @@ export default class BlockSchedule {
    * @param {HTMLElement} academicYearContainer - Container for all the academic years. Each year has headers, a set of courses and a footer. 
    * @param {boolean} shouldStackTerms - True if terms should be split and stacked vertically.
    * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
+  * @param {string} blockUsername - Username owning this block schedule.
+  * @param {string} blockSlug - Slug of this block schedule.
    * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
    * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
    * @param {string} blockReplaceCourseUrl - URL to replace a course occasion.blockGetRelatedOccasionsUrl
@@ -24,6 +26,8 @@ export default class BlockSchedule {
               academicYearContainer,
               shouldStackTerms,
               isLoggedIn,
+              blockUsername,
+              blockSlug,
               courseoccasionInfoUrl,
               blockRemoveCourseUrl,
               blockReplaceCourseUrl,
@@ -38,6 +42,8 @@ export default class BlockSchedule {
     this.#academicYearContainer = academicYearContainer;
     this.#shouldStackTerms = shouldStackTerms;
     this.#isLoggedIn = isLoggedIn;
+    this.#blockUsername = blockUsername;
+    this.#blockSlug = blockSlug;
     this.#courseoccasionInfoUrl = courseoccasionInfoUrl;
     this.#blockRemoveCourseUrl = blockRemoveCourseUrl;
     this.#blockReplaceCourseUrl = blockReplaceCourseUrl;
@@ -166,6 +172,10 @@ export default class BlockSchedule {
   /** @type {boolean} */
   #isLoggedIn;
   /** @type {string} */
+  #blockUsername;
+  /** @type {string} */
+  #blockSlug;
+  /** @type {string} */
   #courseoccasionInfoUrl;
   /** @type {string} */
   #blockRemoveCourseUrl;
@@ -232,6 +242,8 @@ export default class BlockSchedule {
       this.#scale,
       this.#margin,
       this.#isLoggedIn,
+      this.#blockUsername,
+      this.#blockSlug,
       this.#courseoccasionInfoUrl,
       this.#blockRemoveCourseUrl,
       this.#blockToggleCoursePrereqUrl,

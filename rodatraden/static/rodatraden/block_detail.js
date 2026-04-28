@@ -351,6 +351,8 @@ function main() {
   const stringDataset = document.getElementById('string-data').dataset;
   const startYear = parseInt(stringDataset.startYear);
   const isLoggedIn = stringDataset.isLoggedIn === 'True';
+  const blockUsername = stringDataset.blockUsername;
+  const blockSlug = stringDataset.blockSlug;
   const courseoccasionInfoUrl = stringDataset.courseoccasionInfoUrl;
   const blockRemoveCourseUrl = stringDataset.blockRemoveCourseUrl;
   const blockReplaceCourseUrl = stringDataset.blockReplaceCourseUrl;
@@ -373,6 +375,8 @@ function main() {
     academicYearContainer,
     shouldStackTerms,
     isLoggedIn,
+    blockUsername,
+    blockSlug,
     courseoccasionInfoUrl,
     blockRemoveCourseUrl,
     blockReplaceCourseUrl,

@@ -17,10 +17,9 @@
   href="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-id="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Importera blockschema">
-  <span class="fa fa-share-square"></span>
+  <span class="fa fa-sign-in-alt"></span>
 </a>
 <a class="btn btn-gone update-block"
-  href="{% url 'block-update' this_block.user this_block.slug %}"
   data-id="{% url 'block-update' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
@@ -146,6 +145,8 @@
   <script id='string-data'
           data-start-year="{{ start_year }}"
           data-is-logged-in="{{ logged_in }}"
+      data-block-username="{{ this_block.user.username }}"
+      data-block-slug="{{ this_block.slug }}"
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"

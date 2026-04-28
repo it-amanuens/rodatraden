@@ -806,16 +806,45 @@ def courseoccasion_info(request: HttpRequest):
     # Get valid IDs of the unmet prerequisites.
     unmet_prerequisite_ids = [
         int(id) for id in request.GET.getlist('unmet[]') if id.isdigit()]
+    block_username = request.GET.get('block_user')
+    block_slug = request.GET.get('block_slug')
 
     unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
 
     courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
         slug=slug)
 
+    # Find courses where this course is part of prerequisite requirements.
+    prerequisites: Manager[Prerequisite] = (
+        courseoccasion.course.equivalent_prerequisites.all())
+
+    courses_requiring_this_course = [
+        prerequisite.course for prerequisite in prerequisites]
+    courses_requiring_this_course = list(set(courses_requiring_this_course))
+    courses_requiring_this_course.sort(key=lambda course: course.title)
+
+    # Optionally mark if each unlocked course is already present in the current
+    # block schedule.
+    course_ids_in_block = set()
+    if block_username and block_slug:
+        block = Block.objects.filter(user__username=block_username,
+            slug=block_slug).first()
+
+        if block and (not block.private
+                      or (request.user.is_authenticated
+                          and request.user == block.user)):
+            course_ids_in_block = set(
+                block.courseoccasions.values_list('course_id', flat=True))
+
+    for required_course in courses_requiring_this_course:
+        required_course.in_current_block = (
+            required_course.id in course_ids_in_block)
+
     context = {
         'courseoccasion': courseoccasion,
         'course': courseoccasion.course,
         'unmet_prerequisites': unmet_prerequisites,
+        'courses_requiring_this_course': courses_requiring_this_course,
     }
 
     return render(request, 'rodatraden/courseoccasion/courseoccasion_info.html',

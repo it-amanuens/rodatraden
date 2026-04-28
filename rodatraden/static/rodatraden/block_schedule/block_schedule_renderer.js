@@ -337,6 +337,8 @@ export function updateCourseBlocks(courseContainer,
                                    scale,
                                    margin,
                                    isLoggedIn,
+                                   blockUsername,
+                                   blockSlug,
                                    courseoccasionInfoUrl,
                                    blockRemoveCourseUrl,
                                    blockToggleCoursePrereqUrl,
@@ -442,10 +444,15 @@ export function updateCourseBlocks(courseContainer,
       }
       // Arrays are send by repeating the parameter name in the URL.
       const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
+      const blockUrlPart = blockUsername && blockSlug
+        ? "&block_user=" + encodeURIComponent(blockUsername)
+          + "&block_slug=" + encodeURIComponent(blockSlug)
+        : '';
       
       const url = courseoccasionInfoUrl
                 + "?year=" + course.academicYear
                 + "&slug=" + course.slug
+                + blockUrlPart
                 + unmetURL;
       return url;
     });
@@ -622,10 +629,12 @@ export function updateCourseBlocks(courseContainer,
     });
 
 
-  // Add a warning icon to the course blocks that have unmet prerequisites.
+  // Add a warning icon to course blocks that either have unmet prerequisites
+  // or have manually disabled prerequisite verification.
   const warningIconSelection = course.selectAll(".course-warning-icon")
     .data(course => {
-      if (course.unmetPrerequisiteIDs.length > 0) {
+      if (course.unmetPrerequisiteIDs.length > 0
+          || course.skipPrerequisiteCheck) {
         // The content of the data array is irrelevant since we only want to add
         // an icon, but we need some data to be present to trigger the enter and
         // exit selections.
@@ -639,8 +648,10 @@ export function updateCourseBlocks(courseContainer,
   warningIconSelection.exit()
     .remove();
   
-  // Add missing warning icons and hide it initially.
+  // Add/update warning icons. Visibility is controlled by the global
+  // prerequisite checkbox in updatePrerequisiteWarnings().
   warningIconSelection.enter().append("i")
+    .merge(warningIconSelection)
     .attr("class", "course-warning-icon fa fa-exclamation-triangle d-none")
     .attr("aria-hidden", "true")
 
@@ -683,6 +694,9 @@ export function updateCourseBlocks(courseContainer,
       return null;
     })
     .attr("title", course => {
+      if (course.skipPrerequisiteCheck) {
+        return "Förkunskapskrav ej verifierade\nKlicka för mer information";
+      }
       if (course.unmetPrerequisiteIDs.length > 0) {
         return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
       }
@@ -843,29 +857,47 @@ export function updatePrerequisiteWarnings() {
     return;
   }
 
-  const courses = document.getElementsByClassName(
-    'course--unmet-prerequisites'
+  const courses = document.querySelectorAll(
+    '.course--unmet-prerequisites, .course--skip-prereq'
   );
   const icons = document.getElementsByClassName('course-warning-icon');
 
-  if (checkbox.checked) {
-    for (const course of courses) {
+  for (const course of courses) {
+    const hasUnmet = course.classList.contains('course--unmet-prerequisites');
+    const isManualSkip = course.classList.contains('course--skip-prereq');
+
+    // Global prerequisite toggle controls whether any warning is shown.
+    const shouldShowWarning = checkbox.checked && (isManualSkip || hasUnmet);
+    const shouldUseWarningColor = checkbox.checked && hasUnmet && !isManualSkip;
+
+    if (shouldShowWarning) {
       course.setAttribute('data-toggle', 'tooltip');
       $(course).tooltip('enable');
-      course.classList.add('course--warning');
-    }
-
-    for (const icon of icons) {
-      icon.classList.remove('d-none');
-    }
-  } else {
-    for (const course of courses) {
+    } else {
       course.removeAttribute('data-toggle');
       $(course).tooltip('disable');
-      course.classList.remove('course--warning');
     }
 
-    for (const icon of icons) {
+    if (shouldUseWarningColor) {
+      course.classList.add('course--warning');
+    } else {
+      course.classList.remove('course--warning');
+    }
+  }
+
+  for (const icon of icons) {
+    const parentCourse = icon.closest('.course');
+    if (!parentCourse) {
+      continue;
+    }
+
+    const hasUnmet = parentCourse.classList.contains('course--unmet-prerequisites');
+    const isManualSkip = parentCourse.classList.contains('course--skip-prereq');
+    const shouldShowIcon = checkbox.checked && (isManualSkip || hasUnmet);
+
+    if (shouldShowIcon) {
+      icon.classList.remove('d-none');
+    } else {
       icon.classList.add('d-none');
     }
   }
