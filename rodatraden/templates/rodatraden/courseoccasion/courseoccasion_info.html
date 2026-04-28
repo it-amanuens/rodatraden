@@ -82,42 +82,41 @@
 
     <div class="col-lg-6">
       <div class="card">
-        <h5 class="card-header">Kurstillfälle</h5>
+        <h5 class="card-header">Kurstillfällen</h5>
         <div class="card-body">
-          <p class="lead"><a target="_blank" href="{% url 'courseoccasion-detail' courseoccasion.year courseoccasion.slug %}">
-            {{ course.title }}, {{courseoccasion.year }}
-          </a></p>
-
-          <table style="border-collapse: separate;border-spacing:1rem 0;">
-            <tr>
-              <td>Läsperiod</td>
-              <td>{{ courseoccasion.start_string }}</td>
-            </tr>
-            <tr>
-              <td>Veckor</td>
-              <td>{{ courseoccasion.weeks }}</td>
-            </tr>
-            <tr>
-              <td>Studietakt</td>
-              <td>{{ courseoccasion.pace }} %</td>
-            </tr>
-            {% if courseoccasion.contact_name %}
-            <tr>
-              <td>Kontaktperson</td>
-              <td><a target="_blank" href="mailto:{{ courseoccasion.contact_email }}">{{ courseoccasion.contact_name }}</a></td>
-            </tr>
-            {% endif %}
-          </table>
-
-          <hr>
-
-          {% if courseoccasion.official %}
-          <span class="badge badge-success">Godkänd</span>
-          {% else %}
-
-          {% endif %}
+          {% for segment in course.schedule_segments.all %}
+            <div class="mb-2">
+              <strong>{{ segment.start_string }}</strong><br>
+              <small>
+                {{ segment.start_year }}–{{ segment.end_year|default:"→" }}
+                · {{ segment.get_frequency_display }}
+                · {{ segment.weeks }} veckor
+                {% if segment.blacklisted_years %}
+                  <br>Undantag: {{ segment.blacklisted_years|join:", " }}
+                {% endif %}
+              </small>
+            </div>
+            {% if not forloop.last %}<hr class="my-1">{% endif %}
+          {% empty %}
+            <p class="text-muted mb-0">Inga kurstillfällen konfigurerade.</p>
+          {% endfor %}
         </div>
       </div>
+
+      {% if courses_requiring_this_course %}
+      <div class="card mt-3">
+        <h5 class="card-header">Ger behörighet (i blockschemat)</h5>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for req_course in courses_requiring_this_course %}
+            <li class="list-group-item">
+              <a target="_blank" href="{% url 'course-detail' req_course.slug %}">{{ req_course.title }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>

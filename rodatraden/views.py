@@ -847,16 +847,30 @@ def courseoccasion_info(request: HttpRequest):
     # Get valid IDs of the unmet prerequisites.
     unmet_prerequisite_ids = [
         int(id) for id in request.GET.getlist('unmet[]') if id.isdigit()]
+    # IDs of courses currently scheduled in the open block (provided by
+    # block schedule frontend). Used to scope the "Ger behörighet" list.
+    scheduled_course_ids = {
+        int(id) for id in request.GET.getlist('scheduled_course[]') if id.isdigit()
+    }
 
     unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
 
     courseoccasion = get_object_or_404(CourseOccasion, year=year,
         slug=slug)
 
+    course = courseoccasion.course
+    prerequisites = course.equivalent_prerequisites.all()
+    courses_requiring_this_course = list(set(
+        prerequisite.course for prerequisite in prerequisites
+        if prerequisite.course_id in scheduled_course_ids
+    ))
+    courses_requiring_this_course.sort(key=lambda c: c.title)
+
     context = {
         'courseoccasion': courseoccasion,
-        'course': courseoccasion.course,
+        'course': course,
         'unmet_prerequisites': unmet_prerequisites,
+        'courses_requiring_this_course': courses_requiring_this_course,
     }
 
     return render(request, 'rodatraden/courseoccasion/courseoccasion_info.html',
