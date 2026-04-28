@@ -64,8 +64,6 @@ urlpatterns = [
         name='privatecourse-detail'),
 
     # Courseoccasions
-    path('kurstillfallen/', views.CourseOccasionList.as_view(),
-        name='courseoccasion-list'),
     path('kurstillfallen/skapa/', views.CourseOccasionCreate.as_view(),
         name='courseoccasion-create'),
     path('kurstillfallen/<int:year>/<slug:slug>/radera/',

@@ -1,5 +1,4 @@
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, SingleTableView
+from django_tables2.views import SingleTableView
 from bootstrap_modal_forms.generic import (
     BSModalDeleteView, BSModalCreateView, BSModalUpdateView
 )
@@ -25,9 +24,9 @@ from .models import (
     PrivateCourse, ISPTemplate
 )
 from .tables import (
-    CourseOccasionTable, ExamTable, ReportTable
+    ExamTable, ReportTable
 )
-from .filters import CourseFilter, CourseOccasionFilter
+from .filters import CourseFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm,
         CourseScheduleSegmentForm, ExamForm,
@@ -106,35 +105,11 @@ def tools(request: HttpRequest):
     # Incoming info
     generate_results = None
     if request.method == 'POST':
-        # Copying courseoccasions tool (legacy)
-        if 'courseocc_copy' in request.POST:
-            from_acyear = AcademicYear.objects.get(id=request.POST['from'])
-            to_acyear = AcademicYear.objects.get(id=request.POST['to'])
-            # Make sure that the years exist
-            if from_acyear and to_acyear:
-                # From all the current courseoccasions
-                for courseocc in CourseOccasion.objects.filter(
-                        academic_year=from_acyear
-                        ):
-                    # Only create a new for the new year if it does not already
-                    # exist
-                    if not CourseOccasion.objects.filter(
-                            academic_year=to_acyear,
-                            course=courseocc.course):
-                        courseocc.pk = None
-                        courseocc.academic_year = to_acyear
-                        courseocc.slug = ''
-                        courseocc.save()
-
         # Generate course occasions from scheduling rules
         if 'generate_occasions' in request.POST:
             generate_results = _generate_occasions_all_years(request)
 
-    # Get all academic years
-    acyears = AcademicYear.objects.all().order_by('year')
-
     context = {
-            'acyears': acyears,
             'generate_results': generate_results,
     }
 
@@ -785,15 +760,6 @@ def segment_execute(request, pk):
 # COURSEOCCASIONS #
 ###################
 
-class CourseOccasionList(SingleTableMixin, FilterView):
-    """List view for courseoccasions."""
-
-    model = CourseOccasion
-    table_class = CourseOccasionTable
-    filterset_class = CourseOccasionFilter
-    paginate_by = 15
-    template_name = 'rodatraden/courseoccasion/courseoccasion_list.html'
-
 
 class CourseOccasionDetail(DetailView):
     """Detail view for courseoccasions."""
@@ -865,7 +831,6 @@ class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion/courseoccasion_create.html'
     success_message = 'Kurstillfället skapades utan problem'
-    #success_url = reverse_lazy('courseoccasion-list')
 
     def get_success_url(self):
         # Return to last page
@@ -897,7 +862,7 @@ class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kurstillfället togs bort utan problem'
 
     def get_success_url(self):
-        return reverse_lazy('courseoccasion-list')
+        return self.request.META.get('HTTP_REFERER', reverse_lazy('course-list'))
 
 ############
 # PROFILES #

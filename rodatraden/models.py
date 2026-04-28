@@ -385,9 +385,6 @@ class Course(models.Model):
     code = models.CharField(max_length=10, verbose_name='Kod')
     ects = models.DecimalField(verbose_name='Poäng',
             max_digits=3,decimal_places=1, default='7.5')
-    # If the course is approved
-    approved = models.BooleanField(default=True, blank=True, null=True,
-            verbose_name='Godkänd')
     note = models.CharField(max_length=250, blank=True, null=True)
     homepage_url = models.URLField(blank=True, null=True,
             verbose_name='Hemsida')
@@ -561,7 +558,7 @@ class CourseScheduleSegment(models.Model):
     class Meta:
         verbose_name = 'Schemaläggningssegment'
         verbose_name_plural = 'Schemaläggningssegment'
-        ordering = ['start_year', 'time_period__week']
+        ordering = ['time_period__week', 'start_year']
         permissions = [
             ('can_manage_scheduling', 'Kan hantera schemaläggning'),
         ]
