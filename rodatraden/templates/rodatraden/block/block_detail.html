@@ -14,9 +14,10 @@
   <span class="fa fa-list"></span>
 </a>
 <a class="btn btn-gone import-block"
+  href="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-id="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Importera blockschema">
-  <span class="fa fa-share-square"></span>
+  <span class="fa fa-sign-in-alt"></span>
 </a>
 <a class="btn btn-gone update-block"
   data-id="{% url 'block-update' this_block.user this_block.slug %}"
@@ -24,6 +25,7 @@
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-block"
+  href="{% url 'block-delete' this_block.user this_block.slug %}"
   data-id="{% url 'block-delete' this_block.user this_block.slug %}"
   data-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
@@ -137,11 +139,14 @@
   <!-- Data that can be used in scripts -->
   {{ categories_title|json_script:"categories-title-data" }}
   {{ categories_ects|json_script:"categories-ects-data" }}
-  {{ categories_sum|json_script:"categories-sum-data" }}
+  {{ categories_courses|json_script:"categories-courses-data" }}
+  {{ categories_completed_ects|json_script:"categories-completed-ects-data" }}
   {{ course_occasions|json_script:"course-occasions-data" }}
   <script id='string-data'
           data-start-year="{{ start_year }}"
           data-is-logged-in="{{ logged_in }}"
+      data-block-username="{{ this_block.user.username }}"
+      data-block-slug="{{ this_block.slug }}"
           data-courseoccasion-info-url="{% url 'courseoccasion-info' %}"
           data-block-course-list-url="{% url 'block-course-list' this_block.user this_block.slug %}"
           data-block-remove-course-url="{% url 'block-remove-course' this_block.user this_block.slug %}"
@@ -149,6 +154,8 @@
           data-block-get-related-occasions-url="{% url 'block-get-related-course-occasions' this_block.user this_block.slug %}"
           data-block-category-sums-url="{% url 'block-category-sums' this_block.user this_block.slug %}"
           data-prerequisite-check-url="{% url 'update-prerequisite-check' this_block.user this_block.slug %}"
+          data-block-toggle-course-prereq-url="{% url 'toggle-course-prerequisite-check' this_block.user this_block.slug %}"
+          data-block-toggle-course-complete-url="{% url 'toggle-course-completed' this_block.user this_block.slug %}"
   ></script>
 
   <!-- Main script for this page. -->

@@ -315,7 +315,15 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
 
     class Meta:
         model = Block
-        exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
+        exclude = [
+            'courseoccasions',
+            'note',
+            'privatecourses',
+            'user',
+            'skipped_prerequisite_occasions',
+            'completed_courseoccasions',
+            'completed_privatecourses',
+        ]
 
 
 class CategoryForm(BSModalModelForm):

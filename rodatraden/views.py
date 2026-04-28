@@ -1,5 +1,4 @@
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, SingleTableView
+from django_tables2.views import SingleTableView
 from bootstrap_modal_forms.generic import (
     BSModalDeleteView, BSModalCreateView, BSModalUpdateView
 )
@@ -25,9 +24,9 @@ from .models import (
     PrivateCourse, ISPTemplate
 )
 from .tables import (
-    CourseOccasionTable, ExamTable, ReportTable
+    ExamTable, ReportTable
 )
-from .filters import CourseFilter, CourseOccasionFilter
+from .filters import CourseFilter
 from .forms import (
         CourseForm, BlockForm, ProfileForm, CourseOccasionForm,
         CourseScheduleSegmentForm, ExamForm,
@@ -106,35 +105,11 @@ def tools(request: HttpRequest):
     # Incoming info
     generate_results = None
     if request.method == 'POST':
-        # Copying courseoccasions tool (legacy)
-        if 'courseocc_copy' in request.POST:
-            from_acyear = AcademicYear.objects.get(id=request.POST['from'])
-            to_acyear = AcademicYear.objects.get(id=request.POST['to'])
-            # Make sure that the years exist
-            if from_acyear and to_acyear:
-                # From all the current courseoccasions
-                for courseocc in CourseOccasion.objects.filter(
-                        academic_year=from_acyear
-                        ):
-                    # Only create a new for the new year if it does not already
-                    # exist
-                    if not CourseOccasion.objects.filter(
-                            academic_year=to_acyear,
-                            course=courseocc.course):
-                        courseocc.pk = None
-                        courseocc.academic_year = to_acyear
-                        courseocc.slug = ''
-                        courseocc.save()
-
         # Generate course occasions from scheduling rules
         if 'generate_occasions' in request.POST:
             generate_results = _generate_occasions_all_years(request)
 
-    # Get all academic years
-    acyears = AcademicYear.objects.all().order_by('year')
-
     context = {
-            'acyears': acyears,
             'generate_results': generate_results,
     }
 
@@ -785,15 +760,6 @@ def segment_execute(request, pk):
 # COURSEOCCASIONS #
 ###################
 
-class CourseOccasionList(SingleTableMixin, FilterView):
-    """List view for courseoccasions."""
-
-    model = CourseOccasion
-    table_class = CourseOccasionTable
-    filterset_class = CourseOccasionFilter
-    paginate_by = 15
-    template_name = 'rodatraden/courseoccasion/courseoccasion_list.html'
-
 
 class CourseOccasionDetail(DetailView):
     """Detail view for courseoccasions."""
@@ -840,16 +806,45 @@ def courseoccasion_info(request: HttpRequest):
     # Get valid IDs of the unmet prerequisites.
     unmet_prerequisite_ids = [
         int(id) for id in request.GET.getlist('unmet[]') if id.isdigit()]
+    block_username = request.GET.get('block_user')
+    block_slug = request.GET.get('block_slug')
 
     unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
 
     courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
         slug=slug)
 
+    # Find courses where this course is part of prerequisite requirements.
+    prerequisites: Manager[Prerequisite] = (
+        courseoccasion.course.equivalent_prerequisites.all())
+
+    courses_requiring_this_course = [
+        prerequisite.course for prerequisite in prerequisites]
+    courses_requiring_this_course = list(set(courses_requiring_this_course))
+    courses_requiring_this_course.sort(key=lambda course: course.title)
+
+    # Optionally mark if each unlocked course is already present in the current
+    # block schedule.
+    course_ids_in_block = set()
+    if block_username and block_slug:
+        block = Block.objects.filter(user__username=block_username,
+            slug=block_slug).first()
+
+        if block and (not block.private
+                      or (request.user.is_authenticated
+                          and request.user == block.user)):
+            course_ids_in_block = set(
+                block.courseoccasions.values_list('course_id', flat=True))
+
+    for required_course in courses_requiring_this_course:
+        required_course.in_current_block = (
+            required_course.id in course_ids_in_block)
+
     context = {
         'courseoccasion': courseoccasion,
         'course': courseoccasion.course,
         'unmet_prerequisites': unmet_prerequisites,
+        'courses_requiring_this_course': courses_requiring_this_course,
     }
 
     return render(request, 'rodatraden/courseoccasion/courseoccasion_info.html',
@@ -865,7 +860,6 @@ class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
     form_class = CourseOccasionForm
     template_name = 'rodatraden/courseoccasion/courseoccasion_create.html'
     success_message = 'Kurstillfället skapades utan problem'
-    #success_url = reverse_lazy('courseoccasion-list')
 
     def get_success_url(self):
         # Return to last page
@@ -897,7 +891,7 @@ class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kurstillfället togs bort utan problem'
 
     def get_success_url(self):
-        return reverse_lazy('courseoccasion-list')
+        return self.request.META.get('HTTP_REFERER', reverse_lazy('course-list'))
 
 ############
 # PROFILES #
@@ -1386,24 +1380,16 @@ def block_detail(request: HttpRequest, username, slug):
 
         categories_ects = [float(category.ects) for category in categories]
 
-        category_sum = dict.fromkeys([category.category.title for category in
-            categories], 0)
-        # Get sum from block
-        block.total_category_ects(category_sum)
-
-        # XXX: The variables name will be confusingly similar until I figure out how category_sum works.
-        categories_sum = [float(sum) for sum in category_sum.values()]
-
-        course_occasions_json = [course.as_json() for course in block.courseoccasions.all()]
-        prinvate_courses_json = [course.as_json() for course in block.privatecourses.all()]
+        categories_courses, categories_completed_ects = build_categories_courses_json(block)
 
         context = {
             'this_block': block,
             'start_year': block.start_year,
-            'course_occasions': course_occasions_json + prinvate_courses_json,
+            'course_occasions': build_courses_json(block),
             'categories_title': categories_title,
             'categories_ects': categories_ects,
-            'categories_sum': categories_sum,
+            'categories_courses': categories_courses,
+            'categories_completed_ects': categories_completed_ects,
             'total_ects': block.total_course_ects(),
             'logged_in': (request.user.is_authenticated and
             request.user.username == block.user.username) or
@@ -1411,7 +1397,6 @@ def block_detail(request: HttpRequest, username, slug):
         }
 
         return render(request, 'rodatraden/block/block_detail.html', context)
-
 
 class BlockImportList(CorrectUserPermissionMixin, LoginRequiredMixin, ListView):
     """List view for blocks that courses can be imported from."""
@@ -1596,15 +1581,10 @@ def add_course_to_block(request: HttpRequest, block_username, block_slug):
 
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
+    return JsonResponse(build_courses_json(block), safe=False)
 
 
 @login_required
@@ -1631,15 +1611,10 @@ def remove_course_from_block(request: HttpRequest, block_username: str, block_sl
 
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
+    return JsonResponse(build_courses_json(block), safe=False)
 
 
 @login_required
@@ -1664,15 +1639,10 @@ def replace_course_in_block(request: HttpRequest, block_username: str, block_slu
 
     # Return the updated set of private and non-private course occasions in the
     # block schedule as a single JSON array.
-    course_occasions = block.courseoccasions.all()
-    private_courses = block.privatecourses.all()
-    course_occasions_json = [course.as_json() for course in course_occasions]
-    private_courses_json = [course.as_json() for course in private_courses]
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
-    return JsonResponse(course_occasions_json + private_courses_json,
-                        safe=False)
+    return JsonResponse(build_courses_json(block), safe=False)
 
 
 @login_required
@@ -1692,13 +1662,13 @@ def get_related_course_occasions(request: HttpRequest, block_username: str, bloc
     course_occasions_json = [occasion.as_json() for occasion in course_occasions]
 
     # NOTE: "safe=False" is completely safe to use. See this answer for an
-    # explaination:
+    # explanation:
     # https://stackoverflow.com/a/70204451/10844442
     return JsonResponse(course_occasions_json, safe=False)
 
 
 def get_block_category_sums(request: HttpRequest, block_username: str, block_slug: str):
-    """Get the current category sums and total ECTS for a block schedule.
+    """Get the current category sums, course lists, and total ECTS for a block schedule.
     
     This is used to update the category chart and total HP after adding/removing
     courses without requiring a full page reload.
@@ -1713,24 +1683,135 @@ def get_block_category_sums(request: HttpRequest, block_username: str, block_slu
         elif request.user.username != block.user.username:
             return JsonResponse({'error': 'Access denied'}, status=403)
 
-    # Get all categories for the block exam
-    categories = CategoryExam.objects.filter(exam=block.exam)
-
-    # Build dict with category titles as keys
-    category_sum = dict.fromkeys([category.category.title for category in
-        categories], 0)
-    
-    # Get sum from block
-    block.total_category_ects(category_sum)
-
-    # Return the sums as a list and the total ECTS
-    categories_sum = [float(sum) for sum in category_sum.values()]
     total_ects = block.total_course_ects()
+    categories_courses, categories_completed_ects = build_categories_courses_json(block)
 
     return JsonResponse({
-        'categorySums': categories_sum,
-        'totalEcts': float(total_ects)
+        'totalEcts': float(total_ects),
+        'categoriesCourses': categories_courses,
+        'categoriesCompletedEcts': categories_completed_ects,
     })
+
+
+def build_courses_json(block):
+    """Build JSON list of all course occasions in the block with per-course state.
+
+    Returns a combined list of public and private course occasions, each
+    annotated with block-specific state such as whether prerequisite checking
+    is skipped or the course has been marked as completed.
+    """
+    skipped_slugs = set(
+        block.skipped_prerequisite_occasions.values_list('slug', flat=True)
+    )
+    completed_course_slugs = set(
+        block.completed_courseoccasions.values_list('slug', flat=True)
+    )
+    completed_private_slugs = set(
+        block.completed_privatecourses.values_list('slug', flat=True)
+    )
+
+    course_occasions_json = []
+    for course in block.courseoccasions.all():
+        data = course.as_json()
+        data['skipPrerequisiteCheck'] = course.slug in skipped_slugs
+        data['isCompleted'] = course.slug in completed_course_slugs
+        course_occasions_json.append(data)
+
+    private_courses_json = []
+    for course in block.privatecourses.all():
+        data = course.as_json()
+        data['isCompleted'] = course.slug in completed_private_slugs
+        private_courses_json.append(data)
+
+    return course_occasions_json + private_courses_json
+
+
+def build_categories_courses_json(block):
+    """Build per-category course lists and completed ECTS for a block.
+
+    Returns a tuple of:
+      - categories_courses: list of lists. Each inner list contains course dicts
+          (title, ects, isCompleted) sorted chronologically for that category,
+          in the same order as CategoryExam.objects.filter(exam=block.exam).
+      - categories_completed_ects: list of floats, completed ECTS per category.
+    """
+    categories = CategoryExam.objects.filter(exam=block.exam).select_related('category')
+
+    completed_course_slugs = set(
+        block.completed_courseoccasions.values_list('slug', flat=True)
+    )
+    completed_private_slugs = set(
+        block.completed_privatecourses.values_list('slug', flat=True)
+    )
+
+    # Fetch all public course occasions sorted chronologically, with related data
+    # pre-fetched to avoid N+1 queries.
+    occasions = (
+        block.courseoccasions
+        .select_related('course', 'academic_year', 'time_period')
+        .prefetch_related('course__categorycourse_set__category')
+        .order_by('academic_year__year', 'time_period__week')
+    )
+    # Private courses sorted by (year, start).
+    private_courses = list(
+        block.privatecourses
+        .prefetch_related('privatecoursecategory_set__category')
+        .order_by('year', 'start')
+    )
+
+    categories_courses = []
+    categories_completed_ects = []
+
+    for cat_exam in categories:
+        category = cat_exam.category
+        courses_in_cat = []
+        completed_ects = 0.0
+        seen_course_ids = set()
+
+        for occasion in occasions:
+            # Skip if we already counted this course (same course, multiple occasions).
+            if occasion.course_id in seen_course_ids:
+                continue
+            cat_course = next(
+                (cc for cc in occasion.course.categorycourse_set.all()
+                 if cc.category_id == category.id),
+                None
+            )
+            if cat_course is None:
+                continue
+            is_completed = occasion.slug in completed_course_slugs
+            ects = float(cat_course.ects)
+            courses_in_cat.append({
+                'title': occasion.course.title,
+                'ects': ects,
+                'isCompleted': is_completed,
+            })
+            if is_completed:
+                completed_ects += ects
+            seen_course_ids.add(occasion.course_id)
+
+        for private_course in private_courses:
+            cat_private = next(
+                (pc for pc in private_course.privatecoursecategory_set.all()
+                 if pc.category_id == category.id),
+                None
+            )
+            if cat_private is None:
+                continue
+            is_completed = private_course.slug in completed_private_slugs
+            ects = float(cat_private.ects)
+            courses_in_cat.append({
+                'title': private_course.title,
+                'ects': ects,
+                'isCompleted': is_completed,
+            })
+            if is_completed:
+                completed_ects += ects
+
+        categories_courses.append(courses_in_cat)
+        categories_completed_ects.append(completed_ects)
+
+    return categories_courses, categories_completed_ects
 
 
 @login_required
@@ -1739,16 +1820,74 @@ def update_prerequisite_check(request: HttpRequest, username, slug):
 
     block = get_object_or_404(Block, user__username=username, slug=slug)
 
-    shouldEnable = request.GET.get('enable', '')
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
 
-    # Treat anything non-empty as True
-    # XXX: Will also be true for "enable=0" or "enable=false" etc.
-    if (shouldEnable):
-        block.should_verify_prerequisites = True
-    else:
-        block.should_verify_prerequisites = False
+    should_enable = request.GET.get('enable', '').strip().lower()
+
+    # Enable only for explicit truthy values.
+    block.should_verify_prerequisites = should_enable in {'1', 'true', 'yes', 'on'}
 
     block.save()
 
     # Just return an empty response if everything went well.
     return HttpResponse('')
+
+
+@login_required
+def toggle_course_prerequisite_check(request: HttpRequest, username: str, slug: str):
+    """Toggle per-course prerequisite checking for a course occasion in a block.
+
+    When skipped, unmet prerequisites for that course will not be shown as
+    warnings in the schedule.
+    """
+    block = get_object_or_404(Block, user__username=username, slug=slug)
+
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
+
+    course_slug = request.GET.get('slug', '')
+    course = get_object_or_404(block.courseoccasions.all(), slug=course_slug)
+
+    if block.skipped_prerequisite_occasions.filter(slug=course_slug).exists():
+        block.skipped_prerequisite_occasions.remove(course)
+    else:
+        block.skipped_prerequisite_occasions.add(course)
+
+    return JsonResponse(build_courses_json(block), safe=False)
+
+
+@login_required
+def toggle_course_completed(request: HttpRequest, username: str, slug: str):
+    """Toggle the completed (avklarad) state for a course in a block.
+
+    Completed courses are shown in green in the schedule.
+    """
+    block = get_object_or_404(Block, user__username=username, slug=slug)
+
+    is_allowed_to_edit = (request.user.is_staff
+                          or request.user.username == block.user.username)
+    if not is_allowed_to_edit:
+        raise PermissionDenied
+
+    course_slug = request.GET.get('slug', '')
+    is_private = request.GET.get('private', '')
+
+    if is_private == '1':
+        course = get_object_or_404(block.privatecourses.all(), slug=course_slug)
+        if block.completed_privatecourses.filter(slug=course_slug).exists():
+            block.completed_privatecourses.remove(course)
+        else:
+            block.completed_privatecourses.add(course)
+    else:
+        course = get_object_or_404(block.courseoccasions.all(), slug=course_slug)
+        if block.completed_courseoccasions.filter(slug=course_slug).exists():
+            block.completed_courseoccasions.remove(course)
+        else:
+            block.completed_courseoccasions.add(course)
+
+    return JsonResponse(build_courses_json(block), safe=False)

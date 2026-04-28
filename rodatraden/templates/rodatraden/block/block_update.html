@@ -39,23 +39,28 @@
 </form>
 
 <script type="text/javascript">
-
-    $(document).ready(function(){
-      /* Disable track choice if private is selected */
-      if ($('input[type="checkbox"]').prop("checked")==true){
-        $('.block-track').prop('disabled', true)
-      }
-      $('input[type="checkbox"]').click(function(){
-        if($(this).prop("checked") == true){
-          $('.block-track').prop('disabled', true)
+    // This template is intended to be loaded inside a modal on pages where
+    // jQuery/select2 are already available.
+    if (window.jQuery) {
+      $(document).ready(function() {
+        /* Disable track choice if private is selected */
+        if ($('input[type="checkbox"]').prop("checked") == true) {
+          $('.block-track').prop('disabled', true);
         }
-        else if($(this).prop("checked") == false){
-          $('.block-track').prop('disabled', false)
+        $('input[type="checkbox"]').click(function() {
+          if ($(this).prop("checked") == true) {
+            $('.block-track').prop('disabled', true);
+          }
+          else if ($(this).prop("checked") == false) {
+            $('.block-track').prop('disabled', false);
+          }
+        });
+
+        /* Drop-down lists for multiple choice fields. */
+        if ($.fn.select2) {
+          $(".select2-mult-choice").select2({ width: '100%' });
         }
       });
-
-      /* Drop-down lists for multiple choice fields. */
-      $(".select2-mult-choice").select2({ width: '100%' });
-    });
+    }
 
 </script>
