@@ -102,7 +102,6 @@ For windows see section lower down
    give more detail than that.
    (one more detail, uncomment wfastcgi in requirements.txt on windows)
 
-   #### Windows
 #### Windows
 
 I assume that you already have a Windows Server with IIS enabled (including the CGI role service) and Python installed system-wide (for example `C:\Python312`). This guide focuses on deployment using IIS and FastCGI (`wfastcgi`).

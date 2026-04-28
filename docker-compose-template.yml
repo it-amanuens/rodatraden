@@ -14,7 +14,7 @@ services:
       - --entrypoints.websecure.forwardedheaders.insecure=true
 
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=it@tekniskfysik.se
+      - --certificatesresolvers.myresolver.acme.email=your-email@example.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
       - --log.level=DEBUG
     ports:
@@ -42,10 +42,10 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - MYSQL_ROOT_PASSWORD=MLNNpxjPbpjdiFCO3K6bOkL5W
+      - MYSQL_ROOT_PASSWORD=<CHANGE_ME_STRONG_ROOT_PASSWORD>
       - MYSQL_DATABASE=bookstack
       - MYSQL_USER=bookstack
-      - MYSQL_PASSWORD=Xav716CIwmjdsFd2wmPF8qvg3
+      - MYSQL_PASSWORD=<CHANGE_ME_STRONG_DB_PASSWORD>
     volumes:
       - ./bookstack_db_data:/config
     labels:
@@ -53,17 +53,17 @@ services:
     restart: unless-stopped
 
   rodatraden:
-    build: /root/rodatraden
+    build: .
     container_name: rodatraden
     environment:
       - TZ=Europe/Stockholm
     volumes:
-      - /root/rodatraden:/app
-      - /root/rodatraden/static:/app/static
-      - /root/rodatraden/media:/app/media
+      - .:/app
+      - ./static:/app/static
+      - ./media:/app/media
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.rodatraden.rule=Host(`rt.tekniskfysik.se`)"
+      - "traefik.http.routers.rodatraden.rule=Host(`your.domain.example.com`)"
       - "traefik.http.routers.rodatraden.entrypoints=websecure"
       - "traefik.http.routers.rodatraden.tls=true"
       - "traefik.http.routers.rodatraden.tls.certresolver=myresolver"

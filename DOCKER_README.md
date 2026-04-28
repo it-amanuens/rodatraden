@@ -1,13 +1,17 @@
 # Röda Tråden Production Setup Guide
 
+> **Note:** This guide was originally written for a specific deployment at Teknisk Fysik, Umeå University
+> (running at `rt.tekniskfysik.se` on a single Linux server). File paths such as `/root/3dlabbetwiki/`
+> and service names like `3dlabbetwiki-reverse-proxy-1` are specific to that environment.
+> Adapt paths, service names, hostnames, and Docker Compose file locations to match your own deployment.
+
 ## Architecture Overview
 
 ```
 Internet → Traefik (reverse proxy) → Docker containers
                 ↓
     ┌───────────────────────────────────────┐
-    │  rt.tekniskfysik.se → rodatraden:8000 │
-    │  3dwiki.tekniskfysik.se → bookstack   │
+    │  <your-domain> → rodatraden:8000      │
     └───────────────────────────────────────┘
 ```
 
