@@ -982,6 +982,27 @@ class Block(models.Model):
         default=True, 
         verbose_name='Ska förkunskapskrav verifieras?')
 
+    # Course occasions for which prerequisite checking is skipped individually.
+    skipped_prerequisite_occasions = models.ManyToManyField(
+        CourseOccasion,
+        related_name='prerequisite_skipped_in_blocks',
+        blank=True,
+        verbose_name='Undantagna förkunskapskrav')
+
+    # Course occasions marked as completed (avklarade) by the user.
+    completed_courseoccasions = models.ManyToManyField(
+        CourseOccasion,
+        related_name='completed_in_blocks',
+        blank=True,
+        verbose_name='Avklarade kurstillfällen')
+
+    # Private courses marked as completed (avklarade) by the user.
+    completed_privatecourses = models.ManyToManyField(
+        PrivateCourse,
+        related_name='completed_in_blocks',
+        blank=True,
+        verbose_name='Avklarade privata kurser')
+
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""
 

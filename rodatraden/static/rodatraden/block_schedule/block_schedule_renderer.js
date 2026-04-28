@@ -329,6 +329,8 @@ export function updateCourseContainer(term, scale, margin) {
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
+ * @param {string} blockToggleCoursePrereqUrl - URL to toggle per-course prerequisite checking.
+ * @param {string} blockToggleCourseCompleteUrl - URL to toggle per-course completed (avklarad) state.
  * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
 export function updateCourseBlocks(courseContainer,
@@ -337,6 +339,8 @@ export function updateCourseBlocks(courseContainer,
                                    isLoggedIn,
                                    courseoccasionInfoUrl,
                                    blockRemoveCourseUrl,
+                                   blockToggleCoursePrereqUrl,
+                                   blockToggleCourseCompleteUrl,
                                    blockSchedule) {
   // Number of weeks in a regular term (fall/spring). Summer uses 10 weeks.
   const regularTermWeekCount = 20;
@@ -400,6 +404,8 @@ export function updateCourseBlocks(courseContainer,
     // Add the icon to the button.
     removeButton.append("i")
       .attr("class", "fa fa-times");
+
+
   }
 
   // Make a unique identifier of the course occasion available in the DOM.
@@ -463,6 +469,79 @@ export function updateCourseBlocks(courseContainer,
           const parser = new DOMParser();
           const modalDocument = parser.parseFromString(html, 'text/html');
           modalContent.innerHTML = modalDocument.body.innerHTML;
+
+          const updateCoursesFromUrl = toggleUrl => {
+            fetch(toggleUrl, { method: 'GET' })
+              .then(r => r.json())
+              .then(courseOccasionsJSON => {
+                const courseOccasions = courseOccasionsJSON.map(o => CourseOccasion.fromJSON(o));
+                blockSchedule.updateCourses(courseOccasions);
+                nativeModal.close();
+              })
+              .catch(error => console.error(error));
+          };
+
+          const getFooterCheckboxGroup = footer => {
+            let group = footer.querySelector('.modal-footer-checkbox-group');
+
+            if (!group) {
+              group = document.createElement('div');
+              group.className = 'modal-footer-checkbox-group';
+              footer.prepend(group);
+            }
+
+            return group;
+          };
+
+          const appendFooterCheckbox = (footer, inputId, labelText, isChecked, onChange) => {
+            const group = getFooterCheckboxGroup(footer);
+            const container = document.createElement('div');
+            container.className = 'prerequisite-checkbox';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = inputId;
+            input.className = 'prerequisite-checkbox__input';
+            input.checked = isChecked;
+            input.addEventListener('change', onChange);
+
+            const label = document.createElement('label');
+            label.className = 'prerequisite-checkbox__text';
+            label.setAttribute('for', inputId);
+            label.textContent = labelText;
+
+            container.appendChild(input);
+            container.appendChild(label);
+            group.appendChild(container);
+          };
+
+          // Add per-course toggle checkboxes in the modal footer when the user is
+          // logged in and the toggle URLs are available.
+          if (isLoggedIn && blockToggleCourseCompleteUrl) {
+            const footer = modalContent.querySelector('.modal-footer');
+            if (footer) {
+              if (blockToggleCoursePrereqUrl) {
+                appendFooterCheckbox(
+                  footer,
+                  `modal-prereq-checkbox-${course.slug}`,
+                  'Verifiera förkunskapskrav',
+                  !course.skipPrerequisiteCheck,
+                  () => updateCoursesFromUrl(blockToggleCoursePrereqUrl + '?slug=' + course.slug)
+                );
+              }
+
+              appendFooterCheckbox(
+                footer,
+                `modal-complete-checkbox-${course.slug}`,
+                'Avklarad',
+                course.isCompleted,
+                () => updateCoursesFromUrl(
+                  blockToggleCourseCompleteUrl + '?slug=' + course.slug + '&private=0'
+                )
+              );
+            }
+          }
+
           nativeModal.showModal();
         })
         .catch(error => console.error(error));
@@ -504,9 +583,19 @@ export function updateCourseBlocks(courseContainer,
         classList.push('course--unmet-prerequisites');
       }
 
+      // Mark a block if prerequisite checking is skipped for this course.
+      if (course.skipPrerequisiteCheck) {
+        classList.push('course--skip-prereq');
+      }
+
       // Mark a block if it's a retake of a course that appears earlier.
       if (course.isRetake) {
         classList.push('course--retake');
+      }
+
+      // Mark a block if it has been completed (avklarad).
+      if (course.isCompleted) {
+        classList.push('course--completed');
       }
 
       return classList.join(' ');
@@ -531,6 +620,7 @@ export function updateCourseBlocks(courseContainer,
       const top = course.firstRowIndex * scale + margin * 3;
       return top + "px";
     });
+
 
   // Add a warning icon to the course blocks that have unmet prerequisites.
   const warningIconSelection = course.selectAll(".course-warning-icon")
