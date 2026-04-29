@@ -1,16 +1,16 @@
-django  # Base django module
-django-bootstrap4  # CSS base
-django-crispy-forms  # Nice looking forms
-django-tables2  # Tables for lists
-django-filter  # Filtering the lists
-django-bootstrap-modal-forms  # Nice modals for forms
-django-widget-tweaks  # Flexible form widgets
-django-registration  # User registration manager
-django-simple-captcha  # Recaptcha for user creation
-openpyxl  # Managing excel files
-Pillow  # Not sure to be frank
-psycopg2-binary  # Postgresql
-crispy-bootstrap5 # required for new django version
-whitenoise  # Serve static files in production
+Django==6.0  # Base django module
+django-bootstrap4==25.3  # CSS base
+django-crispy-forms==2.5  # Nice looking forms
+django-tables2==2.8.0  # Tables for lists
+django-filter==25.2  # Filtering the lists
+django-bootstrap-modal-forms==3.0.5  # Nice modals for forms
+django-widget-tweaks==1.5.0  # Flexible form widgets
+django-registration==5.2.1  # User registration manager
+django-simple-captcha==0.6.3  # Recaptcha for user creation
+openpyxl==3.1.5  # Managing excel files
+Pillow==12.2.0  # Image processing
+psycopg2-binary==2.9.11  # Postgresql
+crispy-bootstrap5==2025.6  # Required for new django version
+whitenoise  # Serve static files in production (pin version after confirming with pip freeze)
 
 #wfastcgi  # uncomment on windows when using IIS

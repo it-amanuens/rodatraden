@@ -1,44 +1,73 @@
-# Röda Tråden Production Setup Guide
+# Roda Traden Docker Deployment Guide
 
-## Architecture Overview
+## Overview
 
+- `docker-compose-template.yml` contains a rodatraden-only setup with Traefik and Django.
+- No database passwords are stored in the compose template.
+- Domain and ACME email are injected through `.env` variables.
+- SQLite database and media files are stored under `./data` by default.
+
+## Database Recommendation
+
+- SQLite is fine for small deployments and easy backups.
+- For production with multiple users and heavier writes, use PostgreSQL or MySQL/MariaDB.
+- The Django settings template supports all three through environment variables.
+
+## Initial Setup
+
+1. Copy the compose and env templates:
+
+```bash
+cp docker-compose-template.yml docker-compose.yml
+cp .env.template .env
 ```
-Internet → Traefik (reverse proxy) → Docker containers
-                ↓
-    ┌───────────────────────────────────────┐
-    │  rt.tekniskfysik.se → rodatraden:8000 │
-    │  3dwiki.tekniskfysik.se → bookstack   │
-    └───────────────────────────────────────┘
+
+2. Edit `.env` and set real values:
+
+```env
+TRAEFIK_ACME_EMAIL=you@example.com
+RODATRADEN_DOMAIN=rodatraden.example.com
+TZ=Europe/Stockholm
+DJANGO_SECRET_KEY=replace-with-a-long-random-secret
+DJANGO_DEBUG=false
+DJANGO_ALLOWED_HOSTS=rodatraden.example.com
+DJANGO_CSRF_TRUSTED_ORIGINS=https://rodatraden.example.com
 ```
 
-- **Traefik** handles SSL certificates (Let's Encrypt) and routes traffic
-- **Django app** runs with Gunicorn (production WSGI server) in Docker
-- **WhiteNoise** serves static files directly from Django
+3. Ensure `tf/settings.py` exists (copy from template if needed):
+
+```bash
+cp tf/settings-template.py tf/settings.py
+```
+
+The default template uses:
+- `data/db.sqlite3` for the database
+- `data/media/` for uploaded files
+
+To switch to PostgreSQL or MySQL/MariaDB, set `DJANGO_DB_*` variables in `.env`.
 
 ---
 
-## File Locations
+## Data Persistence
 
-| Component | Path |
-|-----------|------|
-| Docker Compose | `/root/3dlabbetwiki/docker-compose.yml` |
-| Django App | `/root/rodatraden/` |
-| Dockerfile | `/root/rodatraden/Dockerfile` |
-| SSL Certificates | `/root/3dlabbetwiki/letsencrypt/` |
-| Database | `/root/rodatraden/mydatabase` (SQLite) |
+Persistent project data is stored on the host in:
+- `./data/db.sqlite3` (SQLite)
+- `./data/media/` (user uploads)
+- `./static/` (collected static files)
 
----
+Traefik ACME certificates are stored in:
+- `./letsencrypt/`
 
 ## Common Commands
 
 ### Start all services
 ```bash
-cd /root/3dlabbetwiki && docker compose up -d
+docker compose up -d
 ```
 
 ### Stop all services
 ```bash
-cd /root/3dlabbetwiki && docker compose down
+docker compose down
 ```
 
 ### View logs
@@ -47,10 +76,10 @@ cd /root/3dlabbetwiki && docker compose down
 docker compose logs -f
 
 # Just rodatraden
-docker logs -f rodatraden
+docker compose logs -f rodatraden
 
-# Just traefik
-docker logs -f 3dlabbetwiki-reverse-proxy-1
+# Just reverse proxy
+docker compose logs -f reverse-proxy
 ```
 
 ### Restart rodatraden
@@ -60,33 +89,35 @@ docker compose restart rodatraden
 
 ---
 
-## Updating Code
+## Updating Application
 
-### After making code changes:
+### After making code changes
 ```bash
-cd /root/3dlabbetwiki && docker compose up -d --build rodatraden
+docker compose up -d --build rodatraden
 ```
 
-This will:
-1. Rebuild the Docker image with new code
-2. Run `collectstatic` automatically
-3. Restart the container
+This rebuilds the image and restarts the app container.
 
-### If you only changed Python code (no new dependencies):
-```bash
-docker compose restart rodatraden
-```
-*(Note: This only works because we mount the code as a volume)*
-
-### If you added new Python packages:
-1. Add them to `/root/rodatraden/requirements.txt`
+### If you added new Python packages
+1. Add them to `requirements.txt`
 2. Rebuild: `docker compose up -d --build rodatraden`
 
 ---
 
 ## Database
 
-The database is SQLite stored at `/root/rodatraden/mydatabase`.
+By default, the database is SQLite stored at `./data/db.sqlite3`.
+
+For production database engines, configure `.env`:
+
+```env
+DJANGO_DB_ENGINE=postgres
+DJANGO_DB_NAME=rodatraden
+DJANGO_DB_USER=rodatraden
+DJANGO_DB_PASSWORD=replace-me
+DJANGO_DB_HOST=127.0.0.1
+DJANGO_DB_PORT=5432
+```
 
 ### Run migrations
 ```bash
@@ -100,7 +131,12 @@ docker exec -it rodatraden python manage.py createsuperuser
 
 ### Backup database
 ```bash
-cp /root/rodatraden/mydatabase /root/rodatraden/mydatabase.backup
+cp data/db.sqlite3 data/db.sqlite3.backup
+```
+
+### Restore database backup
+```bash
+cp data/db.sqlite3.backup data/db.sqlite3
 ```
 
 ---
@@ -112,7 +148,7 @@ If you add new static files (images, CSS, JS):
 docker exec rodatraden python manage.py collectstatic --noinput
 ```
 
-Or rebuild the container (collectstatic runs automatically during build).
+Or rebuild the container.
 
 ---
 
@@ -123,50 +159,18 @@ Or rebuild the container (collectstatic runs automatically during build).
 docker exec rodatraden python manage.py <command>
 ```
 
-### Via local venv (for development/scripts)
+Examples:
 ```bash
-cd /root/rodatraden
-source env/bin/activate
+docker exec rodatraden python manage.py migrate
+docker exec -it rodatraden python manage.py createsuperuser
+docker exec rodatraden python manage.py shell
+docker exec rodatraden python manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission --indent 2 -o data/backup.json
+```
+
+### Via local venv (development/scripts)
+```bash
+source venv/bin/activate
 python manage.py <command>
-```
-
-Both work because they share the same database file!
-
----
-
-## Key Configuration Files
-
-### `/root/rodatraden/tf/settings.py`
-- `DEBUG = False` for production
-- `ALLOWED_HOSTS` - domains that can access the site
-- `CSRF_TRUSTED_ORIGINS` - for HTTPS POST requests
-- `SECURE_PROXY_SSL_HEADER` - trusts Traefik's HTTPS headers
-
-### `/root/rodatraden/Dockerfile`
-```dockerfile
-FROM python:3.12-slim
-# Installs dependencies, runs collectstatic, starts Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "tf.wsgi:application"]
-```
-
-### Docker Compose (rodatraden service)
-- Routes `rt.tekniskfysik.se` via Traefik labels
-- Mounts code directory for live updates
-- Auto-restarts on failure
-
----
-
-## Adding a New Domain/Route
-
-To add another service to Traefik, add a new service in `docker-compose.yml` with labels:
-```yaml
-labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.myservice.rule=Host(`myservice.tekniskfysik.se`)"
-  - "traefik.http.routers.myservice.entrypoints=websecure"
-  - "traefik.http.routers.myservice.tls=true"
-  - "traefik.http.routers.myservice.tls.certresolver=myresolver"
-  - "traefik.http.services.myservice.loadbalancer.server.port=8000"
 ```
 
 ---
@@ -177,6 +181,6 @@ labels:
 |---------|----------|
 | 502 Bad Gateway | Check if container is running: `docker ps` |
 | Static files 404 | Run `collectstatic` or rebuild |
-| CSRF errors | Check `CSRF_TRUSTED_ORIGINS` in settings |
+| CSRF errors | Check `CSRF_TRUSTED_ORIGINS` and `ALLOWED_HOSTS` in `tf/settings.py` |
 | SSL issues | Check Traefik logs, verify DNS |
-| Database issues | Both Docker and venv use same `/root/rodatraden/mydatabase` |
+| Database issues | Verify `data/db.sqlite3` exists and is writable |
