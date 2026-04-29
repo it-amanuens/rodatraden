@@ -96,12 +96,6 @@
   text-align: left;
 }
 
-/* Keep page action buttons clickable even when nearby content overlaps. */
-.main-template > .text-right {
-  position: relative;
-  z-index: 3;
-}
-
 /* Report problem button */
 .send-report {
   position: fixed;
@@ -118,13 +112,6 @@
 .btn-rt:hover {
   background-color: #b30018;
   color: white;
-}
-/* Active state for the "Avklarad" button in the course info modal. */
-.modal-complete-button--active {
-  background-color: hsl(130, 60%, 30%);
-}
-.modal-complete-button--active:hover {
-  background-color: hsl(130, 60%, 22%);
 }
 /* Remove the background from button */
 .btn-gone {
@@ -411,17 +398,6 @@ body:has(dialog[open]) {
   padding-left: 0.5rem;
 }
 
-.modal-footer-checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-right: auto;
-}
-
-.modal-footer-checkbox-group .prerequisite-checkbox {
-  margin-bottom: 0;
-}
-
 .academic-year {
   display: grid;
   gap: var(--schedule-gap);
@@ -584,57 +560,6 @@ body:has(dialog[open]) {
   margin: 0;
 }
 
-.course-prereq-toggle-button {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  width: var(--schedule-remove-button-size);
-  aspect-ratio: 1;
-  padding: 0;
-  margin: 0;
-  font-size: 0.7em;
-  opacity: 0.6;
-}
-
-.course--skip-prereq .course-prereq-toggle-button {
-  opacity: 1;
-  color: hsl(200, 80%, 70%);
-}
-
-.course-complete-button {
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  width: var(--schedule-remove-button-size);
-  aspect-ratio: 1;
-  padding: 0;
-  margin: 0;
-  font-size: 0.7em;
-  opacity: 0.6;
-}
-
-.course--completed .course-complete-button {
-  opacity: 1;
-  color: hsl(130, 70%, 60%);
-}
-
-
-/* Completed courses use a solid green background for quick identification. */
-.course--completed {
-  border-color: hsl(130, 60%, 35%);
-  background-color: hsl(130, 45%, 32%);
-}
-
 .course a,
 .course .fa {
   color: var(--schedule-text-color);
@@ -721,7 +646,7 @@ body:has(dialog[open]) {
   background-color: var(--schedule-background-color-dark);
 }
 
-/* Keep only the remove button hover behavior on pointer devices. */
+/* The remove buttons are hidden on devices with a mouse to remove clutter. */
 @media (hover: hover) {
   .course:not(:hover) .course-remove-button {
     display: none;

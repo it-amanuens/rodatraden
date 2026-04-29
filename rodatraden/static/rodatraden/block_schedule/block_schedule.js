@@ -9,15 +9,11 @@ export default class BlockSchedule {
    * @param {HTMLElement} academicYearContainer - Container for all the academic years. Each year has headers, a set of courses and a footer. 
    * @param {boolean} shouldStackTerms - True if terms should be split and stacked vertically.
    * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
-  * @param {string} blockUsername - Username owning this block schedule.
-  * @param {string} blockSlug - Slug of this block schedule.
    * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
    * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
    * @param {string} blockReplaceCourseUrl - URL to replace a course occasion.blockGetRelatedOccasionsUrl
    * @param {string} blockCourseListUrl - URL to get a list of courses to add.
    * @param {string} blockGetRelatedOccasionsUrl - URL to get a list of other course occasions related to the same course.
-   * @param {string} blockToggleCoursePrereqUrl - URL to toggle per-course prerequisite checking.
-   * @param {string} blockToggleCourseCompleteUrl - URL to toggle per-course completed (avklarad) state.
    * @param {number} scale - Scale used to calculating size and position.
    * @param {number} margin - Margin used to calculating size and position.
    */
@@ -26,15 +22,11 @@ export default class BlockSchedule {
               academicYearContainer,
               shouldStackTerms,
               isLoggedIn,
-              blockUsername,
-              blockSlug,
               courseoccasionInfoUrl,
               blockRemoveCourseUrl,
               blockReplaceCourseUrl,
               blockCourseListUrl,
               blockGetRelatedOccasionsUrl,
-              blockToggleCoursePrereqUrl,
-              blockToggleCourseCompleteUrl,
               margin,
               scale) {
     this.#coursesData = new BlockScheduleData(startYear, courses, shouldStackTerms);
@@ -42,15 +34,11 @@ export default class BlockSchedule {
     this.#academicYearContainer = academicYearContainer;
     this.#shouldStackTerms = shouldStackTerms;
     this.#isLoggedIn = isLoggedIn;
-    this.#blockUsername = blockUsername;
-    this.#blockSlug = blockSlug;
     this.#courseoccasionInfoUrl = courseoccasionInfoUrl;
     this.#blockRemoveCourseUrl = blockRemoveCourseUrl;
     this.#blockReplaceCourseUrl = blockReplaceCourseUrl;
     this.#blockCourseListUrl = blockCourseListUrl;
     this.#blockGetRelatedOccasionsUrl = blockGetRelatedOccasionsUrl;
-    this.#blockToggleCoursePrereqUrl = blockToggleCoursePrereqUrl;
-    this.#blockToggleCourseCompleteUrl = blockToggleCourseCompleteUrl;
 
     this.#margin = margin;
     this.#scale = scale;
@@ -172,10 +160,6 @@ export default class BlockSchedule {
   /** @type {boolean} */
   #isLoggedIn;
   /** @type {string} */
-  #blockUsername;
-  /** @type {string} */
-  #blockSlug;
-  /** @type {string} */
   #courseoccasionInfoUrl;
   /** @type {string} */
   #blockRemoveCourseUrl;
@@ -185,10 +169,6 @@ export default class BlockSchedule {
   #blockCourseListUrl;
   /** @type {string} */
   #blockGetRelatedOccasionsUrl;
-  /** @type {string} */
-  #blockToggleCoursePrereqUrl;
-  /** @type {string} */
-  #blockToggleCourseCompleteUrl;
   /** @type {Function|null} */
   #onCoursesChangedCallback = null;
 
@@ -242,12 +222,8 @@ export default class BlockSchedule {
       this.#scale,
       this.#margin,
       this.#isLoggedIn,
-      this.#blockUsername,
-      this.#blockSlug,
       this.#courseoccasionInfoUrl,
       this.#blockRemoveCourseUrl,
-      this.#blockToggleCoursePrereqUrl,
-      this.#blockToggleCourseCompleteUrl,
       this
     );
 

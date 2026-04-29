@@ -9,6 +9,35 @@ Verktyg
 
 {% block content %}
 
+<h2>Kopiera kurstillfällen till nytt år (äldre verktyg)</h2>
+<p>Med detta verktyg så kan du välja kopiera alla kurstillfällen från ett år
+till ett annat. Denna funktion skriver inte över existerande kurstillfällen.</p>
+
+<b>OBS: Detta går inte att backa från, så denna funktion ska rimligtvis bara
+  användas en gång per år. Tänk också på att ta bort kurser som är varannat år,
+  etc.</b>
+
+<div class='my-3'>
+  <form action={% url 'tools' %} method='post' novalidate>
+    {% csrf_token %}
+    <span class='px-3'>Ta från år</span>
+    <select name='from' id='from'>
+      {% for acyear in acyears %}
+      <option value='{{ acyear.id }}'>{{ acyear.title }}</option>
+      {% endfor %}
+    </select>
+    <span class='px-3'>till år</span>
+    <select name='to' id='to'>
+      {% for acyear in acyears %}
+      <option value='{{ acyear.id }}'>{{ acyear.title }}</option>
+      {% endfor %}
+    </select>
+    <input class='mx-3' type='submit' value='Skicka' name='courseocc_copy'>
+  </form>
+</div>
+
+<hr class='my-5'>
+
 <h2>Generera kurstillfällen från kursschema</h2>
 <p>Genererar kurstillfällen automatiskt baserat på kursernas schemaläggningssegment
 (frekvens, perioder, start/slutår, undantagsår) för alla läsår. Skriver inte över existerande kurstillfällen.</p>

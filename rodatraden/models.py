@@ -385,6 +385,9 @@ class Course(models.Model):
     code = models.CharField(max_length=10, verbose_name='Kod')
     ects = models.DecimalField(verbose_name='Poäng',
             max_digits=3,decimal_places=1, default='7.5')
+    # If the course is approved
+    approved = models.BooleanField(default=True, blank=True, null=True,
+            verbose_name='Godkänd')
     note = models.CharField(max_length=250, blank=True, null=True)
     homepage_url = models.URLField(blank=True, null=True,
             verbose_name='Hemsida')
@@ -549,11 +552,6 @@ class CourseScheduleSegment(models.Model):
         verbose_name='Undantagna år',
         help_text='År då kursen inte ges i detta segment, t.ex. [2020, 2023]'
     )
-    start_offset = models.IntegerField(
-        default=0,
-        verbose_name='Veckor in i läsperioden',
-        help_text='0 = läsperiodens start, 5 = 5 veckor in, osv.',
-    )
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -563,7 +561,7 @@ class CourseScheduleSegment(models.Model):
     class Meta:
         verbose_name = 'Schemaläggningssegment'
         verbose_name_plural = 'Schemaläggningssegment'
-        ordering = ['time_period__week', 'start_year']
+        ordering = ['start_year', 'time_period__week']
         permissions = [
             ('can_manage_scheduling', 'Kan hantera schemaläggning'),
         ]
@@ -986,27 +984,6 @@ class Block(models.Model):
     should_verify_prerequisites = models.BooleanField(
         default=True, 
         verbose_name='Ska förkunskapskrav verifieras?')
-
-    # Course occasions for which prerequisite checking is skipped individually.
-    skipped_prerequisite_occasions = models.ManyToManyField(
-        CourseOccasion,
-        related_name='prerequisite_skipped_in_blocks',
-        blank=True,
-        verbose_name='Undantagna förkunskapskrav')
-
-    # Course occasions marked as completed (avklarade) by the user.
-    completed_courseoccasions = models.ManyToManyField(
-        CourseOccasion,
-        related_name='completed_in_blocks',
-        blank=True,
-        verbose_name='Avklarade kurstillfällen')
-
-    # Private courses marked as completed (avklarade) by the user.
-    completed_privatecourses = models.ManyToManyField(
-        PrivateCourse,
-        related_name='completed_in_blocks',
-        blank=True,
-        verbose_name='Avklarade privata kurser')
 
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""

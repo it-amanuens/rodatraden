@@ -46,6 +46,10 @@ class CourseOccasionTable(tables.Table):
     time_period = tables.Column(accessor="time_period__title",
             verbose_name="Läsperiod")
 
+    # Editing buttons
+    edit = tables.TemplateColumn(
+            template_name='rodatraden/tables/courseoccasion_edit.html', 
+            verbose_name="")
     # Official
     official = tables.TemplateColumn(
             template_name='rodatraden/tables/official_table.html', 
@@ -55,6 +59,14 @@ class CourseOccasionTable(tables.Table):
             template_name='rodatraden/tables/category_table_occ.html',
             verbose_name="Kategorier",
             orderable=False)
+
+    def before_render(self, request):
+        """Override before_render to hide edit if not staff."""
+
+        if request.user.is_staff:
+            self.columns.show('edit')
+        else:
+            self.columns.hide('edit')
 
     class Meta:
         model = CourseOccasion

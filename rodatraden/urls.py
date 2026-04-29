@@ -64,6 +64,8 @@ urlpatterns = [
         name='privatecourse-detail'),
 
     # Courseoccasions
+    path('kurstillfallen/', views.CourseOccasionList.as_view(),
+        name='courseoccasion-list'),
     path('kurstillfallen/skapa/', views.CourseOccasionCreate.as_view(),
         name='courseoccasion-create'),
     path('kurstillfallen/<int:year>/<slug:slug>/radera/',
@@ -107,12 +109,6 @@ urlpatterns = [
 
     path('blockscheman/<str:username>/<slug:slug>/kravcheck/',
         views.update_prerequisite_check, name='update-prerequisite-check'),
-
-    path('blockscheman/<str:username>/<slug:slug>/kursforkunskapskrav/',
-        views.toggle_course_prerequisite_check, name='toggle-course-prerequisite-check'),
-
-    path('blockscheman/<str:username>/<slug:slug>/avklarad/',
-        views.toggle_course_completed, name='toggle-course-completed'),
 
     # Profiles
     path('profiler/', views.ProfileList.as_view(), name='profile-list'),

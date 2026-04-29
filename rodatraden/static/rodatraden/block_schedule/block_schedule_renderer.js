@@ -183,8 +183,15 @@ export function updateTerm(academicYear, shouldStackTerms, margin, scale) {
         let summerTerms = academicYear.summer;
         const summerHeight = getCourseContainerHeight(summerTerms.courses, margin, scale);
 
-        // Summer should keep its own container height even in parallel mode.
-        summerTerms.containerHeight = summerHeight;
+        if (shouldStackTerms) {
+          summerTerms.containerHeight = summerHeight;
+        } else {
+          // Summer stands on its own height-wise since it's narrower.
+          summerTerms.containerHeight = Math.max(summerHeight, fallTerms.containerHeight);
+          // Also update fall/spring to match.
+          fallTerms.containerHeight = summerTerms.containerHeight;
+          springTerms.containerHeight = summerTerms.containerHeight;
+        }
 
         terms.push(summerTerms);
       }
@@ -322,20 +329,14 @@ export function updateCourseContainer(term, scale, margin) {
  * @param {boolean} isLoggedIn - True if the user is a logged in owner of the schedule.
  * @param {string} courseoccasionInfoUrl - URL for the course occasion info view.
  * @param {string} blockRemoveCourseUrl - URL to remove a course occasion.
- * @param {string} blockToggleCoursePrereqUrl - URL to toggle per-course prerequisite checking.
- * @param {string} blockToggleCourseCompleteUrl - URL to toggle per-course completed (avklarad) state.
  * @param {BlockSchedule} blockSchedule - Block schedule object.
  */
 export function updateCourseBlocks(courseContainer,
                                    scale,
                                    margin,
                                    isLoggedIn,
-                                   blockUsername,
-                                   blockSlug,
                                    courseoccasionInfoUrl,
                                    blockRemoveCourseUrl,
-                                   blockToggleCoursePrereqUrl,
-                                   blockToggleCourseCompleteUrl,
                                    blockSchedule) {
   // Number of weeks in a regular term (fall/spring). Summer uses 10 weeks.
   const regularTermWeekCount = 20;
@@ -399,8 +400,6 @@ export function updateCourseBlocks(courseContainer,
     // Add the icon to the button.
     removeButton.append("i")
       .attr("class", "fa fa-times");
-
-
   }
 
   // Make a unique identifier of the course occasion available in the DOM.
@@ -437,15 +436,10 @@ export function updateCourseBlocks(courseContainer,
       }
       // Arrays are send by repeating the parameter name in the URL.
       const unmetURL = course.unmetPrerequisiteIDs.map(id => "&unmet[]=" + id).join('');
-      const blockUrlPart = blockUsername && blockSlug
-        ? "&block_user=" + encodeURIComponent(blockUsername)
-          + "&block_slug=" + encodeURIComponent(blockSlug)
-        : '';
       
       const url = courseoccasionInfoUrl
                 + "?year=" + course.academicYear
                 + "&slug=" + course.slug
-                + blockUrlPart
                 + unmetURL;
       return url;
     });
@@ -469,79 +463,6 @@ export function updateCourseBlocks(courseContainer,
           const parser = new DOMParser();
           const modalDocument = parser.parseFromString(html, 'text/html');
           modalContent.innerHTML = modalDocument.body.innerHTML;
-
-          const updateCoursesFromUrl = toggleUrl => {
-            fetch(toggleUrl, { method: 'GET' })
-              .then(r => r.json())
-              .then(courseOccasionsJSON => {
-                const courseOccasions = courseOccasionsJSON.map(o => CourseOccasion.fromJSON(o));
-                blockSchedule.updateCourses(courseOccasions);
-                nativeModal.close();
-              })
-              .catch(error => console.error(error));
-          };
-
-          const getFooterCheckboxGroup = footer => {
-            let group = footer.querySelector('.modal-footer-checkbox-group');
-
-            if (!group) {
-              group = document.createElement('div');
-              group.className = 'modal-footer-checkbox-group';
-              footer.prepend(group);
-            }
-
-            return group;
-          };
-
-          const appendFooterCheckbox = (footer, inputId, labelText, isChecked, onChange) => {
-            const group = getFooterCheckboxGroup(footer);
-            const container = document.createElement('div');
-            container.className = 'prerequisite-checkbox';
-
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.id = inputId;
-            input.className = 'prerequisite-checkbox__input';
-            input.checked = isChecked;
-            input.addEventListener('change', onChange);
-
-            const label = document.createElement('label');
-            label.className = 'prerequisite-checkbox__text';
-            label.setAttribute('for', inputId);
-            label.textContent = labelText;
-
-            container.appendChild(input);
-            container.appendChild(label);
-            group.appendChild(container);
-          };
-
-          // Add per-course toggle checkboxes in the modal footer when the user is
-          // logged in and the toggle URLs are available.
-          if (isLoggedIn && blockToggleCourseCompleteUrl) {
-            const footer = modalContent.querySelector('.modal-footer');
-            if (footer) {
-              if (blockToggleCoursePrereqUrl) {
-                appendFooterCheckbox(
-                  footer,
-                  `modal-prereq-checkbox-${course.slug}`,
-                  'Verifiera förkunskapskrav',
-                  !course.skipPrerequisiteCheck,
-                  () => updateCoursesFromUrl(blockToggleCoursePrereqUrl + '?slug=' + course.slug)
-                );
-              }
-
-              appendFooterCheckbox(
-                footer,
-                `modal-complete-checkbox-${course.slug}`,
-                'Avklarad',
-                course.isCompleted,
-                () => updateCoursesFromUrl(
-                  blockToggleCourseCompleteUrl + '?slug=' + course.slug + '&private=0'
-                )
-              );
-            }
-          }
-
           nativeModal.showModal();
         })
         .catch(error => console.error(error));
@@ -583,19 +504,9 @@ export function updateCourseBlocks(courseContainer,
         classList.push('course--unmet-prerequisites');
       }
 
-      // Mark a block if prerequisite checking is skipped for this course.
-      if (course.skipPrerequisiteCheck) {
-        classList.push('course--skip-prereq');
-      }
-
       // Mark a block if it's a retake of a course that appears earlier.
       if (course.isRetake) {
         classList.push('course--retake');
-      }
-
-      // Mark a block if it has been completed (avklarad).
-      if (course.isCompleted) {
-        classList.push('course--completed');
       }
 
       return classList.join(' ');
@@ -621,13 +532,10 @@ export function updateCourseBlocks(courseContainer,
       return top + "px";
     });
 
-
-  // Add a warning icon to course blocks that either have unmet prerequisites
-  // or have manually disabled prerequisite verification.
+  // Add a warning icon to the course blocks that have unmet prerequisites.
   const warningIconSelection = course.selectAll(".course-warning-icon")
     .data(course => {
-      if (course.unmetPrerequisiteIDs.length > 0
-          || course.skipPrerequisiteCheck) {
+      if (course.unmetPrerequisiteIDs.length > 0) {
         // The content of the data array is irrelevant since we only want to add
         // an icon, but we need some data to be present to trigger the enter and
         // exit selections.
@@ -641,10 +549,8 @@ export function updateCourseBlocks(courseContainer,
   warningIconSelection.exit()
     .remove();
   
-  // Add/update warning icons. Visibility is controlled by the global
-  // prerequisite checkbox in updatePrerequisiteWarnings().
+  // Add missing warning icons and hide it initially.
   warningIconSelection.enter().append("i")
-    .merge(warningIconSelection)
     .attr("class", "course-warning-icon fa fa-exclamation-triangle d-none")
     .attr("aria-hidden", "true")
 
@@ -687,9 +593,6 @@ export function updateCourseBlocks(courseContainer,
       return null;
     })
     .attr("title", course => {
-      if (course.skipPrerequisiteCheck) {
-        return "Förkunskapskrav ej verifierade\nKlicka för mer information";
-      }
       if (course.unmetPrerequisiteIDs.length > 0) {
         return "Förkunskapskrav ej uppfyllda\nKlicka för mer information";
       }
@@ -850,47 +753,29 @@ export function updatePrerequisiteWarnings() {
     return;
   }
 
-  const courses = document.querySelectorAll(
-    '.course--unmet-prerequisites, .course--skip-prereq'
+  const courses = document.getElementsByClassName(
+    'course--unmet-prerequisites'
   );
   const icons = document.getElementsByClassName('course-warning-icon');
 
-  for (const course of courses) {
-    const hasUnmet = course.classList.contains('course--unmet-prerequisites');
-    const isManualSkip = course.classList.contains('course--skip-prereq');
-
-    // Global prerequisite toggle controls whether any warning is shown.
-    const shouldShowWarning = checkbox.checked && (isManualSkip || hasUnmet);
-    const shouldUseWarningColor = checkbox.checked && hasUnmet && !isManualSkip;
-
-    if (shouldShowWarning) {
+  if (checkbox.checked) {
+    for (const course of courses) {
       course.setAttribute('data-toggle', 'tooltip');
       $(course).tooltip('enable');
-    } else {
+      course.classList.add('course--warning');
+    }
+
+    for (const icon of icons) {
+      icon.classList.remove('d-none');
+    }
+  } else {
+    for (const course of courses) {
       course.removeAttribute('data-toggle');
       $(course).tooltip('disable');
-    }
-
-    if (shouldUseWarningColor) {
-      course.classList.add('course--warning');
-    } else {
       course.classList.remove('course--warning');
     }
-  }
 
-  for (const icon of icons) {
-    const parentCourse = icon.closest('.course');
-    if (!parentCourse) {
-      continue;
-    }
-
-    const hasUnmet = parentCourse.classList.contains('course--unmet-prerequisites');
-    const isManualSkip = parentCourse.classList.contains('course--skip-prereq');
-    const shouldShowIcon = checkbox.checked && (isManualSkip || hasUnmet);
-
-    if (shouldShowIcon) {
-      icon.classList.remove('d-none');
-    } else {
+    for (const icon of icons) {
       icon.classList.add('d-none');
     }
   }
