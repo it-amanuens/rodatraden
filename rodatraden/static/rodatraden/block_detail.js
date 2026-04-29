@@ -267,10 +267,15 @@ function updateCategorySumChart(categorySumsUrl) {
         categorySumChart.update();
       }
 
-      // Update the total HP display.
-      const totalEctsElement = document.querySelector('.text-center > .lead');
+      // Update the total/completed HP display.
+      const totalEctsElement = document.getElementById('total-ects');
       if (totalEctsElement) {
         totalEctsElement.textContent = 'Total hp: ' + data.totalEcts;
+      }
+
+      const completedEctsElement = document.getElementById('completed-ects');
+      if (completedEctsElement) {
+        completedEctsElement.textContent = 'Varav avklarade hp: ' + data.completedEcts;
       }
     })
     .catch(error => console.error('Error updating category chart:', error));

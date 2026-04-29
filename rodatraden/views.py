@@ -1378,6 +1378,7 @@ def block_detail(request: HttpRequest, username, slug):
             'categories_courses': categories_courses,
             'categories_completed_ects': categories_completed_ects,
             'total_ects': block.total_course_ects(),
+            'completed_ects': total_completed_ects(block),
             'logged_in': (request.user.is_authenticated and
             request.user.username == block.user.username) or
             (request.user.is_staff and not block.private)
@@ -1671,13 +1672,36 @@ def get_block_category_sums(request: HttpRequest, block_username: str, block_slu
             return JsonResponse({'error': 'Access denied'}, status=403)
 
     total_ects = block.total_course_ects()
+    completed_ects = total_completed_ects(block)
     categories_courses, categories_completed_ects = build_categories_courses_json(block)
 
     return JsonResponse({
         'totalEcts': float(total_ects),
+        'completedEcts': float(completed_ects),
         'categoriesCourses': categories_courses,
         'categoriesCompletedEcts': categories_completed_ects,
     })
+
+
+def total_completed_ects(block: Block):
+    """Sum completed ECTS for courses marked as completed in a block.
+
+    Public course occasions are deduplicated per course ID so retakes are only
+    counted once. Private courses are counted by entry.
+    """
+    ects_sum = 0
+    counted_course_ids = set()
+
+    for courseoccasion in block.completed_courseoccasions.select_related('course').all():
+        course_id = courseoccasion.course.id
+        if course_id not in counted_course_ids:
+            ects_sum += courseoccasion.course.ects
+            counted_course_ids.add(course_id)
+
+    for privatecourse in block.completed_privatecourses.all():
+        ects_sum += privatecourse.ects
+
+    return ects_sum
 
 
 def build_courses_json(block):

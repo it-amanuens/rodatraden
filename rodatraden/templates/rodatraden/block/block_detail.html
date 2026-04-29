@@ -54,7 +54,10 @@
 <hr>
 
 
-<div class="text-center"><p class="lead">Total hp: {{ total_ects }}</p></div>
+<div class="text-center">
+  <p id="total-ects" class="lead mb-1">Total hp: {{ total_ects }}</p>
+  <p id="completed-ects" class="text-muted mb-0">Varav avklarade hp: {{ completed_ects }}</p>
+</div>
 
 <div id="block-schedule" class="block-schedule">
 
