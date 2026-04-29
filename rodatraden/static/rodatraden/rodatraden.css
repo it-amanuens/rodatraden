@@ -557,6 +557,7 @@ body:has(dialog[open]) {
   padding-inline: var(--schedule-padding);
   margin: 0;
   margin-top: 0.75em;
+  overflow: hidden;
 
   font-size: 0.625em;
   font-weight: bold;

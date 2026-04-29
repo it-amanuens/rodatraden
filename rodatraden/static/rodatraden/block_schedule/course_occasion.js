@@ -165,8 +165,11 @@ export default class CourseOccasion {
   firstRowIndex = 0;
   
   get speed() {
+    // Keep very low-pace courses readable in the block schedule.
+    const minimumVisualSpeed = 12;
     // XXX: Course speed feels arbitrary. Why multiply by 50?
-    return parseInt(this.ects * 10 * 5 / this.weeks);
+    const calculatedSpeed = parseInt(this.ects * 10 * 5 / this.weeks);
+    return Math.max(minimumVisualSpeed, calculatedSpeed);
   }
 
   /**
