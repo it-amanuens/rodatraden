@@ -10,7 +10,7 @@ django-simple-captcha==0.6.3  # Recaptcha for user creation
 openpyxl==3.1.5  # Managing excel files
 Pillow==12.2.0  # Image processing
 psycopg2-binary==2.9.12  # Postgresql
-crispy-bootstrap5==2025.6  # Required for new django version
+crispy-bootstrap5==2026.3  # Required for new django version
 whitenoise  # Serve static files in production (pin version after confirming with pip freeze)
 
 #wfastcgi  # uncomment on windows when using IIS
