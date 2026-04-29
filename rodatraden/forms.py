@@ -185,14 +185,28 @@ class CourseScheduleSegmentForm(BSModalModelForm):
         # Blacklisted years: same year choices as multi-select
         self.fields['blacklisted_years'].choices = year_choices
 
-        # time_period: ChoiceField with synthetic "LP 1-4 (alla)" option at top.
-        tp_choices = [(LP_ALL_SENTINEL, 'Läsperiod 1-4')] + [
+        # time_period: only pure LP entries (LP1-LP5, no offset variants)
+        tp_choices = [(LP_ALL_SENTINEL, 'Läsperiod 1-4 (alla)')] + [
             (str(tp.pk), tp.title)
             for tp in TimePeriod.objects.order_by('week')
+            if tp.week % 10 == 0
         ]
         self.fields['time_period'] = forms.ChoiceField(choices=tp_choices, label='Läsperiod')
         if self.instance.pk:
             self.initial['time_period'] = str(self.instance.time_period_id)
+
+        # start_offset: weeks into the period (0 = period start)
+        offset_choices = [(0, 'Läsperiodens start')] + [
+            (i, f'{i} {"vecka" if i == 1 else "veckor"} in')
+            for i in range(1, 10)
+        ]
+        self.fields['start_offset'] = forms.ChoiceField(
+            choices=offset_choices,
+            required=False,
+            label='Veckor in i läsperioden',
+        )
+        if self.instance.pk:
+            self.initial['start_offset'] = str(self.instance.start_offset)
 
         # Pre-fill for existing instances
         if self.instance.pk:
@@ -214,6 +228,10 @@ class CourseScheduleSegmentForm(BSModalModelForm):
     def clean_blacklisted_years(self):
         return [int(y) for y in self.cleaned_data.get('blacklisted_years', [])]
 
+    def clean_start_offset(self):
+        val = self.cleaned_data.get('start_offset', 0)
+        return int(val) if val else 0
+
     def clean(self):
         cleaned = super().clean()
         tp_raw = self.data.get('time_period')
@@ -230,8 +248,8 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
     class Meta:
         model = CourseScheduleSegment
-        fields = ['course', 'time_period', 'frequency', 'start_year',
-                  'end_year', 'weeks', 'blacklisted_years']
+        fields = ['course', 'time_period', 'start_offset', 'frequency',
+                  'start_year', 'end_year', 'weeks', 'blacklisted_years']
         widgets = {
             'course': forms.HiddenInput(),
         }
@@ -315,7 +333,15 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
 
     class Meta:
         model = Block
-        exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
+        exclude = [
+            'courseoccasions',
+            'note',
+            'privatecourses',
+            'user',
+            'skipped_prerequisite_occasions',
+            'completed_courseoccasions',
+            'completed_privatecourses',
+        ]
 
 
 class CategoryForm(BSModalModelForm):

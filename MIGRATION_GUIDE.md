@@ -19,6 +19,9 @@ schemaläggningsfunktionerna.
 
 ### Borttagna fält
 - **`Course.closed`** — Oanvänt fält borttaget.
+- **`Course.approved`** — Legacy-fält borttaget. Fältet användes ursprungligen
+  för att admins skulle kunna godkänna kurser som studenter föreslagit. Det
+  arbetsflödet är borttaget och fältet var ej synligt i några mallar.
 
 ### Oförändrade fält
 - **`CourseOccasion.contact_name`** och **`CourseOccasion.contact_email`** —
@@ -57,6 +60,7 @@ python manage.py makemigrations rodatraden
 
 Detta bör skapa migrering(ar) som:
 - Tar bort `Course.closed`
+- Tar bort `Course.approved`
 - Lägger till `CourseOccasion.auto_generated`
 - Skapar `CourseScheduleSegment`-modellen med behörigheten
   `can_manage_scheduling`
