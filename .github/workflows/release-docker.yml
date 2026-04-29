@@ -67,7 +67,7 @@ jobs:
           cache-to: type=inline
 
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.vars.outputs.image }}:${{ github.ref_name }}
           format: sarif
