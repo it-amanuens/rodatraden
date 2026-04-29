@@ -6,7 +6,7 @@ from .models import (
     Course, Block, CourseOccasion, CourseScheduleSegment, Category,
     CategoryCourse, Prerequisite, Profile,
     AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
-    PrivateCourseCategory, User, TimePeriod
+    PrivateCourseCategory, User
 )
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, PrerequisiteFormMixin, SaveAndImportBlockMixin
@@ -147,9 +147,6 @@ class ProfileForm(BSModalModelForm):
         exclude = ['title_eng', 'description_eng']
 
 
-LP_ALL_SENTINEL = 'lp-all'
-
-
 class CourseScheduleSegmentForm(BSModalModelForm):
     """Form for course schedule segments."""
 
@@ -184,30 +181,6 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
         # Blacklisted years: same year choices as multi-select
         self.fields['blacklisted_years'].choices = year_choices
-
-        # time_period: only pure LP entries (LP1-LP5, no offset variants)
-        tp_choices = [(LP_ALL_SENTINEL, 'Läsperiod 1-4 (alla)')] + [
-            (str(tp.pk), tp.title)
-            for tp in TimePeriod.objects.order_by('week')
-            if tp.week % 10 == 0
-        ]
-        self.fields['time_period'] = forms.ChoiceField(choices=tp_choices, label='Läsperiod')
-        if self.instance.pk:
-            self.initial['time_period'] = str(self.instance.time_period_id)
-
-        # start_offset: weeks into the period (0 = period start)
-        offset_choices = [(0, 'Läsperiodens start')] + [
-            (i, f'{i} {"vecka" if i == 1 else "veckor"} in')
-            for i in range(1, 10)
-        ]
-        self.fields['start_offset'] = forms.ChoiceField(
-            choices=offset_choices,
-            required=False,
-            label='Veckor in i läsperioden',
-        )
-        if self.instance.pk:
-            self.initial['start_offset'] = str(self.instance.start_offset)
-
         # Pre-fill for existing instances
         if self.instance.pk:
             self.initial['start_year'] = str(self.instance.start_year)
@@ -227,25 +200,6 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
     def clean_blacklisted_years(self):
         return [int(y) for y in self.cleaned_data.get('blacklisted_years', [])]
-
-    def clean_start_offset(self):
-        val = self.cleaned_data.get('start_offset', 0)
-        return int(val) if val else 0
-
-    def clean(self):
-        cleaned = super().clean()
-        tp_raw = self.data.get('time_period')
-        if tp_raw == LP_ALL_SENTINEL:
-            # Provide LP1 as placeholder so _post_clean passes;
-            # the view creates the real segments.
-            cleaned['time_period'] = TimePeriod.objects.filter(week=0).first()
-        else:
-            try:
-                cleaned['time_period'] = TimePeriod.objects.get(pk=int(tp_raw))
-            except (TimePeriod.DoesNotExist, ValueError, TypeError):
-                self.add_error('time_period', 'Ogiltig läsperiod.')
-        return cleaned
-
     class Meta:
         model = CourseScheduleSegment
         fields = ['course', 'time_period', 'start_offset', 'frequency',
