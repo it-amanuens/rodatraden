@@ -4,7 +4,7 @@ django-crispy-forms==2.6  # Nice looking forms
 django-tables2==2.8.0  # Tables for lists
 django-filter==25.2  # Filtering the lists
 django-bootstrap-modal-forms==3.0.5  # Nice modals for forms
-django-widget-tweaks==1.5.0  # Flexible form widgets
+django-widget-tweaks==1.5.1  # Flexible form widgets
 django-registration==5.2.1  # User registration manager
 django-simple-captcha==0.6.3  # Recaptcha for user creation
 openpyxl==3.1.5  # Managing excel files
