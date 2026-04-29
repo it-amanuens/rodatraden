@@ -147,7 +147,7 @@
         {% for segment in course.schedule_segments.all %}
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <strong>{{ segment.time_period.title }}</strong><br>
+              <strong>{{ segment.start_string }}</strong><br>
               <small>
                 {{ segment.start_year }}–{{ segment.end_year|default:"→" }}
                 · {{ segment.get_frequency_display }}

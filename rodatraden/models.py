@@ -587,6 +587,21 @@ class CourseScheduleSegment(models.Model):
             return False
         return True
 
+    @property
+    def start_string(self):
+        """Human-readable LP start, e.g. 'LP2 - 3 veckor in'."""
+
+        weeks_in_period = 10
+        start_week = self.time_period.week + (self.start_offset or 0)
+        period_number = start_week // weeks_in_period + 1
+        period_start_offset = start_week % weeks_in_period
+
+        result = f'LP{period_number}'
+        if period_start_offset:
+            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
+            result += f' - {period_start_offset} {postfix} in'
+        return result
+
 
 class Prerequisite(models.Model):
     """Prerequisite for a course.

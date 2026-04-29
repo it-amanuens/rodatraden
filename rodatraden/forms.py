@@ -5,7 +5,7 @@ from django import forms
 from .models import (
     Course, Block, CourseOccasion, CourseScheduleSegment, Category,
     CategoryCourse, Prerequisite, Profile,
-    AcademicYear, CategoryExam, Exam, Report, PrivateCourse,
+    AcademicYear, TimePeriod, CategoryExam, Exam, Report, PrivateCourse,
     PrivateCourseCategory, User
 )
 from .rodatraden_modules.mixins import (
@@ -150,6 +150,8 @@ class ProfileForm(BSModalModelForm):
 class CourseScheduleSegmentForm(BSModalModelForm):
     """Form for course schedule segments."""
 
+    start_week = StartWeekField(label='Start')
+
     blacklisted_years = forms.MultipleChoiceField(
         choices=[],
         required=False,
@@ -190,6 +192,18 @@ class CourseScheduleSegmentForm(BSModalModelForm):
                 self.initial['blacklisted_years'] = [
                     str(y) for y in self.instance.blacklisted_years
                 ]
+            self.fields['start_week'].initial = (
+                self.instance.time_period.week + (self.instance.start_offset or 0)
+            )
+
+        self.order_fields([
+            'start_week',
+            'frequency',
+            'start_year',
+            'end_year',
+            'weeks',
+            'blacklisted_years',
+        ])
 
     def clean_start_year(self):
         return int(self.cleaned_data['start_year'])
@@ -200,9 +214,35 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
     def clean_blacklisted_years(self):
         return [int(y) for y in self.cleaned_data.get('blacklisted_years', [])]
+
+    def save(self, commit=True):
+        segment = super().save(commit=False)
+        start_week = self.cleaned_data['start_week']
+
+        weeks_in_period = 10
+        period_number = start_week // weeks_in_period + 1
+        base_period_week = (period_number - 1) * weeks_in_period
+        start_offset = start_week % weeks_in_period
+
+        time_period = TimePeriod.objects.filter(week=base_period_week).first()
+        if time_period is None:
+            time_period = TimePeriod.objects.create(
+                week=base_period_week,
+                title=f'LP{period_number}',
+            )
+
+        segment.time_period = time_period
+        segment.start_offset = start_offset
+
+        if commit:
+            segment.save()
+            self.save_m2m()
+
+        return segment
+
     class Meta:
         model = CourseScheduleSegment
-        fields = ['course', 'time_period', 'start_offset', 'frequency',
+        fields = ['course', 'frequency',
                   'start_year', 'end_year', 'weeks', 'blacklisted_years']
         widgets = {
             'course': forms.HiddenInput(),
@@ -211,6 +251,8 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
 class CourseOccasionForm(BSModalModelForm):
     """Form for course occasions."""
+
+    start_week = StartWeekField(label='Start')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -224,19 +266,66 @@ class CourseOccasionForm(BSModalModelForm):
             # This hard-coding might be avoidable. Not sure...
             self.fields['course'].initial = courseocc_cpy.course
             self.fields['academic_year'].initial = courseocc_cpy.academic_year
-            self.fields['time_period'].initial = courseocc_cpy.time_period
+            self.fields['start_week'].initial = courseocc_cpy.time_period.week
             self.fields['weeks'].initial = courseocc_cpy.weeks
             self.fields['note'].initial = courseocc_cpy.note
             self.fields['contact_name'].initial = courseocc_cpy.contact_name
             self.fields['contact_email'].initial = courseocc_cpy.contact_email
             self.fields['official'].initial = courseocc_cpy.official
+
+        # Populate start week when editing an existing occasion.
+        if self.instance.pk:
+            self.fields['start_week'].initial = self.instance.time_period.week
         
         self.fields['course'].widget.attrs['class'] = \
             'course-list-filter-courseocc-create'
 
+        self.order_fields([
+            'course',
+            'academic_year',
+            'start_week',
+            'weeks',
+            'note',
+            'contact_name',
+            'contact_email',
+            'official',
+        ])
+
+    @staticmethod
+    def _format_time_period_title(start_week: int) -> str:
+        weeks_in_period = 10
+        period_number = start_week // weeks_in_period + 1
+        period_start_offset = start_week % weeks_in_period
+
+        result = f'LP{period_number}'
+        if period_start_offset:
+            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
+            result += f' - {period_start_offset} {postfix} in'
+        return result
+
+    def save(self, commit=True):
+        courseoccasion = super().save(commit=False)
+        start_week = self.cleaned_data['start_week']
+
+        # Resolve existing period by week, or create one if it is missing.
+        time_period = TimePeriod.objects.filter(week=start_week).first()
+        if time_period is None:
+            time_period = TimePeriod.objects.create(
+                week=start_week,
+                title=self._format_time_period_title(start_week),
+            )
+
+        courseoccasion.time_period = time_period
+
+        if commit:
+            courseoccasion.save()
+            self.save_m2m()
+
+        return courseoccasion
+
     class Meta:
         model = CourseOccasion
-        fields = ['course', 'academic_year', 'time_period', 'weeks',
+        fields = ['course', 'academic_year', 'weeks',
         'note', 'contact_name', 'contact_email', 'official']
 
 
