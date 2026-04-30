@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'rodatraden.apps.RodatradenConfig',
 
     # third-party
-    'bootstrap4',
+    'django_bootstrap5',
     'crispy_forms',
     'django_tables2',
     'django_filters',

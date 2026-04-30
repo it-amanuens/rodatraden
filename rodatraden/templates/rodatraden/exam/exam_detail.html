@@ -5,18 +5,18 @@
 {% block menu %}
 <a class="btn btn-gone" 
   href="{% url 'exam-list' %}"
-  data-toggle="tooltip" title="Profiler">
+  data-bs-toggle="tooltip" title="Profiler">
   <span class="fa fa-list"></span>
 </a>
 {% if user.is_staff %}
 <a class="btn btn-gone update-item" 
   data-id="{% url 'exam-update' exam.slug %}"
-  data-toggle="tooltip" title="Ändra">
+  data-bs-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-item"
   data-id="{% url 'exam-delete' exam.slug %}"
-  data-toggle="tooltip" title="Radera">
+  data-bs-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endif %}

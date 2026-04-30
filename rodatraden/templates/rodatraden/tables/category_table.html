@@ -1,5 +1,5 @@
 {% for category in record.categories.all %}
 <a href="{{ category.get_absolute_url }}">
-  <span class="badge badge-secondary" data-toggle='tooltip' title='{{ category.title }}'>{{ category.abbreviation }}</span>
+  <span class="badge bg-secondary" data-bs-toggle='tooltip' title='{{ category.title }}'>{{ category.abbreviation }}</span>
 </a>
 {% endfor %}

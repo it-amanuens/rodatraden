@@ -5,17 +5,17 @@
 {% block menu %}
 <a class="btn btn-gone" 
   href="{% url 'privatecourse-list' privatecourse.user.username %}"
-  data-toggle="tooltip" title="Egna kurser">
+  data-bs-toggle="tooltip" title="Egna kurser">
   <span class="fa fa-list"></span>
 </a>
 <a class="btn btn-gone update-privatecourse" 
   data-id="{% url 'privatecourse-update' privatecourse.user.username privatecourse.slug %}"
-  data-toggle="tooltip" title="Ändra">
+  data-bs-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-privatecourse"
   data-id="{% url 'privatecourse-delete' privatecourse.user.username privatecourse.slug %}"
-  data-toggle="tooltip" title="Radera">
+  data-bs-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endblock %}

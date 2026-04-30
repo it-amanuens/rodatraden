@@ -49,5 +49,5 @@ $(function() {
     $(this).parent().remove();
   });
 
-  $('[data-toggle="tooltip"]').tooltip()
+  $('[data-bs-toggle="tooltip"]').tooltip()
 });

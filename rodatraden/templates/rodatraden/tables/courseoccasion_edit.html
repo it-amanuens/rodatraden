@@ -1,12 +1,12 @@
 <button type='button' class='delete-item btn btn-gone' 
   data-id="{% url 'courseoccasion-delete' record.academic_year.year record.slug %}">
-  <span class='fa fa-trash' data-toggle='tooltip' title='Radera'></span>
+  <span class='fa fa-trash' data-bs-toggle='tooltip' title='Radera'></span>
 </button>
 <button type='button' class='update-item btn btn-gone' 
   data-id="{% url 'courseoccasion-update' record.academic_year.year record.slug %}">
-  <span class='fa fa-pen' data-toggle='tooltip' title='Ändra'></span>
+  <span class='fa fa-pen' data-bs-toggle='tooltip' title='Ändra'></span>
 </button>
 <button type='button' class='add-item btn btn-gone' 
   data-id="{% url 'courseoccasion-create'  %}?courseocc={{ record.slug }}">
-  <span class='fa fa-copy' data-toggle='tooltip' title='Ny från kopia'></span>
+  <span class='fa fa-copy' data-bs-toggle='tooltip' title='Ny från kopia'></span>
 </button>
