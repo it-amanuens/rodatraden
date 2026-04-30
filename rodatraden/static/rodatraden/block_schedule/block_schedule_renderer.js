@@ -457,8 +457,8 @@ export function updateCourseBlocks(courseContainer,
   const nativeModal = document.getElementById('native-modal');
   courseInfoLinks
     .filter(course => !course.isPrivate)
-    .on('click', function(course) {
-      d3.event.preventDefault();
+    .on('click', function(event, course) {
+      event.preventDefault();
       const url = this.getAttribute('data-id');
       if (!url) return;
 
