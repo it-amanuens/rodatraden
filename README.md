@@ -319,18 +319,18 @@ Also update `tf/settings.py` for production:
 
 We are using depbot to get updates for dependencies automatically. Some dependencies especially node dependencies will have to be updated manually. 
 They are specified in package.json file. 
-To update these, you will have to run "npm install"
+To update these, you will have to run "`npm install`"
 
 Then you copy them all 
 
-cp node_modules/chart.js/dist/chart.umd.min.js rodatraden/static/assets/
-cp node_modules/d3/dist/d3.min.js rodatraden/static/assets/
-cp node_modules/jquery/dist/jquery.min.js rodatraden/static/assets/
-cp node_modules/popper.js/dist/umd/popper.min.js rodatraden/static/assets/
-cp node_modules/select2/dist/js/select2.min.js rodatraden/static/assets/
-cp node_modules/select2/dist/css/select2.min.css rodatraden/static/assets/
+`cp node_modules/chart.js/dist/chart.umd.min.js rodatraden/static/assets/`
+`cp node_modules/d3/dist/d3.min.js rodatraden/static/assets/`
+`cp node_modules/jquery/dist/jquery.min.js rodatraden/static/assets/`
+`cp node_modules/popper.js/dist/umd/popper.min.js rodatraden/static/assets/`
+`cp node_modules/select2/dist/js/select2.min.js rodatraden/static/assets/`
+`cp node_modules/select2/dist/css/select2.min.css rodatraden/static/assets/`
 
 And run collect static for static files to work:
 
-python manage.py collectstatic
+`python manage.py collectstatic`
 
