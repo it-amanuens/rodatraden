@@ -222,3 +222,94 @@ Example:
 3. Extract the media folder to same directory (project-root/media/)
 
 
+## Docker local run with persistent data
+
+This project includes a compose template focused on local development/testing,
+using the same file locations as local non-Docker setup.
+
+### Shared local paths
+
+The compose setup mounts these host paths directly into the container:
+
+- Database file: `mydatabase`
+- Uploaded media: `media/`
+- Collected static: `static/`
+- Source/config: `tf/`, `rodatraden/`, `templates/`
+
+This means Docker and local development use the same files.
+
+### Start from clean local test data
+
+If you want a clean test instance, back up and remove `mydatabase`.
+
+### Run
+
+1. Copy compose template: `cp docker-compose-template.yml docker-compose.yml`
+2. Copy settings template: `cp tf/settings-template.py tf/settings.py` and edit `tf/settings.py` as needed.
+3. Build and start: `docker compose up --build -d`
+4. Open a shell in the running container:
+   `docker compose exec rodatraden sh`
+5. Run Django setup commands manually inside the container:
+   `python manage.py makemigrations`
+   `python manage.py migrate`
+   `python manage.py createsuperuser`
+6. Exit shell: `exit`
+7. Open: `http://127.0.0.1:8000`
+
+### Production with Traefik
+
+For production, create a `docker-compose.override.yml` alongside your `docker-compose.yml`.
+Docker Compose automatically merges it, so you don't need to change the base file.
+
+```yaml
+# docker-compose.override.yml
+services:
+  rodatraden:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rodatraden.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.rodatraden.entrypoints=websecure"
+      - "traefik.http.routers.rodatraden.tls.certresolver=myresolver"
+      - "traefik.http.services.rodatraden.loadbalancer.server.port=8000"
+    networks:
+      - default
+      - traefik
+
+  reverse-proxy:
+    image: traefik:v3.6
+    command:
+      - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=your@email.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --log.level=INFO
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik
+    restart: unless-stopped
+
+networks:
+  traefik:
+    external: false
+```
+
+Replace `your@email.com` with your real email (used by Let's Encrypt for cert notifications) and `yourdomain.com` with your domain. The `letsencrypt/` folder will be created automatically to store certificates.
+
+Also update `tf/settings.py` for production:
+- Set `SECRET_KEY` to a long random string
+- Set `DEBUG = False`
+- Add your domain to `ALLOWED_HOSTS`, e.g. `['yourdomain.com']`
+- Add your domain to `CSRF_TRUSTED_ORIGINS`, e.g. `['https://yourdomain.com']`
+
+

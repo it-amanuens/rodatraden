@@ -22,6 +22,12 @@ db.sqlite3
 *.swo
 rodatraden/migrations/0*_*.py
 tf/settings.py
+
+# Copied/generated compose files (environment-specific, not tracked)
+docker-compose.yml
+docker-compose.override.yml
+letsencrypt/
+
 media
 data*.json
 # Leading slash to only ignore the root static directory populated using the

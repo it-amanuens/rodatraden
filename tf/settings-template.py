@@ -12,15 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-
-def env_bool(name, default=False):
-    return os.getenv(name, str(default)).lower() in ('1', 'true', 'yes', 'on')
-
-
-def env_list(name, default=''):
-    value = os.getenv(name, default)
-    return [item.strip() for item in value.split(',') if item.strip()]
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -29,13 +20,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me')
+SECRET_KEY = 'change-me'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_bool('DJANGO_DEBUG', False)
+DEBUG = False
 
-ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
-CSRF_TRUSTED_ORIGINS = env_list('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+CSRF_TRUSTED_ORIGINS = []
 
 
 # Application definition
@@ -65,6 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -104,37 +96,12 @@ WSGI_APPLICATION = 'tf.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DB_ENGINE = os.getenv('DJANGO_DB_ENGINE', 'sqlite').lower()
-
-if DB_ENGINE in ('postgres', 'postgresql'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DJANGO_DB_NAME', 'rodatraden'),
-            'USER': os.getenv('DJANGO_DB_USER', 'rodatraden'),
-            'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', ''),
-            'HOST': os.getenv('DJANGO_DB_HOST', '127.0.0.1'),
-            'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase',
     }
-elif DB_ENGINE in ('mysql', 'mariadb'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DJANGO_DB_NAME', 'rodatraden'),
-            'USER': os.getenv('DJANGO_DB_USER', 'rodatraden'),
-            'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', ''),
-            'HOST': os.getenv('DJANGO_DB_HOST', '127.0.0.1'),
-            'PORT': os.getenv('DJANGO_DB_PORT', '3306'),
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.getenv('DJANGO_SQLITE_PATH', os.path.join(BASE_DIR, 'data', 'db.sqlite3')),
-        }
-    }
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -190,9 +157,10 @@ USE_TZ = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media upload
-MEDIA_ROOT = os.path.join(BASE_DIR, 'data', 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 # Authentication

@@ -1,47 +1,22 @@
 services:
-  reverse-proxy:
-    image: traefik:v3.6
-    command:
-      - --providers.docker=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL}
-      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-      - --log.level=INFO
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
-    restart: unless-stopped
-
   rodatraden:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: rodatraden
-    environment:
-      - TZ=${TZ:-Europe/Stockholm}
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - DJANGO_DEBUG=${DJANGO_DEBUG:-false}
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DJANGO_CSRF_TRUSTED_ORIGINS=${DJANGO_CSRF_TRUSTED_ORIGINS}
+    ports:
+      - "8000:8000"
     volumes:
-      - ./data:/app/data
+      # Share same paths used in local development
+      - ./mydatabase:/app/mydatabase
+      - ./media:/app/media
       - ./static:/app/static
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rodatraden.rule=Host(`${RODATRADEN_DOMAIN}`)"
-      - "traefik.http.routers.rodatraden.entrypoints=websecure"
-      - "traefik.http.routers.rodatraden.tls=true"
-      - "traefik.http.routers.rodatraden.tls.certresolver=myresolver"
-      - "traefik.http.services.rodatraden.loadbalancer.server.port=8000"
-      - "traefik.http.middlewares.rodatraden-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.rodatraden.middlewares=rodatraden-headers"
+      - ./tf:/app/tf
+      - ./rodatraden:/app/rodatraden
+      - ./templates:/app/templates
+    command: >
+      sh -c "
+      python manage.py collectstatic --noinput &&
+      gunicorn --bind 0.0.0.0:8000 --workers 3 tf.wsgi:application
+      "
     restart: unless-stopped
