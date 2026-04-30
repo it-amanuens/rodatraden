@@ -327,8 +327,6 @@ Then you copy them all
 
 `cp node_modules/d3/dist/d3.min.js rodatraden/static/assets/js/`
 
-`cp node_modules/jquery/dist/jquery.min.js rodatraden/static/assets/js/`
-
 `cp node_modules/popper.js/dist/umd/popper.min.js rodatraden/static/assets/js/`
 
 `cp node_modules/select2/dist/js/select2.min.js rodatraden/static/assets/js/`
