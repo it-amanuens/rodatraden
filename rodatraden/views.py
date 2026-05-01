@@ -89,10 +89,7 @@ def index(request: HttpRequest):
     return render(request, 'rodatraden/index.html', context)
 
 
-def changelog(request: HttpRequest):
-    """A site with changelogs."""
 
-    return render(request, 'rodatraden/changelog.html')
 
 
 def tools(request: HttpRequest):
