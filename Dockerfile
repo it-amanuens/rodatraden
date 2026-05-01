@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 # Copy application code
 COPY . .
+
+# CI/GitHub checkouts do not include local untracked tf/settings.py
+RUN test -f tf/settings.py || cp tf/settings-template.py tf/settings.py
 
 # Collect static files
 RUN python manage.py collectstatic --noinput

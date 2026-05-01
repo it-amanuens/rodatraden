@@ -1,4 +1,4 @@
-{% extends 'rodatraden/courseoccasion/courseoccasion_list.html' %}
+{% extends 'rodatraden/base.html' %}
 
 {% load prerequisite_sorter %}
 
@@ -6,7 +6,7 @@
 
 {% block menu %}
 <a class="btn btn-gone" 
-  href="{% url 'courseoccasion-list' %}"
+  href="{% url 'course-list' %}"
   data-toggle="tooltip" title="Kurser">
   <span class="fa fa-list"></span>
 </a>

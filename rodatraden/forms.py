@@ -214,6 +214,16 @@ class CourseScheduleSegmentForm(BSModalModelForm):
                 self.initial['blacklisted_years'] = [
                     str(y) for y in self.instance.blacklisted_years
                 ]
+            self.initial['start'] = self.instance.start
+
+        self.order_fields([
+            'start',
+            'frequency',
+            'start_year',
+            'end_year',
+            'weeks',
+            'blacklisted_years',
+        ])
 
     def clean_start_year(self):
         return int(self.cleaned_data['start_year'])
@@ -263,7 +273,7 @@ class CourseOccasionForm(BSModalModelForm):
             self.fields['contact_name'].initial = courseocc_cpy.contact_name
             self.fields['contact_email'].initial = courseocc_cpy.contact_email
             self.fields['official'].initial = courseocc_cpy.official
-        
+
         self.fields['course'].widget.attrs['class'] = \
             'course-list-filter-courseocc-create'
 
@@ -330,7 +340,15 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
 
     class Meta:
         model = Block
-        exclude = ['courseoccasions', 'note', 'privatecourses', 'user']
+        exclude = [
+            'courseoccasions',
+            'note',
+            'privatecourses',
+            'user',
+            'skipped_prerequisite_occasions',
+            'completed_courseoccasions',
+            'completed_privatecourses',
+        ]
 
 
 class CategoryForm(BSModalModelForm):

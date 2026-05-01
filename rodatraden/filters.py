@@ -55,7 +55,6 @@ class CourseFilter(django_filters.FilterSet):
         model = Course
         fields = ['title', 'categories', 'profile', 'level', 'department']
 
-
     @property
     def qs(self):
         # Sort by title in ascending order if no sort order is specified.

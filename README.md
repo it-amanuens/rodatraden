@@ -31,7 +31,7 @@ which might help with installation on Windows.
 1. Clone this repository to your computer by `git clone
    https://github.com/it-amanuens/rodatraden/`.
 
-2. Install a venv in the root path directory of the repository by executing `python -m venv venv` and then activate the venv. On linux you can activate the venv by running `source env/bin/activate`. Windows has `.\env\Scripts\activate`
+2. Install a virtual environment in the root path directory of the repository by executing `python -m venv .venv` and then activate it. On linux you can activate it by running `source .venv/bin/activate`. Windows has `.\.venv\Scripts\activate`
 
 3. Enter the cloned git repository `cd rodatraden`. Enter the folder `tf`, copy the file `settings-template.py` to `settings.py`, and edit the file with
    your favorite editor.
@@ -59,7 +59,7 @@ which might help with installation on Windows.
 9. Take down the project again to create the new superuser (ctrl + c to shutdown server). 
     This user is used for manage the instance and setup courses and can be created with:
     `python manage.py createsuperuser`
-    Restart the server (step 9).
+   Restart the server (step 8).
 
 ### Production
 
@@ -187,6 +187,28 @@ needed. Year dropdowns in forms show the current year ± 10.
 
 After after creating these, new courses can be added to the default site
 
+## GitHub Release + Docker image
+
+This repository now includes a GitHub Actions workflow that runs when you push a version tag (`v*`).
+
+It will:
+- Create a GitHub Release from the tag
+- Build a Docker image from `Dockerfile`
+- Publish the image to GitHub Container Registry as `ghcr.io/<owner>/rodatraden`
+
+### Create a release
+
+1. Ensure you are on the branch you want to release (usually `master`) and push your latest changes.
+2. Create and push a semantic version tag:
+   `git tag v1.0.0`
+   `git push origin v1.0.0`
+3. Wait for the workflow to finish in the GitHub Actions tab.
+
+### Pull the released image
+
+Example:
+`docker pull ghcr.io/<owner>/rodatraden:v1.0.0`
+
 
 ## Backups of the data
 
@@ -204,39 +226,118 @@ After after creating these, new courses can be added to the default site
 3. Extract the media folder to same directory (project-root/media/)
 
 
+## Docker local run with persistent data
 
-## Improvements
+This project includes a compose template focused on local development/testing,
+using the same file locations as local non-Docker setup.
 
-Potential future improvements,
+### Shared local paths
 
-- [X] All staff can change any block
-- [X] Copy all course occasions from one year to another year
-- [X] Make the blocks nicer
-- [ ] Make it so users can see their pending reports
-      - [ ] Send email to admin when new report is created?
-      - [ ] Make it so users can change their report / delete it
-- [ ] Associate Profiles with Exams
-- [X] Automatic generation of 'examensbilagan'
-- [ ] Search function for the whole site
-- [x] Redirect to created object after creation
-- [X] Re-implement the prerequisite hint on blocks
-- [ ] Make users able to login with username and email
-   - [ ] Merge users who has different accounts with same email
-- [ ] Add optional summercourses entry (period 5 and 6?). Could be added as a smaller block?
-   -  There is a branch with experimental summer course!
-- [ ] Rebuild the `kurser` / `kurstillfällen` and merge `kurstillfällen` into the `kurser` to make course changes easier
-   - [x] Design and implement recurrence rules for `Course` (examples: every year, every N years, per läsperiod, custom weeks)
-   - [x] Provide a migration script to convert existing `CourseOccasion` entries into the new `Course` recurrence model
-   - [x] Support manual exceptions and overrides (skip a year, add a single extra offering, edit a single occurrence)
-   - [ ] Update API, admin and UI to display and manage recurring offerings and exceptions
-   - [ ] Ensure prerequisites, slugs and existing `Block` / `PrivateCourse` integrations continue to work after the merge
-   - [ ] Add import/export and admin tools to manage recurring offerings and bulk edits
-   - [ ] Add tests and a migration verification tool to validate migrated occurrences
-- [ ] Implement backup and migration system
-   - [x] Added to readme
-   - [ ] scheduled backup of database and send externally?
-- [x] Migrate over old issues from https://github.com/blwh/rodatraden/issues/
-- [ ] Better code?
-   - [ ] Use same category_form code for private course as for the public courses? Currently we have separate code for both, changes will thus have to be updated in both.  rodatraden\static\rodatraden\course\form_categories.js and rodatraden\static\rodatraden\course\form_categories.js
-      - [ ] We also dont save category on a newly created course. You have to edit it a second time?. 
-   - [ ] There is two category options for real corses. First is broken (and should be removed?) second one works. 
+The compose setup mounts these host paths directly into the container:
+
+- Database file: `mydatabase`
+- Uploaded media: `media/`
+- Collected static: `static/`
+- Source/config: `tf/`, `rodatraden/`, `templates/`
+
+This means Docker and local development use the same files.
+
+### Start from clean local test data
+
+If you want a clean test instance, back up and remove `mydatabase`.
+
+### Run
+
+1. Copy compose template: `cp docker-compose-template.yml docker-compose.yml`
+2. Copy settings template: `cp tf/settings-template.py tf/settings.py` and edit `tf/settings.py` as needed.
+3. Build and start: `docker compose up --build -d`
+4. Open a shell in the running container:
+   `docker compose exec rodatraden sh`
+5. Run Django setup commands manually inside the container:
+   `python manage.py makemigrations`
+   `python manage.py migrate`
+   `python manage.py createsuperuser`
+6. Exit shell: `exit`
+7. Open: `http://127.0.0.1:8000`
+
+### Production with Traefik
+
+For production, create a `docker-compose.override.yml` alongside your `docker-compose.yml`.
+Docker Compose automatically merges it, so you don't need to change the base file.
+
+```yaml
+# docker-compose.override.yml
+services:
+  rodatraden:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rodatraden.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.rodatraden.entrypoints=websecure"
+      - "traefik.http.routers.rodatraden.tls.certresolver=myresolver"
+      - "traefik.http.services.rodatraden.loadbalancer.server.port=8000"
+    networks:
+      - default
+      - traefik
+
+  reverse-proxy:
+    image: traefik:v3.6
+    command:
+      - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=your@email.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --log.level=INFO
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik
+    restart: unless-stopped
+
+networks:
+  traefik:
+    external: false
+```
+
+Replace `your@email.com` with your real email (used by Let's Encrypt for cert notifications) and `yourdomain.com` with your domain. The `letsencrypt/` folder will be created automatically to store certificates.
+
+Also update `tf/settings.py` for production:
+- Set `SECRET_KEY` to a long random string
+- Set `DEBUG = False`
+- Add your domain to `ALLOWED_HOSTS`, e.g. `['yourdomain.com']`
+- Add your domain to `CSRF_TRUSTED_ORIGINS`, e.g. `['https://yourdomain.com']`
+
+
+
+
+## Dependency updates
+
+We are using depbot to get updates for dependencies automatically. Some dependencies especially node dependencies will have to be updated manually. 
+They are specified in package.json file. 
+To update these, you will have to run "`npm install`"
+
+Then you copy them all 
+
+`cp node_modules/chart.js/dist/chart.umd.min.js rodatraden/static/assets/js/`
+
+`cp node_modules/d3/dist/d3.min.js rodatraden/static/assets/js/`
+
+`cp node_modules/popper.js/dist/umd/popper.min.js rodatraden/static/assets/js/`
+
+`cp node_modules/select2/dist/js/select2.min.js rodatraden/static/assets/js/`
+
+`cp node_modules/select2/dist/css/select2.min.css rodatraden/static/assets/css/`
+
+And run collect static for static files to work:
+
+`python manage.py collectstatic`
+

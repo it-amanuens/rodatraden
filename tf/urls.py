@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns, static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.urls import path, include
 from django_registration.backends.one_step.views import RegistrationView
@@ -42,8 +42,9 @@ handler403 = 'rodatraden.views.rt403'
 handler404 = 'rodatraden.views.rt404'
 handler500 = 'rodatraden.views.rt500'
 
-# This is added for correct handling of static files
-urlpatterns += staticfiles_urlpatterns()
+# Keep Django's built-in static serving for debug only.
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
 
 # Serve media files (also in production for simplicity)
 if settings.MEDIA_ROOT:

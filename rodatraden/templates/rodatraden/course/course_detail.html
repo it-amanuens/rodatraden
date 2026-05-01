@@ -132,15 +132,16 @@
       </div>
     </div>
 
-    {% if perms.rodatraden.can_manage_scheduling %}
     <div class="card mt-3">
       <h5 class="card-header">
-        Schemaläggning
+        Kurstillfällen
+        {% if perms.rodatraden.can_manage_scheduling %}
         <a class="btn btn-sm btn-gone add-item"
           data-id="{% url 'segment-create' %}?course={{ course.pk }}"
           data-toggle="tooltip" title="Lägg till segment">
           <span class="fa fa-plus"></span>
         </a>
+        {% endif %}
       </h5>
       <div class="card-body">
         {% for segment in course.schedule_segments.all %}
@@ -156,6 +157,7 @@
                 {% endif %}
               </small>
             </div>
+            {% if perms.rodatraden.can_manage_scheduling %}
             <div>
               <a class="btn btn-sm btn-gone update-item"
                 data-id="{% url 'segment-update' segment.pk %}"
@@ -168,13 +170,14 @@
                 <span class="fa fa-trash"></span>
               </a>
             </div>
+            {% endif %}
           </div>
           {% if not forloop.last %}<hr class="my-1">{% endif %}
         {% empty %}
-          <p class="text-muted mb-0">Inga segment konfigurerade.</p>
+          <p class="text-muted mb-0">Inga kurstillfällen konfigurerade.</p>
         {% endfor %}
 
-        {% if course.schedule_segments.all %}
+        {% if perms.rodatraden.can_manage_scheduling and course.schedule_segments.all %}
         <hr class="my-2">
         <a class="btn btn-sm btn-gone update-item"
           data-id="{% url 'segment-execute' course.pk %}"
@@ -184,7 +187,6 @@
         {% endif %}
       </div>
     </div>
-    {% endif %}
   </div>
 </div>
 

@@ -42,12 +42,8 @@
         </div>
       </li>
 
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="course-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Kurser</a>
-        <div class="dropdown-menu" aria-labelledby="course-dropdown">
-          <a class="dropdown-item" href="{% url 'course-list' %}">Kurser</a>
-          <a class="dropdown-item" href="{% url 'courseoccasion-list' %}">Kurstillfällen</a>
-        </div>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'course-list' %}">Kurser</a>
       </li>
     </ul>
 
@@ -73,7 +69,7 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ logged_user }}</a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
-            <a class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Privata kurser</a>
+            <a class="dropdown-item" href="{% url 'privatecourse-list' user.username %}">Egna kurstillfällen</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="{% url 'user-update' user.username user.id %}">Uppdatera användare</a>
             <a class="dropdown-item" href="{% url 'user-delete' user.username user.id %}">Radera användare</a>

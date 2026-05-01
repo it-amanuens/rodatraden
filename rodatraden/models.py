@@ -359,9 +359,6 @@ class Course(models.Model):
     code = models.CharField(max_length=10, verbose_name='Kod')
     ects = models.DecimalField(verbose_name='Poäng',
             max_digits=3,decimal_places=1, default='7.5')
-    # If the course is approved
-    approved = models.BooleanField(default=True, blank=True, null=True,
-            verbose_name='Godkänd')
     note = models.CharField(max_length=250, blank=True, null=True)
     homepage_url = models.URLField(blank=True, null=True,
             verbose_name='Hemsida')
@@ -988,6 +985,27 @@ class Block(models.Model):
     should_verify_prerequisites = models.BooleanField(
         default=True, 
         verbose_name='Ska förkunskapskrav verifieras?')
+
+    # Course occasions for which prerequisite checking is skipped individually.
+    skipped_prerequisite_occasions = models.ManyToManyField(
+        CourseOccasion,
+        related_name='prerequisite_skipped_in_blocks',
+        blank=True,
+        verbose_name='Undantagna förkunskapskrav')
+
+    # Course occasions marked as completed (avklarade) by the user.
+    completed_courseoccasions = models.ManyToManyField(
+        CourseOccasion,
+        related_name='completed_in_blocks',
+        blank=True,
+        verbose_name='Avklarade kurstillfällen')
+
+    # Private courses marked as completed (avklarade) by the user.
+    completed_privatecourses = models.ManyToManyField(
+        PrivateCourse,
+        related_name='completed_in_blocks',
+        blank=True,
+        verbose_name='Avklarade privata kurser')
 
     def __init__(self, *args, **kwargs):
         """Extend __init__ to store original title"""

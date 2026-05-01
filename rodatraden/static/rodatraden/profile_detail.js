@@ -206,10 +206,14 @@ function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
   const isLoggedIn = false;
 
   // These will be unused since the user is logged out.
+  const blockUsername = null;
+  const blockSlug = null;
   const blockRemoveCourseUrl = null;
   const blockReplaceCourseUrl = null;
   const blockCourseListUrl = null;
   const blockGetRelatedOccasionsUrl = null;
+  const blockToggleCoursePrereqUrl = null;
+  const blockToggleCourseCompleteUrl = null;
 
   // Margin and scale affects the rendered blocks appearance.
   const margin = 0.5;
@@ -231,11 +235,15 @@ function renderSchedules(schedules, courseoccasionInfoUrl, containerIds) {
       academicYearContainer,
       shouldStackTerms,
       isLoggedIn,
+      blockUsername,
+      blockSlug,
       courseoccasionInfoUrl,
       blockRemoveCourseUrl,
       blockReplaceCourseUrl,
       blockCourseListUrl,
       blockGetRelatedOccasionsUrl,
+      blockToggleCoursePrereqUrl,
+      blockToggleCourseCompleteUrl,
       margin,
       scale
     );
