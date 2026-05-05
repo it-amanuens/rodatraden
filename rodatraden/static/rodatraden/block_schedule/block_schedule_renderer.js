@@ -370,7 +370,7 @@ export function updateCourseBlocks(courseContainer,
     
     // Remove the course using AJAX when the button is clicked.
     removeButton
-      .on("click", course => {
+      .on("click", (event,course) => {
         // XXX: Often the tooltip stays on the screen permanently after the
         // course is deleted. We therefore delete it explicitly.
         const tooltip = document.querySelector('.tooltip');
@@ -934,7 +934,7 @@ export function addSummerToggle(academicYears, isLoggedIn, blockSchedule) {
     .attr("class", "summer-toggle btn text-center")
     .text("Lägg till sommar")
     .on("click", null) // Remove old handlers.
-    .on("click", function(d) {
+    .on("click", function(event, d) {
       blockSchedule.addSummer(d.year);
     });
 }
