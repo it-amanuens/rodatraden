@@ -1,12 +1,13 @@
 from django.urls import path
 
+
 from . import views
 
 urlpatterns = [
     # Home path
     path('', views.index, name='index'),
     # Changes
-    path('changelog', views.changelog, name='changelog'),
+    # path('changelog', views.changelog, name='changelog'),  # Removed changelog page
 
     # Reports
     path('rapporter/', views.ReportList.as_view(), name='report-list'),
