@@ -27,9 +27,16 @@
         else if (action === 'hide') instance.hide();
         else if (action === 'toggle') instance.toggle();
       });
-    }
+   if (!$.fn.dropdown && window.bootstrap.Dropdown) {
+     $.fn.dropdown = function (action) {
+       return this.each(function () {
+         const instance = window.bootstrap.Dropdown.getOrCreateInstance(this);
+         if (action === 'show') instance.show();
+         else if (action === 'hide') instance.hide();
+         else if (action === 'toggle') instance.toggle();
+       });
     };
-  }
+   }
 })(window);
 
 /* Bootstrap tooltips */
