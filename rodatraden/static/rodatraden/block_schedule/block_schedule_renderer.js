@@ -673,13 +673,13 @@ export function updateCourseBlocks(courseContainer,
   // The attributes are added to all course blocks, but this doesn't matter
   // since the tooltip is only shown for the blocks if the title attribute
   // contains something.
-  // NOTE: The "data-toggle" attribute is missing on purpose for unmet
+  // NOTE: The "data-bs-toggle" attribute is missing on purpose for unmet
   // prerequisites. This is so that the tooltip isn't enabled when
-  // "$('[data-toggle="tooltip"]').tooltip()" is called somewhere else.
+  // "$("[data-bs-toggle="tooltip"]").tooltip()" is called somewhere else.
   // For retakes, we always show the tooltip.
   course
-    .attr("data-placement", "left")
-    .attr("data-toggle", course => {
+    .attr("data-bs-placement", "left")
+    .attr("data-bs-toggle", course => {
       // Only enable tooltip automatically for retakes (not for unmet prerequisites)
       if (course.isRetake && course.unmetPrerequisiteIDs.length === 0) {
         return "tooltip";
@@ -757,8 +757,8 @@ export function addFooter(term, isLoggedIn, blockCourseListUrl, blockSchedule) {
     
     // Setup data for the pop-up modal.
     newButton
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "left")
+      .attr("data-bs-toggle", "tooltip")
+      .attr("data-bs-placement", "left")
       .attr('data-url', button => {
         // XXX: Why use the start weeks 0, 10, 20 and 30 when the period number
         // would do? The code would be clearer if the server did the week
@@ -864,10 +864,10 @@ export function updatePrerequisiteWarnings() {
     const shouldUseWarningColor = checkbox.checked && hasUnmet && !isManualSkip;
 
     if (shouldShowWarning) {
-      course.setAttribute('data-toggle', 'tooltip');
+      course.setAttribute('data-bs-toggle', 'tooltip');
       $(course).tooltip('enable');
     } else {
-      course.removeAttribute('data-toggle');
+      course.removeAttribute('data-bs-toggle');
       $(course).tooltip('disable');
     }
 

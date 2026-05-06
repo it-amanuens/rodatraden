@@ -12,7 +12,7 @@ Egna kurstillfällen
 {% block menu %}
 <a class="btn btn-gone add-privatecourse"
   data-id="{% url 'privatecourse-create' user.username %}"
-  data-toggle="tooltip" title="Skapa nytt">
+  data-bs-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
 {% endblock %}
@@ -27,24 +27,24 @@ Egna kurstillfällen
 {% block rt_table_badge_list %}
 <li class="rt-table__item--list-mode
            rt-table__item--list-mode--year">
-  <span class="badge badge-secondary"
-      data-toggle="tooltip"
+  <span class="badge bg-secondary"
+      data-bs-toggle="tooltip"
       title="Läsår">
     {{ course.year_string }}
   </span>
 </li>
 <li class="rt-table__item--list-mode
            rt-table__item--list-mode--start">
-  <span class="badge badge-secondary"
-      data-toggle="tooltip"
+  <span class="badge bg-secondary"
+      data-bs-toggle="tooltip"
       title="Start">
     {{ course.start_string }}
   </span>
 </li>
 <li class="rt-table__item--list-mode
            rt-table__item--list-mode--weeks">
-  <span class="badge badge-secondary"
-      data-toggle="tooltip"
+  <span class="badge bg-secondary"
+      data-bs-toggle="tooltip"
       title="Längd">
     {{ course.weeks_string }}
   </span>

@@ -1,7 +1,7 @@
 {% extends 'rodatraden/index.html' %}
 
 {% load render_table from django_tables2 %}
-{% load bootstrap4 %}
+{% load django_bootstrap5 %}
 
 {% block title %}
 Blockscheman - {{ user }}
@@ -10,7 +10,7 @@ Blockscheman - {{ user }}
 {% block menu %}
 <a class="btn btn-gone add-block"
   data-id="{% url 'block-create' user %}"
-  data-toggle="tooltip" title="Skapa nytt">
+  data-bs-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
 {% endblock %}
@@ -29,9 +29,9 @@ Blockscheman - {{ user }}
 <h6>{{ block.start_year }}</h6>
 
 {% if block.private %}
-  <span class="badge badge-warning">Privat</span>
+  <span class="badge bg-warning text-dark">Privat</span>
 {% else %}
-  <span class="badge badge-success">Publik</span>
+  <span class="badge bg-success">Publik</span>
 {% endif %}
 
 {% if this_block.description %}

@@ -7,18 +7,18 @@
 {% block menu %}
 <a class="btn btn-gone" 
   href="{% url 'course-list' %}"
-  data-toggle="tooltip" title="Kurser">
+  data-bs-toggle="tooltip" title="Kurser">
   <span class="fa fa-list"></span>
 </a>
 {% if user.is_staff %}
 <a class="btn btn-gone update-item" 
   data-id="{% url 'courseoccasion-update' courseoccasion.academic_year.year courseoccasion.slug %}"
-  data-toggle="tooltip" title="Ändra">
+  data-bs-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-item"
   data-id="{% url 'courseoccasion-delete' courseoccasion.academic_year.year courseoccasion.slug %}"
-  data-toggle="tooltip" title="Radera">
+  data-bs-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endif %}

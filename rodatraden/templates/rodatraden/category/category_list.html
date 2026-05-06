@@ -1,7 +1,7 @@
 {% extends 'rodatraden/index.html' %}
 
 {% load render_table from django_tables2 %}
-{% load bootstrap4 %}
+{% load django_bootstrap5 %}
 
 {% block title %}
   Kategorier
@@ -11,7 +11,7 @@
 {% if user.is_staff %}
 <a class="btn btn-gone add-item"
   data-id="{% url 'category-create' %}"
-  data-toggle="tooltip" title="Skapa nytt">
+  data-bs-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
 {% endif %}

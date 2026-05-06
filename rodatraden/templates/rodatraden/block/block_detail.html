@@ -10,24 +10,24 @@
 {% if logged_in %}
 <a class="btn btn-gone"
   href="{% url 'block-list' this_block.user %}"
-  data-toggle="tooltip" title="Blockscheman">
+  data-bs-toggle="tooltip" title="Blockscheman">
   <span class="fa fa-list"></span>
 </a>
 <a class="btn btn-gone import-block"
   href="{% url 'block-import-list' this_block.user this_block.slug %}"
   data-id="{% url 'block-import-list' this_block.user this_block.slug %}"
-  data-toggle="tooltip" title="Importera blockschema">
+  data-bs-toggle="tooltip" title="Importera blockschema">
   <span class="fa fa-sign-in-alt"></span>
 </a>
 <a class="btn btn-gone update-block"
   data-id="{% url 'block-update' this_block.user this_block.slug %}"
-  data-toggle="tooltip" title="Ändra">
+  data-bs-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-block"
   href="{% url 'block-delete' this_block.user this_block.slug %}"
   data-id="{% url 'block-delete' this_block.user this_block.slug %}"
-  data-toggle="tooltip" title="Radera">
+  data-bs-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a>
 {% endif %}
@@ -100,17 +100,15 @@
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <input id="download"
-                   class="btn btn-outline-secondary"
-                   type="submit"
-                   value="Ladda ner"
-                   for="download">
-            </input>
-          </div>
-          <div class="custom-file">
-            <input type="file" class="custom-file-input" name="excel_file" id="inputExcelFile">
-            <label class="custom-file-label" for="inputExcelFile">
+          <input id="download"
+                 class="btn btn-outline-secondary"
+                 type="submit"
+                 value="Ladda ner"
+                 for="download">
+          </input>
+          <div class="flex-grow-1">
+            <input type="file" class="form-control" name="excel_file" id="inputExcelFile">
+            <label class="form-text" for="inputExcelFile">
               Välj fil eller ladda ner
             </label>
           </div>

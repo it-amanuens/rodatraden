@@ -7,18 +7,18 @@
 {% block menu %}
 <a class="btn btn-gone" 
   href="{% url 'profile-list' %}"
-  data-toggle="tooltip" title="Profiler">
+  data-bs-toggle="tooltip" title="Profiler">
   <span class="fa fa-list"></span>
 </a>
 {% if user.is_staff %}
 <a class="btn btn-gone update-item" 
   data-id="{% url 'profile-update' profile.slug %}"
-  data-toggle="tooltip" title="Ändra">
+  data-bs-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-item"
   data-id="{% url 'profile-delete' profile.slug %}"
-  data-toggle="tooltip" title="Radera">
+  data-bs-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endif %}
@@ -107,11 +107,11 @@
 
         <span>
           {% if labeled_course.is_core %}
-          <span class="badge badge-success">Kärnkurs</span>
+          <span class="badge bg-success">Kärnkurs</span>
           {% endif %}
 
           {% if labeled_course.is_profile %}
-          <span class="badge badge-secondary">Profilkurs</span>
+          <span class="badge bg-secondary">Profilkurs</span>
           {% endif %}
         </span>
       </li>

@@ -5,9 +5,7 @@
 
   <div class="modal-header">
     <h3 class="modal-title">{{ course_form_title }}</h3>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
   </div>
 
   <div class="modal-body">
@@ -52,9 +50,7 @@
     <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
                 row px-3">
       {{ category_field }}
-      <div class="input-group-append">
-        <span class="input-group-text">hp</span>
-      </div>
+      <span class="input-group-text">hp</span>
       <button type="button" class="btn btn-gone remove-category">
         <span class="fa fa-trash"></span>
       </button>
@@ -67,7 +63,7 @@
     {% endfor %}
 
     <button type="button" class="btn btn-gone add-category"
-      data-toggle="tooltip" title="Lägg till kategori">
+      data-bs-toggle="tooltip" title="Lägg till kategori">
       <span class="fa fa-plus"></span>
     </button>
     
@@ -79,11 +75,11 @@
         {{ prerequisite_field }}
 
         <button type="button" class="btn btn-gone add-equivalent-course"
-          data-toggle="tooltip" title="Lägg till alternativ kurs">
+          data-bs-toggle="tooltip" title="Lägg till alternativ kurs">
           <span class="fa fa-plus"></span>
         </button>
         <button type="button" class="btn btn-gone remove-prerequisite"
-          data-toggle="tooltip" title="Ta bort förkunskapskrav">
+          data-bs-toggle="tooltip" title="Ta bort förkunskapskrav">
           <span class="fa fa-trash"></span>
         </button>
       </div>
@@ -102,7 +98,7 @@
 
     <button type="button" id="add-prerequisite"
             class="btn btn-gone form-add-prerequisite"
-            data-toggle="tooltip" title="Lägg till förkunskapskrav">
+            data-bs-toggle="tooltip" title="Lägg till förkunskapskrav">
       <span class="fa fa-plus"></span>
     </button>
 
@@ -111,11 +107,11 @@
         {{ form.get_default_prerequisite_field }}
 
         <button type="button" class="btn btn-gone add-equivalent-course"
-          data-toggle="tooltip" title="Lägg till alternativ kurs">
+          data-bs-toggle="tooltip" title="Lägg till alternativ kurs">
           <span class="fa fa-plus"></span>
         </button>
         <button type="button" class="btn btn-gone remove-prerequisite"
-          data-toggle="tooltip" title="Ta bort förkunskapskrav">
+          data-bs-toggle="tooltip" title="Ta bort förkunskapskrav">
           <span class="fa fa-trash"></span>
         </button>
       </div>
@@ -132,7 +128,7 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
     <button type="submit" class="btn btn-rt">{{ course_form_submit_text }}</button>
   </div>
 

@@ -335,14 +335,19 @@ function main() {
   createCategorySumChart();
   
   // Show the name of the file to be uploaded when a new file has been selected.
-  document.querySelector('.custom-file-input').addEventListener(
-    'change',
-    function(e) {
-      const fileName = document.getElementById("inputExcelFile").files[0].name;
-      let label = e.target.nextElementSibling;
-      label.innerText = fileName;
-    }
-  );
+  const inputExcelFile = document.getElementById('inputExcelFile');
+  if (inputExcelFile) {
+    inputExcelFile.addEventListener('change', function(e) {
+      if (!inputExcelFile.files || inputExcelFile.files.length === 0) {
+        return;
+      }
+      const fileName = inputExcelFile.files[0].name;
+      const label = e.target.nextElementSibling;
+      if (label) {
+        label.innerText = fileName;
+      }
+    });
+  }
 
   const courseOccasions = CourseOccasion.fromElement('course-occasions-data');
 
@@ -436,9 +441,9 @@ function main() {
       return;
     }
 
-    // Handle clicks on elements with data-dismiss="modal" (close buttons).
+    // Handle clicks on elements with data-bs-dismiss="modal" (close buttons).
     // This makes Bootstrap-style close buttons work with native <dialog>.
-    const dismissButton = event.target.closest('[data-dismiss="modal"]');
+    const dismissButton = event.target.closest('[data-bs-dismiss="modal"]');
     if (dismissButton) {
       event.preventDefault();
       closeModalWithAnimation();

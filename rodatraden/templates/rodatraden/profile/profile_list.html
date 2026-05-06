@@ -1,7 +1,7 @@
 {% extends 'rodatraden/index.html' %}
 
 {% load render_table from django_tables2 %}
-{% load bootstrap4 %}
+{% load django_bootstrap5 %}
 
 {% block title %}
 Profiler
@@ -11,7 +11,7 @@ Profiler
 {% if user.is_staff %}
 <a class="btn btn-gone add-item"
   data-id="{% url 'profile-create' %}"
-  data-toggle="tooltip" title="Skapa nytt">
+  data-bs-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
 {% endif %}
@@ -41,7 +41,7 @@ Profiler
       </img>
     </div>
     <div class="col-ld-1"></div>
-    <div class="col-md-9 ml-3">
+    <div class="col-md-9 ms-3">
       <h4><a href="{% url 'profile-detail' profile.slug %}">
           {{ profile.title }}
       </a></h4>

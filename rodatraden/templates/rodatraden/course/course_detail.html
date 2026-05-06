@@ -7,18 +7,18 @@
 {% block menu %}
 <a class="btn btn-gone" 
   href="{% url 'course-list' %}"
-  data-toggle="tooltip" title="Kurser">
+  data-bs-toggle="tooltip" title="Kurser">
   <span class="fa fa-list"></span>
 </a>
 {% if user.is_staff %}
 <a class="btn btn-gone update-item" 
   data-id="{% url 'course-update' course.slug %}"
-  data-toggle="tooltip" title="Ändra">
+  data-bs-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-item"
   data-id="{% url 'course-delete' course.slug %}"
-  data-toggle="tooltip" title="Radera">
+  data-bs-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endif %}
@@ -138,7 +138,7 @@
         {% if perms.rodatraden.can_manage_scheduling %}
         <a class="btn btn-sm btn-gone add-item"
           data-id="{% url 'segment-create' %}?course={{ course.pk }}"
-          data-toggle="tooltip" title="Lägg till segment">
+          data-bs-toggle="tooltip" title="Lägg till segment">
           <span class="fa fa-plus"></span>
         </a>
         {% endif %}
@@ -161,12 +161,12 @@
             <div>
               <a class="btn btn-sm btn-gone update-item"
                 data-id="{% url 'segment-update' segment.pk %}"
-                data-toggle="tooltip" title="Ändra">
+                data-bs-toggle="tooltip" title="Ändra">
                 <span class="fa fa-edit"></span>
               </a>
               <a class="btn btn-sm btn-gone delete-item"
                 data-id="{% url 'segment-delete' segment.pk %}"
-                data-toggle="tooltip" title="Radera">
+                data-bs-toggle="tooltip" title="Radera">
                 <span class="fa fa-trash"></span>
               </a>
             </div>
@@ -181,7 +181,7 @@
         <hr class="my-2">
         <a class="btn btn-sm btn-gone update-item"
           data-id="{% url 'segment-execute' course.pk %}"
-          data-toggle="tooltip" title="Förhandsgranska och verkställ schemaändringar">
+          data-bs-toggle="tooltip" title="Förhandsgranska och verkställ schemaändringar">
           <span class="fa fa-play"></span> Verkställ
         </a>
         {% endif %}

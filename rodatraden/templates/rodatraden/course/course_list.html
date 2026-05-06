@@ -13,7 +13,7 @@
 {% if user.is_staff %}
 <a class="btn btn-gone add-item"
   data-id="{% url 'course-create' %}"
-  data-toggle="tooltip" title="Skapa nytt">
+  data-bs-toggle="tooltip" title="Skapa nytt">
   <span class="fa fa-plus"></span>
 </a> 
 {% endif %}
@@ -44,11 +44,11 @@
            rt-table__item--list-mode--level">
   <span class=
         {% if course.level.title == "Grundläggande" %}
-        "badge badge-success"
+        "badge bg-success"
         {% else %}
-        "badge badge-warning"
+        "badge bg-warning text-dark"
         {% endif %}
-      data-toggle="tooltip"
+      data-bs-toggle="tooltip"
       title="{{ course.level.title }}">
     {{ course.level.first_letter }}
   </span>
@@ -57,7 +57,7 @@
 <li class="rt-table__item--list-mode
            rt-table__item--list-mode--categories">
   <a href="{{ category.get_absolute_url }}">
-    <span class="badge badge-secondary" data-toggle="tooltip" title="{{ category.title }}">
+    <span class="badge bg-secondary" data-bs-toggle="tooltip" title="{{ category.title }}">
       {{ category.abbreviation }}
     </span>
   </a>
@@ -75,11 +75,11 @@
             rt-table__item--table-mode--level">
   <span class=
         {% if course.level.title == "Grundläggande" %}
-        'badge badge-success'
+        'badge bg-success'
         {% else %}
-        'badge badge-warning'
+        'badge bg-warning text-dark'
         {% endif %}
-      data-toggle='tooltip'
+      data-bs-toggle='tooltip'
       title='{{ course.level.title }}'>
     {{ course.level.first_letter }}
   </span>
@@ -90,7 +90,7 @@
   {% for category in course.categories.all %}
   <li>
     <a href="{{ category.get_absolute_url }}">
-      <span class="badge badge-secondary" data-toggle='tooltip' title='{{ category.title }}'>
+      <span class="badge bg-secondary" data-bs-toggle='tooltip' title='{{ category.title }}'>
         {{ category.abbreviation }}
       </span>
     </a>

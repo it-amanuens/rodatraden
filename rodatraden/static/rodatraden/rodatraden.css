@@ -36,7 +36,24 @@
 }
 
 .card-columns {
-  @include media-breakpoint-only(lg) {
+  column-count: 1;
+  column-gap: 1.25rem;
+}
+
+.card-columns .card {
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .card-columns {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .card-columns {
     column-count: 3;
   }
 }
@@ -97,7 +114,7 @@
 }
 
 /* Keep page action buttons clickable even when nearby content overlaps. */
-.main-template > .text-right {
+.main-template > .text-end {
   position: relative;
   z-index: 3;
 }
@@ -131,14 +148,32 @@
   background-color: transparent;
 }
 
-/* Red links */
+/* Red links (low specificity so contextual rules like .course a can override). */
 a:not(.default) {
+  color: #D6001E;
+  text-decoration: none;
+}
+
+a:not(.default):hover {
+  color: #b30018;
+  text-decoration: none;
+}
+
+/* Keep navbar links using navbar palette rather than global link color. */
+.primary-nav .navbar-brand,
+.primary-nav .nav-link,
+.primary-nav .dropdown-item {
+  color: inherit;
+}
+
+/* Keep dropdown menu items in navbar red as before migration. */
+.primary-nav .dropdown-menu .dropdown-item {
   color: #D6001E;
 }
 
-a:not(.default):hover{
-  color: #b30018;
-  text-decoration: none;
+.primary-nav .dropdown-menu .dropdown-item:hover,
+.primary-nav .dropdown-menu .dropdown-item:focus {
+  color: #fff;
 }
 
 /* List without background */
@@ -183,6 +218,11 @@ a:not(.default):hover{
   background: none;
 
   opacity: 0;
+}
+
+/* Ensure fetched course info content always has a solid modal background. */
+.native-modal .modal-content {
+  background-color: var(--bs-modal-bg, #fff);
 }
 
 .native-modal::backdrop {

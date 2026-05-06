@@ -10,9 +10,7 @@ This base template is extended by privatecourse_create and privatecourse_update
 
   <div class="modal-header">
     <h3 class="modal-title">{% block title %}{% endblock %}</h3>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
   <div class="modal-body">
@@ -91,9 +89,7 @@ This base template is extended by privatecourse_create and privatecourse_update
     <div class="form-group {% if forloop.last %}category-list-new d-none{% endif %}
       row px-3">
         {{ category_field }}
-        <div class="input-group-append">
-          <span class="input-group-text">hp</span>
-        </div>
+        <span class="input-group-text">hp</span>
         <button type="button" class="btn btn-gone remove-category">
           <span class="fa fa-trash"></span>
         </button>
@@ -107,14 +103,14 @@ This base template is extended by privatecourse_create and privatecourse_update
     {% endfor %}
 
     <button type="button" class="btn btn-gone add-category"
-      data-toggle="tooltip" title="Lägg till kategori">
+      data-bs-toggle="tooltip" title="Lägg till kategori">
       <span class="fa fa-plus"></span>
     </button>
 
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">Stäng</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
     <button type="submit" class="btn btn-rt">
       {% block submit_button_text %}{% endblock %}
     </button>

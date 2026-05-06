@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 
 {# Load the tag library #}
-{% load bootstrap4 %}
+{% load django_bootstrap5 %}
 
 {# Load CSS and JavaScript #}
 {% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
+{% bootstrap_javascript %}
 
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% bootstrap_messages %}
@@ -47,7 +47,7 @@
           </div>
         </div>
 
-        <div class="text-right">
+        <div class="text-end">
           {% block menu %}
           {% endblock %}
         </div>
@@ -80,8 +80,11 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+          crossorigin="anonymous"></script>
     <script src="{% static 'rodatraden/rodatraden.js' %}"></script>
-    <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+        <script src="{% static 'js/bootstrap5.modal.forms.js' %}"></script>
     <!-- Select 2 -->
     <script src="{% static 'assets/js/select2.min.js' %}"></script>
     <!-- Fancy icons -->
