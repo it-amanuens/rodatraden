@@ -5,8 +5,8 @@ from django import forms
 from .models import (
     Course, Block, CourseOccasion, CourseScheduleSegment, Category,
     CategoryCourse, Prerequisite, Profile,
-    AcademicYear, TimePeriod, CategoryExam, Exam, Report, PrivateCourse,
-    PrivateCourseCategory, User
+    CategoryExam, Exam, Report, PrivateCourse,
+    PrivateCourseCategory, User, academic_year_title, YEAR_RANGE_OFFSET
 )
 from .rodatraden_modules.mixins import (
     CategoryFormMixin, PrerequisiteFormMixin, SaveAndImportBlockMixin
@@ -14,6 +14,24 @@ from .rodatraden_modules.mixins import (
 from rodatraden.rodatraden_modules.forms import StartWeekField
 
 from bootstrap_modal_forms.forms import BSModalForm, BSModalModelForm
+
+
+def _dynamic_year_choices(extra_years=YEAR_RANGE_OFFSET, include_years=None):
+    """Build (value, label) tuples for current year ± extra_years.
+
+    The range is wide enough to cover both historical and future course
+    occasions without needing pre-allocated database rows.
+    """
+    current = datetime.date.today().year
+    years = set(range(current - extra_years, current + extra_years + 1))
+    for y in include_years or []:
+        if y is not None:
+            years.add(int(y))
+
+    return [
+        (y, academic_year_title(y))
+        for y in sorted(years)
+    ]
 
 
 class UpdateUserForm(forms.ModelForm):
@@ -111,8 +129,10 @@ class PrivateCourseForm(CategoryFormMixin, BSModalModelForm):
         # Build the fields from these categories
         self._build_category_fields(categories)
 
-        # Get choices given from academic years
-        year_choices = [(x.year, x.title) for x in AcademicYear.objects.all().order_by('year')]
+        # Year choices computed dynamically — no database query needed.
+        year_choices = _dynamic_year_choices(
+            include_years=[self.instance.year] if self.instance.pk else None
+        )
         self.fields['year'] = forms.ChoiceField(choices=year_choices,
                 initial=datetime.datetime.now().year)
         # Always save to current user
@@ -150,8 +170,6 @@ class ProfileForm(BSModalModelForm):
 class CourseScheduleSegmentForm(BSModalModelForm):
     """Form for course schedule segments."""
 
-    start_week = StartWeekField(label='Start')
-
     blacklisted_years = forms.MultipleChoiceField(
         choices=[],
         required=False,
@@ -166,10 +184,11 @@ class CourseScheduleSegmentForm(BSModalModelForm):
         if 'course' in self.request.GET:
             self.initial['course'] = self.request.GET['course']
 
-        # Year choices from AcademicYear (str keys for ChoiceField compat)
+        # Year choices computed dynamically (str keys for ChoiceField compat).
+        include_years = [self.instance.start_year, self.instance.end_year] if self.instance.pk else None
         year_choices = [
-            (str(x.year), x.title)
-            for x in AcademicYear.objects.all().order_by('year')
+            (str(y), label)
+            for y, label in _dynamic_year_choices(include_years=include_years)
         ]
         self.fields['start_year'] = forms.ChoiceField(
             choices=year_choices,
@@ -183,6 +202,9 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 
         # Blacklisted years: same year choices as multi-select
         self.fields['blacklisted_years'].choices = year_choices
+
+        self.fields['start'] = StartWeekField(label='Läsperiod')
+
         # Pre-fill for existing instances
         if self.instance.pk:
             self.initial['start_year'] = str(self.instance.start_year)
@@ -192,12 +214,10 @@ class CourseScheduleSegmentForm(BSModalModelForm):
                 self.initial['blacklisted_years'] = [
                     str(y) for y in self.instance.blacklisted_years
                 ]
-            self.fields['start_week'].initial = (
-                self.instance.time_period.week + (self.instance.start_offset or 0)
-            )
+            self.initial['start'] = self.instance.start
 
         self.order_fields([
-            'start_week',
+            'start',
             'frequency',
             'start_year',
             'end_year',
@@ -215,35 +235,10 @@ class CourseScheduleSegmentForm(BSModalModelForm):
     def clean_blacklisted_years(self):
         return [int(y) for y in self.cleaned_data.get('blacklisted_years', [])]
 
-    def save(self, commit=True):
-        segment = super().save(commit=False)
-        start_week = self.cleaned_data['start_week']
-
-        weeks_in_period = 10
-        period_number = start_week // weeks_in_period + 1
-        base_period_week = (period_number - 1) * weeks_in_period
-        start_offset = start_week % weeks_in_period
-
-        time_period = TimePeriod.objects.filter(week=base_period_week).first()
-        if time_period is None:
-            time_period = TimePeriod.objects.create(
-                week=base_period_week,
-                title=f'LP{period_number}',
-            )
-
-        segment.time_period = time_period
-        segment.start_offset = start_offset
-
-        if commit:
-            segment.save()
-            self.save_m2m()
-
-        return segment
-
     class Meta:
         model = CourseScheduleSegment
-        fields = ['course', 'frequency',
-                  'start_year', 'end_year', 'weeks', 'blacklisted_years']
+        fields = ['course', 'start', 'frequency', 'start_year',
+                  'end_year', 'weeks', 'blacklisted_years']
         widgets = {
             'course': forms.HiddenInput(),
         }
@@ -252,80 +247,48 @@ class CourseScheduleSegmentForm(BSModalModelForm):
 class CourseOccasionForm(BSModalModelForm):
     """Form for course occasions."""
 
-    start_week = StartWeekField(label='Start')
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Keep academic year options in chronological order.
-        self.fields['academic_year'].queryset = AcademicYear.objects.all().order_by('year')
+        # Year is now a plain IntegerField — present as a dropdown with
+        # dynamically computed year choices (current year ± 10).
+        year_choices = _dynamic_year_choices(
+            include_years=[self.instance.year] if self.instance.pk else None
+        )
+        self.fields['year'] = forms.ChoiceField(
+            choices=year_choices,
+            initial=datetime.datetime.now().year,
+            label='År',
+        )
 
         # If a courseoccasion is copied
         if 'courseocc' in self.request.GET:
             courseocc_cpy = CourseOccasion.objects.get(slug=self.request.GET['courseocc'])
             # This hard-coding might be avoidable. Not sure...
             self.fields['course'].initial = courseocc_cpy.course
-            self.fields['academic_year'].initial = courseocc_cpy.academic_year
-            self.fields['start_week'].initial = courseocc_cpy.time_period.week
+            self.fields['year'].initial = courseocc_cpy.year
+            self.fields['start'].initial = courseocc_cpy.start
             self.fields['weeks'].initial = courseocc_cpy.weeks
             self.fields['note'].initial = courseocc_cpy.note
             self.fields['contact_name'].initial = courseocc_cpy.contact_name
             self.fields['contact_email'].initial = courseocc_cpy.contact_email
             self.fields['official'].initial = courseocc_cpy.official
 
-        # Populate start week when editing an existing occasion.
-        if self.instance.pk:
-            self.fields['start_week'].initial = self.instance.time_period.week
-        
         self.fields['course'].widget.attrs['class'] = \
             'course-list-filter-courseocc-create'
 
-        self.order_fields([
-            'course',
-            'academic_year',
-            'start_week',
-            'weeks',
-            'note',
-            'contact_name',
-            'contact_email',
-            'official',
-        ])
+        self.fields['start'] = StartWeekField(label='Läsperiod')
 
-    @staticmethod
-    def _format_time_period_title(start_week: int) -> str:
-        weeks_in_period = 10
-        period_number = start_week // weeks_in_period + 1
-        period_start_offset = start_week % weeks_in_period
-
-        result = f'LP{period_number}'
-        if period_start_offset:
-            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
-            result += f' - {period_start_offset} {postfix} in'
-        return result
-
-    def save(self, commit=True):
-        courseoccasion = super().save(commit=False)
-        start_week = self.cleaned_data['start_week']
-
-        # Resolve existing period by week, or create one if it is missing.
-        time_period = TimePeriod.objects.filter(week=start_week).first()
-        if time_period is None:
-            time_period = TimePeriod.objects.create(
-                week=start_week,
-                title=self._format_time_period_title(start_week),
-            )
-
-        courseoccasion.time_period = time_period
-
-        if commit:
-            courseoccasion.save()
-            self.save_m2m()
-
-        return courseoccasion
+    def clean_year(self):
+        """Coerce the ChoiceField string back to int for the IntegerField."""
+        try:
+            return int(self.cleaned_data['year'])
+        except (ValueError, TypeError):
+            raise forms.ValidationError('Ogiltigt år.')
 
     class Meta:
         model = CourseOccasion
-        fields = ['course', 'academic_year', 'weeks',
+        fields = ['course', 'year', 'start', 'weeks',
         'note', 'contact_name', 'contact_email', 'official']
 
 
@@ -344,9 +307,10 @@ class BlockForm(SaveAndImportBlockMixin, BSModalModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Get choices given from academic years and sort
-        years = [(x.year, x.year) for x in AcademicYear.objects.all()]
-        years.sort()
+        # Year choices computed dynamically — no database query needed.
+        years = _dynamic_year_choices(
+            include_years=[self.instance.start_year] if self.instance.pk else None
+        )
         
         # Use can import form all public blocks published in a track and all
         # their own blocks.

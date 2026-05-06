@@ -32,7 +32,7 @@
         {% if is_private %}
         href="{% url 'privatecourse-detail' courseoccasion.user.username courseoccasion.slug %}"
         {% else %}
-        href="{% url 'courseoccasion-detail' courseoccasion.academic_year.year courseoccasion.slug %}"
+        href="{% url 'courseoccasion-detail' courseoccasion.year courseoccasion.slug %}"
         {% endif %}
         aria-label="Läs mer om {{ course.title }} {{ course.ects }} högskolepoäng">
       Läs mer
