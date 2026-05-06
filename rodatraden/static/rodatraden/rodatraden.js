@@ -25,8 +25,9 @@
         const instance = window.bootstrap.Dropdown.getOrCreateInstance(this);
         if (action === 'show') instance.show();
         else if (action === 'hide') instance.hide();
-        else instance.toggle();
+        else if (action === 'toggle') instance.toggle();
       });
+    }
     };
   }
 })(window);
