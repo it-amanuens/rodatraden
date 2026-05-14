@@ -44,7 +44,7 @@ def delete_inactive_users(modeladmin, request, queryset):
     threshold_date = timezone.now() - timedelta(days=years * 365)
     
     # Find inactive users: exclude staff and superusers
-    inactive_users = User.objects.filter(
+    inactive_users = queryset.filter(
         is_staff=False,
         is_superuser=False
     ).filter(
