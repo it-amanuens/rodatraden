@@ -331,6 +331,47 @@ function main() {
     adjustPlaceholderBlocks();
   }
   adjustTermHeaders();
+
+  // Enable closing the modal by clicking outside the content box or on
+  // [data-dismiss="modal"] buttons.
+  const modal = document.getElementById('native-modal');
+  if (modal) {
+    const closeModalWithAnimation = () => {
+      if (modal.classList.contains('closing')) {
+        return;
+      }
+
+      const finish = () => {
+        modal.classList.remove('closing');
+        if (modal.open) {
+          modal.close();
+        }
+      };
+
+      modal.classList.add('closing');
+
+      if (getComputedStyle(modal).animationName === 'none') {
+        finish();
+        return;
+      }
+
+      modal.addEventListener('animationend', finish, { once: true });
+      modal.addEventListener('animationcancel', finish, { once: true });
+    };
+
+    modal.addEventListener('click', event => {
+      if (event.target === event.currentTarget) {
+        closeModalWithAnimation();
+        return;
+      }
+
+      const dismissButton = event.target.closest('[data-dismiss="modal"]');
+      if (dismissButton) {
+        event.preventDefault();
+        closeModalWithAnimation();
+      }
+    });
+  }
 }
 
 // Run main function when the script is loaded.
