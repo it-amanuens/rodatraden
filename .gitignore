@@ -30,6 +30,11 @@ letsencrypt/
 
 media
 data*.json
+
+# Backup files (but keep .gitkeep for folder structure)
+backups/*
+!backups/.gitkeep
+
 # Leading slash to only ignore the root static directory populated using the
 # collectstatic command.
 /static/
