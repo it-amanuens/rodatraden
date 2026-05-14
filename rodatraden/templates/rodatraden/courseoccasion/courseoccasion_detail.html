@@ -35,8 +35,8 @@
         <p class="lead">
           Aktuellt kursbeskrivning finns i kursplanen.
         </p>
-        <a href="https://www.umu.se/student/kurs-och-utbildningsplan/{{ courseoccasion.course.code|lower }}/" target="_blank" class="btn btn-rt btn-lg default">
-          UMU Kursplan
+        <a href="{{ SITE_COURSE_PLAN_BASE_URL }}{{ courseoccasion.course.code|lower }}/" target="_blank" class="btn btn-rt btn-lg default">
+          {{ SITE_COURSE_PLAN_LABEL }}
         </a>
         {% if courseoccasion.note %}
           <p class="lead">{{ courseoccasion.note }}</p>
