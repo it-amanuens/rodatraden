@@ -1263,7 +1263,14 @@ def block_detail(request: HttpRequest, username, slug):
             excel_file = request.FILES["excel_file"]
             # Check the file size and name length
             if (validator.file_validation(excel_file) != 0):
-                return render(request, 'rodatraden/block/block_detail.html')
+                messages.error(
+                    request,
+                    'Fel vid filuppladdning. Kontrollera att filen är en giltig ISP-fil och att filnamnet inte är för långt.'
+                )
+                return redirect(reverse('block-detail', kwargs={
+                    'username': username,
+                    'slug': slug,
+                }))
 
             wb = openpyxl.load_workbook(excel_file, read_only=False, keep_vba=True)
 

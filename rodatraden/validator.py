@@ -5,7 +5,7 @@ def file_validation(file):
     # Specify the allowed length of file name
     # Index 0: Minimum length of file name
     # Index 1: Maximum length of file name
-    allowed_filename = [2, 50]
+    allowed_filename = [2, 100]
 
     # Specify the allowed file size in kB
     # Index 0: Minimum file size
