@@ -331,6 +331,40 @@ function main() {
     adjustPlaceholderBlocks();
   }
   adjustTermHeaders();
+
+  // Enable closing the modal by clicking outside the content box or on
+  // [data-dismiss="modal"] buttons.
+  const modal = document.getElementById('native-modal');
+  if (modal) {
+    modal.addEventListener('click', event => {
+      if (event.target === event.currentTarget) {
+        modal.classList.add('closing');
+        modal.addEventListener(
+          'animationend',
+          () => {
+            modal.classList.remove('closing');
+            modal.close();
+          },
+          { once: true }
+        );
+        return;
+      }
+
+      const dismissButton = event.target.closest('[data-dismiss="modal"]');
+      if (dismissButton) {
+        event.preventDefault();
+        modal.classList.add('closing');
+        modal.addEventListener(
+          'animationend',
+          () => {
+            modal.classList.remove('closing');
+            modal.close();
+          },
+          { once: true }
+        );
+      }
+    });
+  }
 }
 
 // Run main function when the script is loaded.
