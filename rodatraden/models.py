@@ -22,10 +22,21 @@ def get_unique_slug(to_slug, model):
     """
 
     slug = slugify(to_slug)
+    # Truncate slug to ensure it fits within 100 chars when appending numbers
+    max_slug_length = 90  # Leave room for '-999' etc.
+    if len(slug) > max_slug_length:
+        slug = slug[:max_slug_length]
+    
     unique_slug = slug
     num = 1
     while model.objects.filter(slug=unique_slug).exists():
-        unique_slug = '{}-{}'.format(slug, num)
+        candidate = '{}-{}'.format(slug, num)
+        if len(candidate) > 100:
+            # If still too long, truncate slug further
+            excess = len(candidate) - 100
+            slug = slug[:-excess]
+            candidate = '{}-{}'.format(slug, num)
+        unique_slug = candidate
         num += 1
 
     return unique_slug
