@@ -91,8 +91,10 @@
   <p>Om du inte laddar upp en egen ISP så kommer en default-isp användas, så det
   räcker med att trycka "Ladda ner" om du inte har något speciellt skäl att ladda
   upp en fil.</p>
+{% if SITE_ISP_INSTRUCTIONAL_VIDEO_URL %}
   <p>En lämplig guide för hur du laddar upp din ISP finns <a target="_blank"
-    href="http://www.tp.umu.se/tekniskfysik/Instruktionsvideo_R%C3%B6daTr%C3%A5den_v1.mp4">här</a></p>
+    href="{{ SITE_ISP_INSTRUCTIONAL_VIDEO_URL }}">här</a></p>
+{% endif %}
 
 
   <div class="row pt-4">
