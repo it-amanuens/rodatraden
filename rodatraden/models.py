@@ -10,6 +10,18 @@ import os
 User = get_user_model()
 
 
+def academic_year_title(year: int) -> str:
+    """Return the conventional title string for an academic year.
+
+    Example: 2011 → "11/12", 2020 → "20/21".
+    """
+    return f"{year % 100:02d}/{(year + 1) % 100:02d}"
+
+
+# How many years before/after today to show in dropdowns.
+YEAR_RANGE_OFFSET = 10
+
+
 def get_unique_slug(to_slug, model):
     """Generate unique slug for insert in model.
 
@@ -183,47 +195,9 @@ class Level(models.Model):
         verbose_name_plural = 'Nivåer'
 
 
-class AcademicYear(models.Model):
-    """'Akademiska perioder' to which all courses is associated with. 
-
-    For example, year 2018 is associated to period 18/19.
-    """
-
-    title = models.CharField(max_length=250)
-    year = models.IntegerField()
-
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = 'Akademiskt år'
-        verbose_name_plural = 'Akademiska år'
-
-
-class TimePeriod(models.Model):
-    """'Läsperioder' to which all courses is associated with.
-
-    For example, läsperiod 1 is at week 0 of the academic year.
-    """
-    title = models.CharField(max_length=250)
-    week = models.IntegerField()
-    # Timestamp
-    created_at = models.DateTimeField(auto_now_add=True, editable=False,
-            null=False, blank=False)
-    updated_at = models.DateTimeField(auto_now=True, editable=False, null=False,
-            blank=False)
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = 'Tidsperiod'
-        verbose_name_plural = 'Tidsperioder'
+# TimePeriod model removed — CourseOccasion.start and CourseScheduleSegment.start
+# are now plain IntegerFields storing the week number (0 = LP1, 10 = LP2, …).
+# The display string (e.g. "LP2 — 3 veckor in") is computed by start_string.
 
 
 class Profile(models.Model):
@@ -545,10 +519,10 @@ class CourseScheduleSegment(models.Model):
         default='yearly',
         verbose_name='Frekvens'
     )
-    time_period = models.ForeignKey(
-        TimePeriod,
-        on_delete=models.CASCADE,
-        verbose_name='Läsperiod'
+    start = models.IntegerField(
+        verbose_name='Läsperiod',
+        help_text='Startvecka för perioden (0 = LP1, 10 = LP2, 20 = LP3, 30 = LP4, 40 = LP5)',
+        default=0,
     )
     weeks = models.IntegerField(
         default=5,
@@ -560,11 +534,6 @@ class CourseScheduleSegment(models.Model):
         verbose_name='Undantagna år',
         help_text='År då kursen inte ges i detta segment, t.ex. [2020, 2023]'
     )
-    start_offset = models.IntegerField(
-        default=0,
-        verbose_name='Veckor in i läsperioden',
-        help_text='0 = läsperiodens start, 5 = 5 veckor in, osv.',
-    )
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False,
             null=False, blank=False)
@@ -574,15 +543,27 @@ class CourseScheduleSegment(models.Model):
     class Meta:
         verbose_name = 'Schemaläggningssegment'
         verbose_name_plural = 'Schemaläggningssegment'
-        ordering = ['time_period__week', 'start_year']
+        ordering = ['start_year', 'start']
         permissions = [
             ('can_manage_scheduling', 'Kan hantera schemaläggning'),
         ]
 
     def __str__(self):
         end = self.end_year or '→'
-        return (f'{self.course.title}: {self.time_period.title} '
+        return (f'{self.course.title}: {self.start_string} '
                 f'{self.start_year}-{end} ({self.get_frequency_display()})')
+
+    @property
+    def start_string(self):
+        """Period label, e.g. 'LP2' or 'LP2 — 3 veckor in'."""
+        weeks_in_period = 10
+        period_number = self.start // weeks_in_period + 1
+        period_start_offset = self.start % weeks_in_period
+        result = f'LP{period_number}'
+        if period_start_offset:
+            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
+            result += f' — {period_start_offset} {postfix} in'
+        return result
 
     def is_active_in_year(self, year):
         """Check if this segment covers the given year."""
@@ -597,21 +578,6 @@ class CourseScheduleSegment(models.Model):
         if self.frequency == 'even' and year % 2 == 1:
             return False
         return True
-
-    @property
-    def start_string(self):
-        """Human-readable LP start, e.g. 'LP2 - 3 veckor in'."""
-
-        weeks_in_period = 10
-        start_week = self.time_period.week + (self.start_offset or 0)
-        period_number = start_week // weeks_in_period + 1
-        period_start_offset = start_week % weeks_in_period
-
-        result = f'LP{period_number}'
-        if period_start_offset:
-            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
-            result += f' - {period_start_offset} {postfix} in'
-        return result
 
 
 class Prerequisite(models.Model):
@@ -682,10 +648,11 @@ class CourseOccasion(models.Model):
             verbose_name='Kontaktadress')
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
             verbose_name='Kurs')
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE,
-            verbose_name='År')
-    time_period = models.ForeignKey(TimePeriod, on_delete=models.CASCADE,
-            verbose_name='Läsperiod')
+    # Plain integer — no FK lookup needed. Title derived via academic_year_title().
+    year = models.IntegerField(verbose_name='År')
+    # Plain integer — LP1=0, LP2=10, LP3=20, LP4=30, LP5=40. Offset within
+    # period stored directly (e.g. start=13 → LP2, 3 weeks in).
+    start = models.IntegerField(verbose_name='Läsperiod', default=0)
     slug = models.SlugField(max_length=100, unique=True, editable=False)
     auto_generated = models.BooleanField(
         default=False,
@@ -700,7 +667,7 @@ class CourseOccasion(models.Model):
 
 
     def __str__(self):
-        return self.course.title + ' - ' + str(self.academic_year.year)
+        return self.course.title + ' - ' + str(self.year)
 
 
     def save(self, *args, **kwargs):
@@ -727,7 +694,7 @@ class CourseOccasion(models.Model):
 
     def get_absolute_url(self):
         return reverse('courseoccasion-detail', kwargs={'year':
-            self.academic_year.year, 'slug': self.slug})
+            self.year, 'slug': self.slug})
 
 
     def as_json(self):
@@ -738,8 +705,8 @@ class CourseOccasion(models.Model):
         prerequisites_json = [prerequisite.as_json() for prerequisite in prerequisites]
 
         return dict(
-            year=self.academic_year.year,
-            start=self.time_period.week,
+            year=self.year,
+            start=self.start,
             title=self.course.title,
             ects=self.course.ects,
             weeks=self.weeks,
@@ -765,7 +732,24 @@ class CourseOccasion(models.Model):
         """The number of weeks into the start of the period the course
         starts."""
         
-        return get_start_weeks_into_period(self.time_period.week)
+        return get_start_weeks_into_period(self.start)
+
+    @property
+    def start_string(self):
+        """Period label, e.g. 'LP2' or 'LP2 — 3 veckor in'."""
+        weeks_in_period = 10
+        period_number = self.start // weeks_in_period + 1
+        period_start_offset = self.start % weeks_in_period
+        result = f'LP{period_number}'
+        if period_start_offset:
+            postfix = 'vecka' if period_start_offset == 1 else 'veckor'
+            result += f' — {period_start_offset} {postfix} in'
+        return result
+
+    @property
+    def year_title(self):
+        """Computed display title, e.g. 2020 → '20/21'."""
+        return academic_year_title(self.year)
 
 
     def category_ects(self, category_sum):

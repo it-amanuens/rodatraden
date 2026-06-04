@@ -20,8 +20,8 @@ from django.views.generic.edit import UpdateView
 from .models import (
     Category, Course, CourseOccasion, CourseScheduleSegment, Block,
     Prerequisite, User, Profile,
-    CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
-    PrivateCourse, ISPTemplate
+    CategoryExam, CategoryCourse, Exam, Report,
+    PrivateCourse, ISPTemplate, academic_year_title, YEAR_RANGE_OFFSET
 )
 from .tables import (
     ExamTable, ReportTable
@@ -36,6 +36,7 @@ from .forms import (
 from .rodatraden_modules.mixins import CorrectUserPermissionMixin
 from .rodatraden_modules.functions import import_course_occasions, is_ajax
 
+import datetime
 import openpyxl
 import os
 import math
@@ -61,12 +62,12 @@ def get_public_elective_course_occasions(block: Block):
     fourth_period_start_week = 30
 
     third_year_elective_course_occasions = block.courseoccasions.filter(
-        academic_year__year=third_year,
-        time_period__week__gte=fourth_period_start_week
+        year=third_year,
+        start__gte=fourth_period_start_week
     )
 
     course_occasions_last_two_years = block.courseoccasions.filter(
-        academic_year__year__gt=third_year
+        year__gt=third_year
     )
 
     elective_course_occasions = (third_year_elective_course_occasions
@@ -124,33 +125,42 @@ def sync_course_occasions(course, dry_run=True):
         - skipped_exists: list of dicts {year_title, period_title}
         - removed: list of dicts {year_title, period_title}
     """
-    academic_years = AcademicYear.objects.all().order_by('year')
+    # Determine the year range to check: cover all segment ranges plus any
+    # existing occasions, and extend up to current year + 10 for future gen.
+    segments_all = course.schedule_segments.all()
+    segment_years = set()
+    for seg in segments_all:
+        end = seg.end_year or seg.start_year
+        segment_years.update(range(seg.start_year, end + 1))
+
+    existing_years = set(
+        CourseOccasion.objects.filter(course=course)
+        .values_list('year', flat=True)
+    )
+    current = datetime.date.today().year
+    all_years = segment_years | existing_years | set(range(current, current + 11))
+    # Fall back gracefully if no years found at all.
+    if not all_years:
+        return {'created': [], 'skipped_exists': [], 'removed': []}
+
     created = []
     skipped_exists = []
     removed = []
 
-    for academic_year in academic_years:
-        year = academic_year.year
+    for year in sorted(all_years):
         segments = course.get_segments_for_year(year)
 
         # --- Create missing CourseOccasions ---
         for segment in segments:
-            # Resolve effective TimePeriod: base LP week + start_offset
-            effective_week = segment.time_period.week + (segment.start_offset or 0)
-            effective_tp = TimePeriod.objects.filter(week=effective_week).first()
-            if effective_tp is None:
-                # No exact match — fall back to base period
-                effective_tp = segment.time_period
-
             exists = CourseOccasion.objects.filter(
                 course=course,
-                academic_year=academic_year,
-                time_period=effective_tp,
+                year=year,
+                start=segment.start,
             ).exists()
 
             entry = {
-                'year_title': academic_year.title,
-                'period_title': effective_tp.title,
+                'year_title': academic_year_title(year),
+                'period_title': segment.start_string,
             }
 
             if exists:
@@ -160,8 +170,8 @@ def sync_course_occasions(course, dry_run=True):
             if not dry_run:
                 CourseOccasion.objects.create(
                     course=course,
-                    academic_year=academic_year,
-                    time_period=effective_tp,
+                    year=year,
+                    start=segment.start,
                     weeks=segment.weeks,
                     official=True,
                     auto_generated=True,
@@ -171,17 +181,17 @@ def sync_course_occasions(course, dry_run=True):
         # --- Remove orphaned auto-generated CourseOccasions ---
         for co in CourseOccasion.objects.filter(
             course=course,
-            academic_year=academic_year,
+            year=year,
             auto_generated=True,
-        ).select_related('time_period'):
+        ):
             covered = any(
-                (seg.time_period.week + (seg.start_offset or 0)) == co.time_period.week
+                seg.start == co.start
                 for seg in segments
             )
             if not covered:
                 removed.append({
-                    'year_title': academic_year.title,
-                    'period_title': co.time_period.title,
+                    'year_title': academic_year_title(year),
+                    'period_title': co.start_string,
                 })
                 if not dry_run:
                     co.delete()
@@ -231,17 +241,27 @@ def _generate_occasions_all_years(request):
         auto_generated=True,
     ).exclude(
         course__schedule_segments__isnull=False,
-    ).select_related('course', 'time_period', 'academic_year'):
-        yr = co.academic_year.title
+    ).select_related('course'):
+        yr = academic_year_title(co.year)
         year_results.setdefault(yr, {'created': [], 'skipped_exists': [], 'removed': []})
         year_results[yr]['removed'].append(
-            f'{co.course.title} — {co.time_period.title}')
+            f'{co.course.title} — {co.start_string}')
         if not dry_run:
             co.delete()
 
-    # Convert to list sorted by year title
+    # Sort by the numeric year embedded in the title string.
+    # academic_year_title() produces "XX/YY" for years 2000-2099.  Parse the
+    # first two digits and add 2000 to recover the full year for sorting.
+    # This assumption is valid for all data in this system (earliest year: 2011).
+    def _title_sort_key(t):
+        try:
+            return 2000 + int(t.split('/')[0])
+        except (ValueError, IndexError):
+            return float('inf')
+
+    # Convert to list sorted by numeric year.
     results = []
-    for yr in sorted(year_results.keys()):
+    for yr in sorted(year_results.keys(), key=_title_sort_key):
         data = year_results[yr]
         if data['created'] or data['skipped_exists'] or data['removed']:
             results.append({
@@ -756,8 +776,7 @@ class CourseOccasionDetail(DetailView):
 
         self.qs = super().get_queryset()
 
-        return self.qs.filter(
-                academic_year__year=self.kwargs['year'])
+        return self.qs.filter(year=self.kwargs['year'])
 
     def get_context_data(self, **kwargs):
         """Extend get_context_data to return courses that is required for the
@@ -790,25 +809,28 @@ def courseoccasion_info(request: HttpRequest):
     # Get valid IDs of the unmet prerequisites.
     unmet_prerequisite_ids = [
         int(id) for id in request.GET.getlist('unmet[]') if id.isdigit()]
+    # IDs of courses currently scheduled in the open block (provided by
+    # block schedule frontend). Used to scope the "Ger behörighet" list.
     block_username = request.GET.get('block_user')
     block_slug = request.GET.get('block_slug')
 
     unmet_prerequisites = Prerequisite.objects.filter(id__in=unmet_prerequisite_ids)
 
-    courseoccasion = get_object_or_404(CourseOccasion, academic_year__year=year,
+    courseoccasion = get_object_or_404(CourseOccasion, year=year,
         slug=slug)
+
+    course = courseoccasion.course
 
     # Find courses where this course is part of prerequisite requirements.
     prerequisites: Manager[Prerequisite] = (
         courseoccasion.course.equivalent_prerequisites.all())
 
-    courses_requiring_this_course = [
-        prerequisite.course for prerequisite in prerequisites]
-    courses_requiring_this_course = list(set(courses_requiring_this_course))
-    courses_requiring_this_course.sort(key=lambda course: course.title)
+    courses_requiring_this_course = list(set(
+        prerequisite.course for prerequisite in prerequisites
+    ))
+    courses_requiring_this_course.sort(key=lambda c: c.title)
 
-    # Optionally mark if each unlocked course is already present in the current
-    # block schedule.
+    # Mark if each unlocked course is already present in the current block.
     course_ids_in_block = set()
     if block_username and block_slug:
         block = Block.objects.filter(user__username=block_username,
@@ -826,7 +848,7 @@ def courseoccasion_info(request: HttpRequest):
 
     context = {
         'courseoccasion': courseoccasion,
-        'course': courseoccasion.course,
+        'course': course,
         'unmet_prerequisites': unmet_prerequisites,
         'courses_requiring_this_course': courses_requiring_this_course,
     }
@@ -1489,9 +1511,9 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     courses_started_before = set()
     for co in block.courseoccasions.all():
         # Check if this course occasion starts before the period we're adding to
-        if co.academic_year.year < year:
+        if co.year < year:
             courses_started_before.add(co.course.id)
-        elif co.academic_year.year == year and co.time_period.week < start:
+        elif co.year == year and co.start < start:
             courses_started_before.add(co.course.id)
 
     # Get ALL course occasions starting in the given period, including those
@@ -1499,9 +1521,12 @@ def block_course_list(request: HttpRequest, username: str, slug: str):
     # which effectively limited retakes. Now they are shown but marked as
     # "in_block" so the user can see all available options.
     courseoccasions = CourseOccasion.objects.filter(
-        academic_year__year=year,
-        time_period__week__gte=start,
-        time_period__week__lt=start+10
+        year=year,
+        start__gte=start,
+        start__lt=start+10
+    ).exclude(
+        # Exclude course occasions already in THIS slot
+        block__id=block.id
     ).order_by('course__title')
 
     # Annotate each course occasion with retake and in-block status
@@ -1763,9 +1788,8 @@ def build_categories_courses_json(block):
     # pre-fetched to avoid N+1 queries.
     occasions = (
         block.courseoccasions
-        .select_related('course', 'academic_year', 'time_period')
         .prefetch_related('course__categorycourse_set__category')
-        .order_by('academic_year__year', 'time_period__week')
+        .order_by('year', 'start')
     )
     # Private courses sorted by (year, start).
     private_courses = list(
