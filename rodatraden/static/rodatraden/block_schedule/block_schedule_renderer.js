@@ -230,20 +230,51 @@ export function addTermHeader(term) {
 
 /**
  * Helper function to format study pace text from ECTS sum.
- * 
+ *
  * @param {number} ectsSum - The sum of ECTS for the period.
  * @returns {string} Formatted string like "100 % / 15 hp".
  */
 function formatStudyPaceText(ectsSum) {
-  const roundToOneDecimal = number => Math.round(number * 10) / 10;
-
   // Studying 15 ECTS during one period means studying at full pace (100%).
   // The ratio of studied ECTS to full pace ECTS gives the study pace for
   // that period.
   const ectsSumFullPace = 15;
   const studyPace = ectsSum / ectsSumFullPace;
 
-  return Math.round(studyPace * 100) + " % / " + roundToOneDecimal(ectsSum) + " hp";
+  return Math.round(studyPace * 100) + " % / " + ectsSum + " hp";
+}
+
+/**
+ * Rounds each value to one decimal while keeping the rounded values
+ * consistent with the rounded total.
+ *
+ * Rounding each period sum independently can make the displayed values
+ * disagree with their total. For example, the true sums 12.75 and 18.75
+ * total 31.5, but round individually to 12.8 and 18.8 (which add up to
+ * 31.6). Adjusting one value by a tenth keeps them consistent.
+ *
+ * @param {number[]} ectsSums - The unrounded ECTS sums, one per period.
+ * @returns {number[]} The sums rounded to one decimal, adjusted so they
+ * add up to the rounded total.
+ */
+function roundEctsSumsConsistently(ectsSums) {
+  const roundToOneDecimal = number => Math.round(number * 10) / 10;
+
+  const total = ectsSums.reduce((sum, ects) => sum + ects, 0);
+  const rounded = ectsSums.map(roundToOneDecimal);
+  const discrepancy = roundToOneDecimal(total) - roundToOneDecimal(
+    rounded.reduce((sum, ects) => sum + ects, 0)
+  );
+
+  // The discrepancy can only ever be a tenth or two, so adjust the period
+  // whose rounding error is largest to compensate.
+  if (discrepancy !== 0) {
+    const errors = ectsSums.map((sum, i) => (rounded[i] - sum) * Math.sign(discrepancy));
+    const targetIndex = errors.indexOf(Math.max(...errors));
+    rounded[targetIndex] = roundToOneDecimal(rounded[targetIndex] + discrepancy);
+  }
+
+  return rounded;
 }
 
 /**
@@ -256,7 +287,7 @@ export function addPeriodHeaders(term) {
   // We don't need to use a key here since there's only one period container
   // per term.
   let periodHeaderContainerUpdateSelection = term.selectAll(".period-header-container")
-    .data(term => [term.ectsSumPerPeriod]);
+    .data(term => [roundEctsSumsConsistently(term.ectsSumPerPeriod)]);
 
   // Add missing containers.
   let newPeriodHeaderContainer = periodHeaderContainerUpdateSelection.enter().append("div")

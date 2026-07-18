@@ -16,10 +16,13 @@ export default class CourseOccasion {
       return Prerequisite.fromJSON(prerequisite);
     });
 
+    // ECTS may arrive as a string (Django serializes Decimal as a string).
+    // Coerce to Number so arithmetic never falls back to string
+    // concatenation or accumulates avoidable type errors.
     return new CourseOccasion(
       json.title,
       json.slug,
-      json.ects,
+      Number(json.ects),
       json.year,
       json.start,
       json.weeks,
