@@ -267,9 +267,11 @@ function roundEctsSumsConsistently(ectsSums) {
   );
 
   // The discrepancy can only ever be a tenth or two, so adjust the period
-  // whose rounding error is largest to compensate.
+  // that was rounded furthest away from the discrepancy direction. That
+  // is the period whose rounding error the adjustment cancels rather than
+  // amplifies.
   if (discrepancy !== 0) {
-    const errors = ectsSums.map((sum, i) => (rounded[i] - sum) * Math.sign(discrepancy));
+    const errors = ectsSums.map((sum, i) => (sum - rounded[i]) * Math.sign(discrepancy));
     const targetIndex = errors.indexOf(Math.max(...errors));
     rounded[targetIndex] = roundToOneDecimal(rounded[targetIndex] + discrepancy);
   }
