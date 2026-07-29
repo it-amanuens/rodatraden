@@ -209,17 +209,61 @@ Example:
 ## Backups of the data
 
 ### To create a backup (run on production server)
-1. `python -Xutf8 ./manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission --indent 2 -o data.json`
-(more info can be found here: https://www.coderedcorp.com/blog/how-to-dump-your-django-database-and-load-it-into-/)
 
-2. We then have to copy over the media folder (if the images uploaded to Rödatråden should be saved). Easy methode is just to zip and send over the media folder. 
+Create a complete backup of your database and media files with a single command:
+
+```
+python manage.py backup
+```
+
+This creates a timestamped ZIP file in the `backups/` folder containing:
+- **data.json** — Complete database dump with all courses, profiles, users, etc.
+- **media/profiles/** — All profile images
+- **media/isp_templates/** — ISP Excel template files
+
+**Example output:**
+```
+Exporting database...
+✓ Database exported successfully
+Copying media files...
+✓ Copied 37 profile images
+✓ Copied ISP templates
+Creating backup archive: backup_2026-05-14_14-30-45.zip...
+✓ Backup created successfully
+
+============================================================
+BACKUP COMPLETE
+============================================================
+Location: backups/backup_2026-05-14_14-30-45.zip
+Size: 12.45 MB
+Contents: data.json, media/profiles/, media/isp_templates/
+```
+
+**Additional options:**
+- `python manage.py backup --no-media` — Database only backup (smaller file size)
+- `python manage.py backup --output /path/to/dir` — Save backup to custom location
 
 ### To restore a backup
-1. When setting up the new instance, first run `python manage.py migrate` to create the new migration table.
 
-2. Restore user data using `python manage.py loaddata data.json`
+Use the provided restore script to restore a backup to a new or existing instance:
 
-3. Extract the media folder to same directory (project-root/media/)
+```
+python restore_backup.py backups/backup_2026-05-14_14-30-45.zip
+```
+
+The script will automatically:
+1. Run database migrations
+2. Load the database dump (`data.json`)
+3. Restore media files (profiles and ISP templates)
+
+**Manual restore (if needed):**
+1. When setting up the new instance, first run `python manage.py migrate` to create the database tables.
+2. Extract the backup ZIP file to get `data.json` and the `media/` folder.
+3. Restore user data using `python manage.py loaddata data.json`
+4. Extract the `media/` folder contents to your project's `media/` directory
+
+For more information on Django's data backup, see:
+https://www.coderedcorp.com/blog/how-to-dump-your-django-database-and-load-it-into-/
 
 
 ## Docker local run with persistent data
