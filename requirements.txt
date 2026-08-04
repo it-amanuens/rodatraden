@@ -6,7 +6,7 @@ django-filter==26.1  # Filtering the lists
 django-bootstrap-modal-forms==3.0.5  # Nice modals for forms
 django-widget-tweaks==1.5.1  # Flexible form widgets
 django-registration==5.2.1  # User registration manager
-django-simple-captcha==0.6.3  # Recaptcha for user creation
+django-simple-captcha==0.7.0  # Recaptcha for user creation
 openpyxl==3.1.5  # Managing excel files
 Pillow==12.3.0  # Image processing
 psycopg2-binary==2.9.12  # Postgresql
