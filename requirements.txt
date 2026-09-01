@@ -1,5 +1,5 @@
 Django==6.0.7  # Base django module
-django-bootstrap4==26.1  # CSS base
+django-bootstrap4==26.2  # CSS base
 django-crispy-forms==2.6  # Nice looking forms
 django-tables2==3.0.0  # Tables for lists
 django-filter==26.1  # Filtering the lists
