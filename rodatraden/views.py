@@ -288,6 +288,10 @@ class UserUpdate(CorrectUserPermissionMixin, UpdateView):
     template_name = 'rodatraden/user/update_user_form.html'
     success_url = reverse_lazy('index')
 
+    def get_queryset(self):
+        """Only allow editing the logged-in user's own record."""
+        return super().get_queryset().filter(pk=self.request.user.pk)
+
 
 @login_required
 def user_change_password(request: HttpRequest, username: str, pk: int):
@@ -318,7 +322,7 @@ def user_change_password(request: HttpRequest, username: str, pk: int):
 @login_required
 def user_delete(request: HttpRequest, username, pk):
 
-    if request.user.username != username and request.user.id != pk:
+    if request.user.username != username or request.user.id != pk:
         return redirect(reverse('index'))
 
     if request.method == 'POST':
