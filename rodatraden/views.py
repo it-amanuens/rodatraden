@@ -21,7 +21,7 @@ from .models import (
     Category, Course, CourseOccasion, CourseScheduleSegment, Block,
     Prerequisite, User, Profile,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
-    PrivateCourse, ISPTemplate
+    PrivateCourse, ISPTemplate, TimePeriod
 )
 from .tables import (
     ExamTable, ReportTable
