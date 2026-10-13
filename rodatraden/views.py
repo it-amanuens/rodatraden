@@ -21,7 +21,7 @@ from .models import (
     Category, Course, CourseOccasion, CourseScheduleSegment, Block,
     Prerequisite, User, Profile,
     CategoryExam, CategoryCourse, AcademicYear, Exam, Report,
-    PrivateCourse, ISPTemplate
+    PrivateCourse, ISPTemplate, TimePeriod
 )
 from .tables import (
     ExamTable, ReportTable
@@ -408,8 +408,8 @@ class ReportCreate(BSModalCreateView):
             )
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the report list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('report-list')
 
 
 class ReportList(LoginRequiredMixin, PermissionRequiredMixin, SingleTableView):
@@ -432,8 +432,8 @@ class ReportUpdate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Rapport uppdaterades utan problem'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the report list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('report-list')
 
 
 class ReportDelete(LoginRequiredMixin, PermissionRequiredMixin,
@@ -491,8 +491,8 @@ class ExamUpdate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Examina uppdaterades utan problem'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the exam list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('exam-list')
 
 
 class ExamDelete(LoginRequiredMixin, PermissionRequiredMixin,
@@ -646,8 +646,8 @@ class CourseUpdate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kursen uppdaterades utan problem'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the course list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('course-list')
 
 
 class CourseDelete(LoginRequiredMixin, PermissionRequiredMixin,
@@ -850,8 +850,8 @@ class CourseOccasionCreate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kurstillfället skapades utan problem'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the course list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('course-list')
 
 
 class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin,
@@ -865,8 +865,8 @@ class CourseOccasionUpdate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kurstillfälle uppdaterat'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the course list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('course-list')
 
 
 class CourseOccasionDelete(LoginRequiredMixin, PermissionRequiredMixin,
@@ -975,8 +975,8 @@ class ProfileUpdate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Profilen uppdaterades utan problem'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the profile list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('profile-list')
 
 
 class ProfileDelete(LoginRequiredMixin, PermissionRequiredMixin,
@@ -1041,8 +1041,8 @@ class CategoryUpdate(LoginRequiredMixin, PermissionRequiredMixin,
     success_message = 'Kategori uppdaterades utan problem'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the category list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy('category-list')
 
 
 class CategoryDelete(LoginRequiredMixin, PermissionRequiredMixin,
@@ -1134,8 +1134,11 @@ class PrivateCourseUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
     success_message = 'Ändringarna i blockschemat sparades'
 
     def get_success_url(self):
-        # Return to last page
-        return self.request.META['HTTP_REFERER']
+        # Return to last page if available; otherwise fall back to the user's private course list.
+        return self.request.META.get('HTTP_REFERER') or reverse_lazy(
+            'privatecourse-list',
+            kwargs={'username': self.kwargs['username']}
+        )
 
 
 class PrivateCourseCreate(CorrectUserPermissionMixin, LoginRequiredMixin,
@@ -1195,8 +1198,11 @@ class BlockUpdate(CorrectUserPermissionMixin, LoginRequiredMixin,
         new_slug = self.object.slug
 
         if new_slug == old_slug:
-            # Return to last page
-            return self.request.META['HTTP_REFERER']
+            # Return to last page if available; otherwise fall back to the user's block list.
+            return self.request.META.get('HTTP_REFERER') or reverse_lazy(
+                'block-list',
+                kwargs={'username': self.kwargs['username']}
+            )
         else:
             # Return to the updated url since the user renamed the block
             return reverse_lazy('block-detail',

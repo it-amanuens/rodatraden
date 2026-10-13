@@ -116,10 +116,14 @@
       });
 
       // Calculate the scrollbar width and make it accessible in CSS.
-      const scrollbarWidth = window.innerWidth
-                           - document.documentElement.offsetWidth;
-      document.documentElement.style.setProperty('--scrollbar-width',
-                                                 scrollbarWidth + 'px');
+      // Wrapped in an IIFE: modal forms re-evaluate injected scripts, and a
+      // top-level `const` would then throw "already been declared".
+      (function () {
+        const scrollbarWidth = window.innerWidth
+                             - document.documentElement.offsetWidth;
+        document.documentElement.style.setProperty('--scrollbar-width',
+                                                   scrollbarWidth + 'px');
+      })();
       
     </script>
 
