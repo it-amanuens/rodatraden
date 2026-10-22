@@ -80,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
                 'rodatraden.context_processors.nav_processor',
+                'rodatraden.context_processors.site_processor',
             ],
         },
     },
@@ -167,6 +168,17 @@ MEDIA_URL = '/media/'
 LOGIN_REDIRECT_URL = 'index'  # Where to send after login
 LOGOUT_REDIRECT_URL = 'index'  # Where to send after logout
 LOGIN_URL = '/anvandare/login/'  # Url for login
+
+# Site metadata
+SITE_NAME = 'Röda tråden'
+SITE_PROGRAMME_NAME = 'Teknisk fysik'
+SITE_INSTITUTION_NAME = 'Umeå universitet'
+SITE_DESCRIPTION = (
+    'Röda tråden är en databas med information om kurserna på Teknisk fysik i Umeå. Denna hemsida är till för studenter, kursansvariga eller de som bara är allmänt nyfikna över programmet. Här kan man hitta kursprofiler, rekommenderade blockscheman, kurser, kurstillfällen med mera.'
+)
+SITE_COURSE_PLAN_BASE_URL = 'https://www.umu.se/student/kurs-och-utbildningsplan/'
+SITE_COURSE_PLAN_LABEL = 'UMU Kursplan'
+SITE_ISP_INSTRUCTIONAL_VIDEO_URL = 'http://www.tp.umu.se/tekniskfysik/Instruktionsvideo_R%C3%B6daTr%C3%A5den_v1.mp4'
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap5'

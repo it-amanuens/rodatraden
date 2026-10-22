@@ -778,7 +778,7 @@ class CourseOccasion(models.Model):
 
 
 class Exam(models.Model):
-    """Exams such as teknisk fysik."""
+    """Degree/exam definitions."""
 
     title = models.CharField(max_length=250, verbose_name='Examensnamn')
     ects = models.DecimalField(max_digits=4,decimal_places=1,
