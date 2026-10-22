@@ -1,7 +1,20 @@
+import datetime
 import django_filters
 from .models import (
-    Course, Category, Level, Department, Track, AcademicYear, TimePeriod
+    Course, Category, Level, Department, Profile, Track,
+    CourseOccasion, academic_year_title, YEAR_RANGE_OFFSET
 )
+
+
+def _courseoccasion_year_choices(extra_years=YEAR_RANGE_OFFSET):
+    """Build year choices from dynamic range + existing database values."""
+    current = datetime.date.today().year
+    years = set(range(current - extra_years, current + extra_years + 1))
+    years.update(
+        CourseOccasion.objects.exclude(year__isnull=True).values_list('year', flat=True)
+    )
+
+    return [('', 'Läsår')] + [(y, academic_year_title(y)) for y in sorted(years)]
 
 class CourseFilter(django_filters.FilterSet):
     """Filter settings for the list of courses.
@@ -37,40 +50,58 @@ class CourseFilter(django_filters.FilterSet):
         queryset=Track.objects.all().order_by('title'),
         empty_label='Profil', field_name='tracks'
     )
-    academic_year = django_filters.ModelChoiceFilter(
-        queryset=AcademicYear.objects.all().order_by('-year'),
-        empty_label='Läsår', method='filter_by_academic_year'
-    )
-    time_period = django_filters.ModelChoiceFilter(
-        queryset=TimePeriod.objects.all().order_by('week'),
-        empty_label='Läsperiod', method='filter_by_time_period'
-    )
-
-    def filter_by_academic_year(self, queryset, name, value):
-        """Filter courses that have an official occasion in the given academic year."""
-        if value:
-            return queryset.filter(
-                courseoccasion__academic_year=value,
-                courseoccasion__official=True
-            ).distinct()
-        return queryset
-
-    def filter_by_time_period(self, queryset, name, value):
-        """Filter courses that have an official occasion in the given time period."""
-        if value:
-            return queryset.filter(
-                courseoccasion__time_period=value,
-                courseoccasion__official=True
-            ).distinct()
-        return queryset
 
     class Meta:
         model = Course
-        fields = ['title', 'categories', 'profile', 'level', 'department',
-                  'academic_year', 'time_period']
+        fields = ['title', 'categories', 'profile', 'level', 'department']
 
     @property
     def qs(self):
         # Sort by title in ascending order if no sort order is specified.
         sort_order = self.data.get('sort_order', 'title')
         return super().qs.order_by(sort_order)
+
+
+class CourseOccasionFilter(django_filters.FilterSet):
+    """Filter settings for the list of course occasions."""
+    
+    # A lot of the filters refer to the course that the courseoccasion is
+    # connected to, hence the 'field_name' argument
+    title = django_filters.ModelChoiceFilter(
+            queryset=Course.objects.all().order_by('title'),
+            empty_label='Kursnamn', to_field_name='id', field_name='course'
+    )
+    # Year is now a plain IntegerField — use ChoiceFilter with dynamic choices.
+    year = django_filters.ChoiceFilter(
+            choices=_courseoccasion_year_choices,
+            empty_label=None,  # we include the empty option in choices above
+            field_name='year'
+    )
+    time_period = django_filters.ChoiceFilter(
+            choices=lambda: [('', 'Läsperiod')] + [
+                (i * 10, f'LP{i}') for i in range(1, 6)
+            ],
+            empty_label=None,
+            field_name='start',
+            label='Läsperiod',
+    )
+    categories = django_filters.ModelChoiceFilter(
+            queryset=Category.objects.all().order_by('title'), 
+            field_name='course__categories',
+            empty_label='Kategori'
+    )
+    department = django_filters.ModelChoiceFilter(
+            queryset=Department.objects.all().order_by('title'), 
+            field_name='course__department',
+            empty_label='Institution'
+    )
+    official = django_filters.ChoiceFilter(
+            choices=((True, 'Godkänd'), (False, 'Ej godkänd')), 
+            empty_label='Status'
+    )
+
+    class Meta:
+        model = CourseOccasion
+        fields = ['title', 'year', 'categories', 'department',
+            'official'
+        ]

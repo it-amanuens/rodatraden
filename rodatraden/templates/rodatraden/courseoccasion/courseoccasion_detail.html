@@ -12,19 +12,19 @@
 </a>
 {% if user.is_staff %}
 <a class="btn btn-gone update-item" 
-  data-id="{% url 'courseoccasion-update' courseoccasion.academic_year.year courseoccasion.slug %}"
+  data-id="{% url 'courseoccasion-update' courseoccasion.year courseoccasion.slug %}"
   data-toggle="tooltip" title="Ändra">
   <span class="fa fa-edit"></span>
 </a>
 <a class="btn btn-gone delete-item"
-  data-id="{% url 'courseoccasion-delete' courseoccasion.academic_year.year courseoccasion.slug %}"
+  data-id="{% url 'courseoccasion-delete' courseoccasion.year courseoccasion.slug %}"
   data-toggle="tooltip" title="Radera">
   <span class="fa fa-trash"></span>
 </a> 
 {% endif %}
 {% endblock %}
 
-{% block page_title %}{{ courseoccasion.course.title }} ({{ courseoccasion.academic_year.year }}){% endblock %}
+{% block page_title %}{{ courseoccasion.course.title }} ({{ courseoccasion.year }}){% endblock %}
 
 {% block content %}
 

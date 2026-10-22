@@ -94,7 +94,6 @@
           $(this).modalForm({formURL: $(this).data('id')});
         });
 
-        {% if user.is_staff %}
         /* Open modal for creation form */
         $(".add-item").each(function () {
           $(this).modalForm({formURL: $(this).data('id')});
@@ -112,7 +111,6 @@
             isDeleteForm: true
           });
         })
-        {% endif %}
       });
 
       // Calculate the scrollbar width and make it accessible in CSS.

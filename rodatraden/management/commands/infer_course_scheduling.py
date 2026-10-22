@@ -1,11 +1,11 @@
 """
 Infer CourseScheduleSegment rows from existing CourseOccasion history.
 
-For each course, groups occasions by time_period and creates one segment
+For each course, groups occasions by start week and creates one segment
 per group with:
   - frequency = 'yearly'
-  - start_year = earliest year in that (course, period) group
-  - end_year   = latest year in that (course, period) group
+  - start_year = earliest year in that (course, start) group
+  - end_year   = latest year in that (course, start) group
   - weeks      = most common weeks value in the group
   - blacklisted_years = years in [start..end] that have no occasion
 
@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
             occasions = CourseOccasion.objects.filter(
                 course=course
-            ).select_related('academic_year', 'time_period')
+            )
 
             if not occasions.exists():
                 stats['skipped_no_occasions'] += 1
@@ -109,22 +109,22 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('\nChanges saved.'))
 
     def _infer_segments(self, course, occasions):
-        """Return list of dicts describing one segment per (course, period)."""
-        # Group occasions by time_period
-        by_period = {}
+        """Return list of dicts describing one segment per (course, start)."""
+        # Group occasions by start week
+        by_start = {}
         for occ in occasions:
-            pid = occ.time_period_id
-            if pid not in by_period:
-                by_period[pid] = {
-                    'time_period': occ.time_period,
+            s = occ.start
+            if s not in by_start:
+                by_start[s] = {
+                    'start': s,
                     'years': [],
                     'weeks': [],
                 }
-            by_period[pid]['years'].append(occ.academic_year.year)
-            by_period[pid]['weeks'].append(occ.weeks)
+            by_start[s]['years'].append(occ.year)
+            by_start[s]['weeks'].append(occ.weeks)
 
         segments = []
-        for pid, data in by_period.items():
+        for s, data in by_start.items():
             years = sorted(data['years'])
             start_year = min(years)
             end_year = max(years)
@@ -136,7 +136,7 @@ class Command(BaseCommand):
 
             segments.append({
                 'course': course,
-                'time_period': data['time_period'],
+                'start': s,
                 'start_year': start_year,
                 'end_year': end_year,
                 'frequency': 'yearly',
@@ -147,12 +147,14 @@ class Command(BaseCommand):
         return segments
 
     def _report(self, course, segments):
+        weeks_in_period = 10
         self.stdout.write(f'\n  {course.title} ({len(segments)} segment(s)):')
         for seg in segments:
             bl_str = (', '.join(str(y) for y in seg['blacklisted_years'])
                       if seg['blacklisted_years'] else '(none)')
+            period_number = seg['start'] // weeks_in_period + 1
             self.stdout.write(
-                f"    {seg['time_period'].title}: "
+                f"    LP{period_number}: "
                 f"{seg['start_year']}–{seg['end_year']}  "
                 f"freq={seg['frequency']}  "
                 f"weeks={seg['weeks']}  "
@@ -163,7 +165,7 @@ class Command(BaseCommand):
         for seg in segments:
             CourseScheduleSegment.objects.create(
                 course=seg['course'],
-                time_period=seg['time_period'],
+                start=seg['start'],
                 start_year=seg['start_year'],
                 end_year=seg['end_year'],
                 frequency=seg['frequency'],
