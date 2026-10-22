@@ -170,3 +170,10 @@ LOGIN_URL = '/anvandare/login/'  # Url for login
 
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+# Inactive user auto-deletion
+# Set to number of years after which inactive users are deleted.
+# Users are considered inactive if their last_login is older than this threshold,
+# or if they never logged in, their date_joined is older than this threshold.
+# Set to 0 to disable auto-deletion.
+INACTIVE_USER_AUTODELETE_YEARS = 5
