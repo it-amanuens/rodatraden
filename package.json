@@ -4,7 +4,7 @@
   "description": "Front-end dependency version tracking for Dependabot. The minified files are vendored in rodatraden/static/assets/ and must be updated manually when Dependabot opens a version-bump PR.",
   "dependencies": {
     "chart.js": "4.5.1",
-    "d3": "7.9.0",
+    "d3": "7.9.2",
     "popper.js": "1.16.1",
     "select2": "4.1.0"
   }
